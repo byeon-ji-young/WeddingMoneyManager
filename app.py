@@ -13,7 +13,7 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-plt.rcParams["font.family"] = "Malgun Gothic"
+plt.rcParams["font.family"] = "Malgun Gothic" # or plt.rc("font", family="Malgun Gothic")
 plt.rcParams["axes.unicode_minus"] = False
 
 money_data = []
@@ -28,7 +28,147 @@ sort_reverse = {
 }
 
 # 메인 윈도우(창) 생성
-window = tk.Tk() 
+window = tk.Tk()
+
+# =====================
+# 화면 큰 구조
+# =====================
+title_frame = tk.Frame(window)
+title_frame.grid(
+    row=0,
+    column=0,
+    pady=10
+)
+
+top_frame = tk.Frame(window)
+top_frame.grid(
+    row=1,
+    column=0,
+    padx=20,
+    pady=10
+)
+top_frame.columnconfigure(0, weight=1)
+top_frame.columnconfigure(1, weight=1)
+
+bottom_frame = tk.Frame(window)
+bottom_frame.grid(
+    row=2,
+    column=0,
+    padx=20,
+    pady=10
+)
+bottom_frame.columnconfigure(0, weight=1)
+bottom_frame.columnconfigure(1, weight=1)
+
+title_label = tk.Label(
+    title_frame,
+    # text="💰 신혼 가계부",
+    font=("맑은 고딕", 10, "bold")
+)
+
+title_label.pack()
+
+# 창 설정
+window.title("💒 신혼 자금 관리") # 창 제목
+window.geometry("700x850") # 창 크기 (widthxheight)
+
+# =====================
+# 화면 영역 Frame 분리
+# =====================
+dashboard_frame = tk.Frame(bottom_frame)
+dashboard_frame.grid(
+    row=0,
+    column=0,
+    columnspan=2,
+    padx=20,
+    pady=20
+)
+
+# 대시보드 카드 --
+budget_card = tk.Label(
+    dashboard_frame,
+    text=f"💰 예산\n\n{budget:,}원",
+    font=("맑은 고딕", 10, "bold"),
+    width=18,
+    height=5,
+    relief="groove", # solid: 실선, groove: 홈이 파인 듯한 이중 테두리
+    bg="#E8F5E9"
+)
+budget_card.grid(row=0, column=0, pady=10) # pady: 위아래 여백
+
+used_card = tk.Label(
+    dashboard_frame,
+    text="💸 현재 지출\n\n0원",
+    font=("맑은 고딕", 10, "bold"),
+    width=18,
+    height=5,
+    relief="groove",
+    bg="#FFF3E0"
+)
+used_card.grid(row=0, column=1, pady=10)
+
+remain_card = tk.Label(
+    dashboard_frame,
+    text=f"💵 남은 금액\n\n{budget:,}원",
+    font=("맑은 고딕", 10, "bold"),
+    width=18,
+    height=5,
+    relief="groove",
+    bg="#E3F2FD"
+)
+remain_card.grid(row=0, column=2, pady=10)
+# -- 대시보드 카드
+
+budget_frame = tk.Frame(top_frame)
+budget_frame.grid(
+    row=0,
+    column=1,
+    columnspan=2,
+    pady=10
+)
+
+input_frame = tk.Frame(top_frame)
+input_frame.grid(
+    row=0,
+    column=0,
+    padx=20,
+    pady=20
+)
+
+list_frame = tk.Frame(bottom_frame)
+list_frame.grid(
+    row=3,
+    column=0,
+    columnspan=2,
+    padx=20,
+    pady=20,
+    sticky="nsew"
+)
+list_frame.grid_columnconfigure(0, weight=1) # list_frame의 0번째 컬럼은 남는 공간이 있으면 늘어나라
+list_frame.grid_columnconfigure(1, weight=0) # list_frame의 1번째 컬럼은 남는 공간을 받지 마라
+# column 0(Treeview) → 남은 공간 차지 / column 1(scrollbar) → 고정 크기
+list_frame.grid_rowconfigure(0, weight=0)
+list_frame.grid_rowconfigure(1, weight=1) # grid_rowconfigure()의 숫자는 list_frame 내부의 row 번호. 즉, money_list의 row가 1이면 매칭 됨
+
+search_frame = tk.Frame(list_frame)
+search_frame.grid(
+    row=0,
+    column=0,
+    columnspan=2,
+    sticky="ew"
+)
+search_frame.grid_columnconfigure(0, weight=1)
+search_frame.grid_columnconfigure(1, weight=0)
+
+button_frame = tk.Frame(list_frame)
+button_frame.grid(
+    row=2,
+    column=0,
+    columnspan=2,
+    sticky="ew"
+)
+button_frame.grid_columnconfigure(0, weight=1)
+button_frame.grid_columnconfigure(1, weight=1)
 
 # =====================
 # 함수 영역
@@ -350,7 +490,7 @@ def show_detail_state():
 
     messagebox.showinfo("상세 통계", result)
 
-def show_graph():
+def show_bar_chart():
     category_total = {}
 
     for money in money_data:
@@ -367,14 +507,34 @@ def show_graph():
     categories = list(category_total.keys()) # keys(): 기능 실행, keys: 기능 자체. ex)get()
     prices = list(category_total.values())
 
-    plt.bar(categories, prices) # 막대 그래프 생성
-    plt.title("카테고리별 지출")
+    plt.figure(figsize=(8,5))
+    bars = plt.bar(categories, prices) # 막대 그래프 생성. bar: 세로 / barh: 가로
+    for bar in bars:
+        height = bar.get_height()
+
+        plt.text(
+            bar.get_x() + bar.get_width()/2,
+            height,
+            f"{height/10000:.0f}만원",
+            ha="center",
+            va="bottom"
+        )
+    plt.title("📊 카테고리별 지출 현황")
     plt.xlabel("카테고리")
     plt.ylabel("금액")
+    plt.tight_layout() # 여백 자동 맞춤
     plt.show() # 그래프 표시
 
-def show_pie_graph():
+def show_pie_chart():
     category_total = {}
+
+    if not money_data:
+        messagebox.showinfo(
+            "통계",
+            "등록된 지출 내역이 없습니다."
+        )
+
+        return
 
     for money in money_data:
         category = money["category"]
@@ -386,12 +546,60 @@ def show_pie_graph():
         else:
             category_total[category] = price
 
+    if not category_total:
+        messagebox.showinfo(
+            "통계",
+            "표시할 데이터가 없습니다."
+        )
+
+        return
+    
     categories = list(category_total.keys())
     prices = list(category_total.values())
 
-    plt.pie(prices, labels=categories, autopct="%1.1f%%") # 원형 그래프 생성
-    plt.title("카테고리별 지출 비율")
+    max_index = prices.index(max(prices))
+    explode = [0] * len(prices)
+    explode[max_index] = 0.1
+
+    plt.figure(figsize=(6,6))
+    wedges, texts, autotexts = plt.pie(
+        prices,
+        # labels=categories,
+        labels=None,
+        # autopct="%1.1f%%",
+        autopct=make_autopct(prices),
+        startangle=90, # 기본은 3시 방향부터 시작하는데 90도를 주면 12시 방향부터 시작함
+        # shadow=True,
+        wedgeprops={"width": 0.45}, # 도넛
+        explode=explode, # 자동으로 살짝 튀어나오게
+        textprops={"fontsize": 9}
+        # labeldistance=1.15
+        # pctdistance=0.6
+    )# 원형 그래프 생성
+    plt.legend(
+        wedges,
+        categories,
+        title="카테고리",
+        loc="center left",
+        bbox_to_anchor=(1, 0, 0.5, 1)
+    )
+    plt.title("💒 신혼 자금 사용 비율")
+    plt.axis("equal") # 원으로
+    plt.tight_layout() # 여백 자동 맞춤
     plt.show()
+
+def make_autopct(values): # 설정값(values)을 기억하는 함수를 만들어서 반환하는 역할
+
+    def my_autopct(percent): # percent는 matplotlib가 자동으로 넣어주는 값
+        total = sum(values)
+        price = int(total * percent / 100)
+        
+        if percent < 5:
+            return f"{percent:.1f}%"
+        else:
+            return f"{percent:.1f}%\n({price:,}원)"
+
+    return my_autopct
 
 def update_budget():
     global budget
@@ -444,86 +652,6 @@ def sort_column(column):
 # =====================
 # 화면 영역
 # =====================
-# 창 설정
-window.title("💒 신혼 자금 관리") # 창 제목
-window.geometry("1000x700") # 창 크기 (widthxheight)
-
-# =====================
-# 화면 영역 Frame 분리
-# =====================
-dashboard_frame = tk.Frame(window)
-dashboard_frame.grid(
-    row=0,
-    column=0,
-    padx=20,
-    pady=20
-)
-
-# 대시보드 카드 --
-budget_card = tk.Label(
-    dashboard_frame,
-    text=f"💰 예산\n\n{budget:,}원",
-    font=("맑은 고딕", 14, "bold"),
-    width=18,
-    height=5,
-    relief="groove", # solid: 실선, groove: 홈이 파인 듯한 이중 테두리
-    bg="#E8F5E9"
-)
-budget_card.grid(row=0, column=0, pady=10) # pady: 위아래 여백
-
-used_card = tk.Label(
-    dashboard_frame,
-    text="💸 현재 지출\n\n0원",
-    font=("맑은 고딕", 14, "bold"),
-    width=18,
-    height=5,
-    relief="groove",
-    bg="#FFF3E0"
-)
-used_card.grid(row=0, column=1, pady=10)
-
-remain_card = tk.Label(
-    dashboard_frame,
-    text=f"💵 남은 금액\n\n{budget:,}원",
-    font=("맑은 고딕", 14, "bold"),
-    width=18,
-    height=5,
-    relief="groove",
-    bg="#E3F2FD"
-)
-remain_card.grid(row=0, column=2, pady=10)
-# -- 대시보드 카드
-
-budget_frame = tk.Frame(window)
-budget_frame.grid(
-    row=1,
-    column=0,
-    columnspan=2,
-    pady=10
-)
-
-input_frame = tk.Frame(window)
-input_frame.grid(
-    row=2,
-    column=0,
-    padx=20,
-    pady=20
-)
-
-list_frame = tk.Frame(window)
-list_frame.grid(
-    row=3,
-    column=0,
-    columnspan=2,
-    padx=20,
-    pady=20
-)
-
-list_frame.grid_columnconfigure(0, weight=1) # list_frame의 0번째 컬럼은 남는 공간이 있으면 늘어나라
-list_frame.grid_columnconfigure(1, weight=0) # list_frame의 1번째 컬럼은 남는 공간을 받지 마라
-# column 0(Treeview) → 남은 공간 차지 / column 1(scrollbar) → 고정 크기
-list_frame.grid_rowconfigure(6, weight=1) # grid_rowconfigure()의 숫자는 list_frame 내부의 row 번호. 즉, money_list의 row가 6이면 매칭 됨
-
 # 창 꾸미기
 # Entry → 사용자가 입력하는 곳
 # Button → 사용자가 누르는 곳
@@ -563,30 +691,44 @@ price_label.grid(row=3, column=0)
 price_entry = tk.Entry(input_frame, width=20)
 price_entry.grid(row=3, column=1)
 
-add_button = tk.Button(input_frame, text="추가", command=add_money) # command=add_money() 프로그램 시작할 때 바로 실행
+button_font = ("맑은 고딕", 10, "bold")
+
+add_button = tk.Button(input_frame, text="➕ 추가", command=add_money, width=10, font=button_font) # command=add_money() 프로그램 시작할 때 바로 실행
 add_button.grid(row=4, column=0)
 
 # select_button = tk.Button(window, text="수정 선택", command=select_money)
 # select_button.grid(row=4, column=1)
 
-update_button = tk.Button(input_frame, text="수정", command=update_money)
+update_button = tk.Button(input_frame, text="✏ 수정", command=update_money, width=10, font=button_font)
 update_button.grid(row=4, column=1)
 
-delete_button = tk.Button(input_frame, text="삭제", command=delete_money)
+delete_button = tk.Button(input_frame, text="🗑 삭제", command=delete_money, width=10, font=button_font)
 delete_button.grid(row=4, column=2)
 
-search_entry = tk.Entry(list_frame)
-search_entry.grid(row=0, column=0)
+search_entry = tk.Entry(search_frame)
+search_entry.grid(row=0, column=0, sticky="ew")
 
-search_button = tk.Button(list_frame, text="검색", command=search_money)
+search_button = tk.Button(search_frame, text="검색", command=search_money)
 search_button.grid(row=0, column=1)
 
-sort_button = tk.Button(list_frame, text="금액순", command=sort_price)
-sort_button.grid(row=0, column=2, padx=5)
-
+# listbox
 # money_list = tk.Listbox(list_frame, width=50)
 # money_list.bind("<<ListboxSelect>>", select_money)
 # money_list.grid(row=6, column=0, columnspan=2)
+
+# treeview
+style = ttk.Style()
+style.configure("Treeview", font=("맑은 고딕", 10), rowheight=30)
+style.configure("Treeview.Heading", font=("맑은 고딕", 11, "bold"))
+style.map(
+    "Treeview",
+    background=[
+        ("selected", "#AED6F1")
+    ],
+    foreground=[
+        ("selected", "black")
+    ]
+)
 money_list = ttk.Treeview(list_frame, columns=("date", "category", "item", "price"), show="headings", height=10)
 scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=money_list.yview) # money_list.yview: Treeview → Scrollbar. 스크롤바 움직이면 Treeview의 세로 위치를 바꿔라
 money_list.configure(yscrollcommand=scrollbar.set) # scrollbar.set: Scrollbar → Treeview. Treeview가 현재 위치를 스크롤바에 알려줘라
@@ -594,10 +736,10 @@ money_list.heading("date", text="날짜", command=lambda: sort_column("date")) #
 money_list.heading("category", text="분류", command=lambda: sort_column("category"))
 money_list.heading("item", text="항목", command=lambda: sort_column("item"))
 money_list.heading("price", text="금액", command=lambda: sort_column("price"))
-money_list.column("date", width=100, anchor="center")
+money_list.column("date", width=120, anchor="center")
 money_list.column("category", width=100, anchor="center")
-money_list.column("item", width=150, anchor="center")
-money_list.column("price", width=200, anchor="e")
+money_list.column("item", width=200, anchor="w", stretch=True)
+money_list.column("price", width=120, anchor="e")
 money_list.bind("<<TreeviewSelect>>", select_money)
 money_list.grid(row=1, column=0, sticky="nsew") #sticky: 위젯을 셀의 어느 방향으로 붙일지 정하는 옵션. n(north), s(south), e(east), w(west)
 # nsew: 위,아래,왼,오 모든 방향으로 붙으라는거니까 커진 grid 칸 안에서 Treeview도 같이 늘어나라는 뜻
@@ -606,20 +748,20 @@ scrollbar.grid(row=1, column=1, sticky="ns")
 total_label = tk.Label(list_frame, text="총 지출 : 0원")
 total_label.grid(row=2, column=0, columnspan=2)
 
-category_stats_button = tk.Button(window, text="통계", command=show_category_state)
-category_stats_button.grid(row=8, column=0)
+# category_stats_button = tk.Button(window, text="통계", command=show_category_state)
+# category_stats_button.grid(row=8, column=0)
 
-month_stats_button = tk.Button(window, text="월별 통계", command=show_month_state)
-month_stats_button.grid(row=8, column=1)
+# month_stats_button = tk.Button(window, text="월별 통계", command=show_month_state)
+# month_stats_button.grid(row=8, column=1)
 
-detail_stats_button = tk.Button(window, text="상세 통계", command=show_detail_state)
-detail_stats_button.grid(row=8, column=2)
+# detail_stats_button = tk.Button(window, text="상세 통계", command=show_detail_state)
+# detail_stats_button.grid(row=8, column=2)
 
-graph_button = tk.Button(window, text="그래프", command=show_graph)
-graph_button.grid(row=9, column=0)
+bar_button = tk.Button(button_frame, text="📈 지출 비교", command=show_bar_chart, width=15, font=button_font)
+bar_button.grid(row=0, column=0, padx=20, pady=20)
 
-pie_button = tk.Button(window, text="비율 그래프", command=show_pie_graph)
-pie_button.grid(row=9, column=1)
+pie_button = tk.Button(button_frame, text="📊 카테고리 비율", command=show_pie_chart, width=15, font=button_font)
+pie_button.grid(row=0, column=1, padx=20, pady=20)
 
 # =====================
 # 실행
