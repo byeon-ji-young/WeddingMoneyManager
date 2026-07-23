@@ -19,6 +19,13 @@ plt.rcParams["axes.unicode_minus"] = False
 money_data = []
 selected_index = None
 budget = 30000000
+price_reverse = False
+sort_reverse = {
+    "date": False,
+    "category": False,
+    "item": False,
+    "price": False
+}
 
 # 메인 윈도우(창) 생성
 window = tk.Tk() 
@@ -415,6 +422,25 @@ def refresh_input_entry():
     item_entry.delete(0, tk.END)
     price_entry.delete(0, tk.END)
 
+def sort_price():
+    global price_reverse
+
+    # 오름차순이면 내림차순(reverse=True)으로 정렬 / 내림차순이면 오름차순(reverse=False)으로 정렬
+    money_data.sort(key=lambda money: money["price"], reverse=price_reverse) # money_data를 금액 기준으로 정렬. money: money["price"]에서 money는 내가 지정한 변수명. 다른걸로 바꿔도 상관없음
+
+    price_reverse = not price_reverse
+
+    display_data()
+
+def sort_column(column):
+    # 오름차순이면 내림차순(reverse=True)으로 정렬 / 내림차순이면 오름차순(reverse=False)으로 정렬
+    money_data.sort(key=lambda money: money[column], reverse=sort_reverse[column])
+
+    sort_reverse[column] = not sort_reverse[column] # 새 딕셔너리 통째로 바꾸는게 아니니까 global 사용 안함
+
+    display_data()
+
+
 # =====================
 # 화면 영역
 # =====================
@@ -550,33 +576,35 @@ delete_button = tk.Button(input_frame, text="삭제", command=delete_money)
 delete_button.grid(row=4, column=2)
 
 search_entry = tk.Entry(list_frame)
-search_entry.grid(row=5, column=0)
+search_entry.grid(row=0, column=0)
 
 search_button = tk.Button(list_frame, text="검색", command=search_money)
-search_button.grid(row=5, column=1)
+search_button.grid(row=0, column=1)
+
+sort_button = tk.Button(list_frame, text="금액순", command=sort_price)
+sort_button.grid(row=0, column=2, padx=5)
 
 # money_list = tk.Listbox(list_frame, width=50)
 # money_list.bind("<<ListboxSelect>>", select_money)
 # money_list.grid(row=6, column=0, columnspan=2)
-
-money_list = ttk.Treeview(list_frame, columns=("date", "category", "item", "amount"), show="headings", height=10)
+money_list = ttk.Treeview(list_frame, columns=("date", "category", "item", "price"), show="headings", height=10)
 scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=money_list.yview) # money_list.yview: Treeview → Scrollbar. 스크롤바 움직이면 Treeview의 세로 위치를 바꿔라
 money_list.configure(yscrollcommand=scrollbar.set) # scrollbar.set: Scrollbar → Treeview. Treeview가 현재 위치를 스크롤바에 알려줘라
-money_list.heading("date", text="날짜")
-money_list.heading("category", text="분류")
-money_list.heading("item", text="항목")
-money_list.heading("amount", text="금액")
+money_list.heading("date", text="날짜", command=lambda: sort_column("date")) # lambda 사용하는 이유: 클릭했을 때 실행하라는 의미. command=sort_column("date") 이렇게 쓰면 프로그램 시작할 때 바로 실행
+money_list.heading("category", text="분류", command=lambda: sort_column("category"))
+money_list.heading("item", text="항목", command=lambda: sort_column("item"))
+money_list.heading("price", text="금액", command=lambda: sort_column("price"))
 money_list.column("date", width=100, anchor="center")
 money_list.column("category", width=100, anchor="center")
 money_list.column("item", width=150, anchor="center")
-money_list.column("amount", width=200, anchor="e")
+money_list.column("price", width=200, anchor="e")
 money_list.bind("<<TreeviewSelect>>", select_money)
-money_list.grid(row=6, column=0, sticky="nsew") #sticky: 위젯을 셀의 어느 방향으로 붙일지 정하는 옵션. n(north), s(south), e(east), w(west)
+money_list.grid(row=1, column=0, sticky="nsew") #sticky: 위젯을 셀의 어느 방향으로 붙일지 정하는 옵션. n(north), s(south), e(east), w(west)
 # nsew: 위,아래,왼,오 모든 방향으로 붙으라는거니까 커진 grid 칸 안에서 Treeview도 같이 늘어나라는 뜻
-scrollbar.grid(row=6, column=1, sticky="ns")
+scrollbar.grid(row=1, column=1, sticky="ns")
 
 total_label = tk.Label(list_frame, text="총 지출 : 0원")
-total_label.grid(row=7, column=0, columnspan=2)
+total_label.grid(row=2, column=0, columnspan=2)
 
 category_stats_button = tk.Button(window, text="통계", command=show_category_state)
 category_stats_button.grid(row=8, column=0)
