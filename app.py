@@ -18,7 +18,7 @@ plt.rcParams["axes.unicode_minus"] = False
 
 money_data = []
 selected_index = None
-budget = 20000000
+budget = 30000000
 
 # 메인 윈도우(창) 생성
 window = tk.Tk() 
@@ -78,11 +78,16 @@ def update_total():
 
     total_label.config(text=f"총 지출 : {total:,}원") # config: 이미 만들어진 위젯의 설정 변경
 
-    rate = (total / budget) * 100
-    
-    used_card.config(text=f"💸 현재 지출\n\n{total:,}원\n사용률 {rate:.1f}%")
+    if budget > 0:
+        rate = total / budget * 100
+    else:
+        rate = 0
 
-    remain_card.config(text=f"💵 남은 금액\n\n{budget-total:,}원")
+    remain = budget - total
+
+    budget_card.config(text=f"💰 예산\n\n{budget:,}원")
+    used_card.config(text=f"💸 현재 지출\n\n{total:,}원\n사용률 {rate:.1f}%")
+    remain_card.config(text=f"💵 남은 금액\n\n{remain:,}원")
 
 def delete_money():
     # selected = money_list.curselection() # Listbox형태. 선택한 위치 가져오기
@@ -122,7 +127,7 @@ def save_data():
         )
 
 def load_data():
-    global money_data # 함수 밖에 있는 money_data를 사용할 거야
+    global money_data # 함수 밖에 있는 money_data를 사용
 
     try:
         with open(
@@ -365,6 +370,22 @@ def show_pie_graph():
     plt.title("카테고리별 지출 비율")
     plt.show()
 
+def update_budget():
+    global budget
+
+    try:
+        budget = int(budget_entry.get())
+
+    except:
+        messagebox.showwarning(
+            "입력 오류",
+            "예산은 숫자로 입력하세요."
+        )
+        
+        return
+
+    update_total()
+
 # =====================
 # 화면 영역
 # =====================
@@ -375,18 +396,10 @@ window.geometry("1000x700") # 창 크기 (widthxheight)
 # =====================
 # 화면 영역 Frame 분리
 # =====================
-input_frame = tk.Frame(window)
-input_frame.grid(
-    row=0,
-    column=0,
-    padx=20,
-    pady=20
-)
-
 dashboard_frame = tk.Frame(window)
 dashboard_frame.grid(
     row=0,
-    column=1,
+    column=0,
     padx=20,
     pady=20
 )
@@ -394,14 +407,13 @@ dashboard_frame.grid(
 # 대시보드 카드 --
 budget_card = tk.Label(
     dashboard_frame,
-    text=f"💰 총 예산\n\n{budget:,}원",
+    text=f"💰 예산\n\n{budget:,}원",
     font=("맑은 고딕", 14, "bold"),
     width=18,
     height=5,
     relief="groove", # solid: 실선, groove: 홈이 파인 듯한 이중 테두리
     bg="#E8F5E9"
 )
-
 budget_card.grid(row=0, column=0, pady=10) # pady: 위아래 여백
 
 used_card = tk.Label(
@@ -413,7 +425,6 @@ used_card = tk.Label(
     relief="groove",
     bg="#FFF3E0"
 )
-
 used_card.grid(row=0, column=1, pady=10)
 
 remain_card = tk.Label(
@@ -425,13 +436,28 @@ remain_card = tk.Label(
     relief="groove",
     bg="#E3F2FD"
 )
-
 remain_card.grid(row=0, column=2, pady=10)
 # -- 대시보드 카드
 
+budget_frame = tk.Frame(window)
+budget_frame.grid(
+    row=1,
+    column=0,
+    columnspan=2,
+    pady=10
+)
+
+input_frame = tk.Frame(window)
+input_frame.grid(
+    row=2,
+    column=0,
+    padx=20,
+    pady=20
+)
+
 list_frame = tk.Frame(window)
 list_frame.grid(
-    row=1,
+    row=3,
     column=0,
     columnspan=2,
     padx=20,
@@ -443,10 +469,20 @@ list_frame.grid_columnconfigure(1, weight=0) # list_frame의 1번째 컬럼은 �
 # column 0(Treeview) → 남은 공간 차지 / column 1(scrollbar) → 고정 크기
 list_frame.grid_rowconfigure(6, weight=1) # grid_rowconfigure()의 숫자는 list_frame 내부의 row 번호. 즉, money_list의 row가 6이면 매칭 됨
 
-# 창 꾸미기?
+# 창 꾸미기
 # Entry → 사용자가 입력하는 곳
 # Button → 사용자가 누르는 곳
 # Label → 정보를 보여주는 곳
+budget_label = tk.Label(budget_frame, text="예산")
+budget_label.grid(row=0, column=0, padx=5) # padx: 위젯 바깥쪽의 가로(좌우) 여백 / ipadx: 위젯 안쪽의 좌우 여백(위젯 자체의 너비를 늘림) / pady: 위젯 바깥쪽의 세로(상하) 여백
+
+budget_entry = tk.Entry(budget_frame, width=20)
+budget_entry.grid(row=0, column=1)
+budget_entry.insert(0, f"{budget}")
+
+budget_button = tk.Button(budget_frame, text="적용", command=update_budget)
+budget_button.grid(row=0, column=2, padx=5)
+
 date_label = tk.Label(input_frame, text="날짜") # tk.Label(넣을_창, 표시할_글자)
 date_label.grid(row=0, column=0)
 # 1. pack() : 자동 배치
