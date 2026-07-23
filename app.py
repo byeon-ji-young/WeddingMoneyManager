@@ -70,7 +70,7 @@ title_label.pack()
 
 # 창 설정
 window.title("💒 신혼 자금 관리") # 창 제목
-window.geometry("700x850") # 창 크기 (widthxheight)
+window.geometry("820x900") # 창 크기 (widthxheight)
 
 # =====================
 # 화면 영역 Frame 분리
@@ -653,6 +653,56 @@ def sort_column(column):
 # 화면 영역
 # =====================
 # 창 꾸미기
+entry_style = {
+    "font": ("맑은 고딕", 11),
+    "width": 30,
+    "relief": "flat",
+    "bd": 1
+}
+
+button_font = ("맑은 고딕", 10, "bold")
+normal_button = {
+    "font": button_font,
+    "width": 15,
+    "height": 2,
+    "relief": "flat", # 입체 버튼 효과 제거
+    "bd": 0, # 테두리 제거
+    "cursor": "hand2",
+    "fg": "white", # 글자 색
+    "activeforeground": "white" # 클릭할 때 글자색
+}
+
+stat_button = {
+    **normal_button,
+    "bg": "#4F81BD", # 기본 버튼 색
+    "activebackground": "#3B6A9E" # 클릭할 때 색
+}
+
+insert_button = {
+    **normal_button,
+    "bg": "#70AD47",
+    "activebackground": "#649A40"
+}
+
+update_button = {
+    **normal_button,
+    "bg": "#ED7D31",
+    "activebackground": "#DD742E"
+}
+
+delete_button = {
+    **normal_button,
+    "bg": "#C00000",
+    "activebackground": "#900000"
+}
+
+search_button = {
+    **normal_button,
+    "height": 1,
+    "bg": "#4F81BD", # 기본 버튼 색
+    "activebackground": "#3B6A9E" # 클릭할 때 색
+}
+
 # Entry → 사용자가 입력하는 곳
 # Button → 사용자가 누르는 곳
 # Label → 정보를 보여주는 곳
@@ -670,46 +720,50 @@ date_label.grid(row=0, column=0)
 # 1. pack() : 자동 배치
 # 2. grid() : 행(row), 열(column) 기준 배치
 # 3. place() : 좌표(x, y) 기준 배치
-date_entry = DateEntry(input_frame, width=12, date_pattern="yyyy-mm-dd")
+date_entry = DateEntry(input_frame, date_pattern="yyyy-mm-dd", **entry_style)
 date_entry.grid(row=0, column=1)
 
 category_label = tk.Label(input_frame, text="분류")
 category_label.grid(row=1, column=0)
 
-category_combo = ttk.Combobox(input_frame, values=["가구","가전","생활용품","여행"], state="readonly")
+style = ttk.Style()
+style.configure(
+    "Custom.TCombobox",
+    font=("맑은 고딕", 11),
+    padding=5
+)
+category_combo = ttk.Combobox(input_frame, values=["가구","가전","생활용품","여행"], state="readonly", style="Custom.TCombobox")
 category_combo.grid(row=1, column=1)
 
 item_label = tk.Label(input_frame, text="항목") 
 item_label.grid(row=2, column=0)
 
-item_entry = tk.Entry(input_frame)
+item_entry = tk.Entry(input_frame, **entry_style)
 item_entry.grid(row=2, column=1)
 
 price_label = tk.Label(input_frame, text="금액")
 price_label.grid(row=3, column=0)
 
-price_entry = tk.Entry(input_frame, width=20)
+price_entry = tk.Entry(input_frame, **entry_style)
 price_entry.grid(row=3, column=1)
 
-button_font = ("맑은 고딕", 10, "bold")
-
-add_button = tk.Button(input_frame, text="➕ 추가", command=add_money, width=10, font=button_font) # command=add_money() 프로그램 시작할 때 바로 실행
+add_button = tk.Button(input_frame, text="➕ 추가", command=add_money, **insert_button) # command=add_money() 프로그램 시작할 때 바로 실행
 add_button.grid(row=4, column=0)
 
 # select_button = tk.Button(window, text="수정 선택", command=select_money)
 # select_button.grid(row=4, column=1)
 
-update_button = tk.Button(input_frame, text="✏ 수정", command=update_money, width=10, font=button_font)
+update_button = tk.Button(input_frame, text="✏ 수정", command=update_money, **update_button)
 update_button.grid(row=4, column=1)
 
-delete_button = tk.Button(input_frame, text="🗑 삭제", command=delete_money, width=10, font=button_font)
+delete_button = tk.Button(input_frame, text="🗑 삭제", command=delete_money, **delete_button)
 delete_button.grid(row=4, column=2)
 
-search_entry = tk.Entry(search_frame)
+search_entry = tk.Entry(search_frame, **entry_style)
 search_entry.grid(row=0, column=0, sticky="ew")
 
-search_button = tk.Button(search_frame, text="검색", command=search_money)
-search_button.grid(row=0, column=1)
+search_button = tk.Button(search_frame, text="🔍 검색", command=search_money, **search_button)
+search_button.grid(row=0, column=1, pady=5)
 
 # listbox
 # money_list = tk.Listbox(list_frame, width=50)
@@ -757,10 +811,10 @@ total_label.grid(row=2, column=0, columnspan=2)
 # detail_stats_button = tk.Button(window, text="상세 통계", command=show_detail_state)
 # detail_stats_button.grid(row=8, column=2)
 
-bar_button = tk.Button(button_frame, text="📈 지출 비교", command=show_bar_chart, width=15, font=button_font)
+bar_button = tk.Button(button_frame, text="📈 지출 비교", command=show_bar_chart, **stat_button)
 bar_button.grid(row=0, column=0, padx=20, pady=20)
 
-pie_button = tk.Button(button_frame, text="📊 카테고리 비율", command=show_pie_chart, width=15, font=button_font)
+pie_button = tk.Button(button_frame, text="📊 카테고리 비율", command=show_pie_chart, **stat_button)
 pie_button.grid(row=0, column=1, padx=20, pady=20)
 
 # =====================
