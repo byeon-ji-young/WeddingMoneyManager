@@ -105,6 +105,14 @@ def delete_money():
         # index = selected[0]
         # money_data.pop(index)
         # money_list.delete(index)
+        
+        result = messagebox.askyesno(
+            "삭제 확인",
+            "정말 삭제하시겠습니까?"
+        )
+
+        if not result:
+            return
 
         selected_id = selected[0]
         index = int(selected_id)
@@ -116,27 +124,39 @@ def delete_money():
         display_data() # 삭제 후 인덱스 재배치
         update_total()
 
+        # 입력창 초기화
+        refresh_input_entry()
+
 def save_data():
     # with: 열고 → 사용하고 → 자동 정리
     with open("money.json", "w", encoding="utf-8") as file: # open(): money.json 파일을 쓰기 모드로 열어줘 (w:새로 쓰기, r:읽기, a:이어 쓰기), as file: 열린 파일을 file이라는 이름으로 사용
         json.dump( # json.dump(): Python 데이터를 JSON 파일로 저장
-            money_data,
+            {
+                "budget": budget,
+                "money_data": money_data
+            },
             file,
             ensure_ascii=False, # 한글을 그대로 저장(true로 하면 유니코드로 변화돼서 저장됨)
             indent=4
         )
 
 def load_data():
-    global money_data # 함수 밖에 있는 money_data를 사용
+    global money_data, budget # 함수 밖에 있는 변수를 사용
 
     try:
-        with open(
-            "money.json",
-            "r",
-            encoding="utf-8"
-        ) as file:
+        with open("money.json", "r", encoding="utf-8") as file:
+            data = json.load(file) #json.load(): JSON 파일을 Python 데이터로 읽음
 
-            money_data = json.load(file) #json.load(): JSON 파일을 Python 데이터로 읽음
+            if isinstance(data, list): # isinstance(변수, 자료형): 이 변수가 이 자료형이 맞는지 확인 ex)isinstance(money_data, dict): money_data가 딕셔너리 타입인지 확인
+                # 기존 money.json은 리스트 형식으로 저장되어 있음
+                money_data = data
+                budget = 30000000
+
+            else:
+                # 새로운 money.json은 딕서녀리 형식으로 저장되어 있음(budget이 추가 됐기 때문)
+                budget = data.get("budget", 30000000) # data에 budget이 있으면 사용, 없으면 30000000 사용
+                money_data = data.get("money_data", [])
+                # get()을 사용하는 이유: key가 없는 경우 data["key"]: keyError 발생. data.get("key"): None 반환
 
     except FileNotFoundError:
         money_data = []
@@ -216,11 +236,7 @@ def update_money():
     update_total()
 
     # 입력창 초기화
-    date_entry.delete(0, tk.END)
-    date_entry.set_date(datetime.today())
-    category_combo.set("")
-    item_entry.delete(0, tk.END)
-    price_entry.delete(0, tk.END)
+    refresh_input_entry()
 
     # 선택 상태 초기화
     selected_index = None
@@ -374,7 +390,7 @@ def update_budget():
     global budget
 
     try:
-        budget = int(budget_entry.get())
+        budget = int(budget_entry.get().replace(",", ""))
 
     except:
         messagebox.showwarning(
@@ -384,7 +400,20 @@ def update_budget():
         
         return
 
+    save_data() 
     update_total()
+
+def refresh_budget_entry():
+    budget_entry.delete(0, tk.END)
+    budget_entry.insert(0, f"{budget:,}")
+
+def refresh_input_entry():
+    # 입력창 초기화
+    date_entry.delete(0, tk.END)
+    date_entry.set_date(datetime.today())
+    category_combo.set("")
+    item_entry.delete(0, tk.END)
+    price_entry.delete(0, tk.END)
 
 # =====================
 # 화면 영역
@@ -478,7 +507,6 @@ budget_label.grid(row=0, column=0, padx=5) # padx: 위젯 바깥쪽의 가로(�
 
 budget_entry = tk.Entry(budget_frame, width=20)
 budget_entry.grid(row=0, column=1)
-budget_entry.insert(0, f"{budget}")
 
 budget_button = tk.Button(budget_frame, text="적용", command=update_budget)
 budget_button.grid(row=0, column=2, padx=5)
@@ -572,5 +600,7 @@ pie_button.grid(row=9, column=1)
 load_data()
 display_data()
 update_total()
+
+refresh_budget_entry()
 
 window.mainloop() # 이벤트 루프 시작(창이 종료될 때까지 프로그램 실행)
