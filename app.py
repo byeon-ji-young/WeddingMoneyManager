@@ -45,12 +45,16 @@ def add_money():
         messagebox.showwarning("입력 오류", "금액은 숫자로 입력하세요.")
         return
 
+    # listbox 형태
     # money_list.insert(tk.END, f"{date} | {category} | {item} | {price}원") # Listbox형태. tk.END: 맨 마지막 위치에 추가
     # f"문자열 {변수:포맷} 문자열"
     # ex) 소수점 f"{price:.2f}" / 퍼센트 f"{rate:.0%}"
 
-    money_list.insert("", "end", values=(date, category, item, f"{price:,}원")) # 이게 Treeview 형태
+    # Treeview 형태. 화면(Treeview)에 직접 추가
+    # money_list.insert("", "end", values=(date, category, item, f"{price:,}원"))
+    # 주석한 이유 - display_data() 호출을 하기 때문. 여기서 money_list에 insert 함
 
+    # 실제 데이터 추가
     money_data.append({
         "date": date,
         "category": category,
@@ -58,12 +62,12 @@ def add_money():
         "price": price
     }) # Python의 dictionary(딕셔너리)
 
-    update_total()
-
     item_entry.delete(0, tk.END)
     price_entry.delete(0, tk.END)
-
+    
     save_data()
+    display_data()
+    update_total()
 
 def update_total():
     total = 0
@@ -97,14 +101,14 @@ def delete_money():
         # money_data.pop(index)
         # money_list.delete(index)
 
-        selected_id = selected[0] # 선택한 Treeview 행 ID
-        rows = money_list.get_children() # Treeview 전체 행 가져오기
-        index = rows.index(selected_id) # 선택한 행의 위치(index) 찾기
+        selected_id = selected[0]
+        index = int(selected_id)
 
         money_data.pop(index) # 실제 데이터 삭제
         money_list.delete(selected_id) # Treeview 화면에서 삭제
 
         save_data()
+        display_data() # 삭제 후 인덱스 재배치
         update_total()
 
 def save_data():
@@ -138,9 +142,12 @@ def display_data():
     for row in money_list.get_children(): #treeview 형태
         money_list.delete(row)
 
-    for money in money_data:
-        # money_list.insert(tk.END, f"{money['date']} | {money['category']} | {money['item']} | {money['price']:,}원")
-        money_list.insert("", "end", values=(money['date'], money['category'], money['item'], f"{money['price']:,}원")) # 이게 Treeview 형태
+    # for money in money_data:
+    #     # money_list.insert(tk.END, f"{money['date']} | {money['category']} | {money['item']} | {money['price']:,}원")
+    #     money_list.insert("", "end", values=(money['date'], money['category'], money['item'], f"{money['price']:,}원")) # 이게 Treeview 형태
+
+    for index, money in enumerate(money_data):
+        money_list.insert("", "end", iid=index, values=(money['date'], money['category'], money['item'], f"{money['price']:,}원")) # 이게 Treeview 형태
 
 def select_money(event=None):
     # selected = money_list.curselection() # 이거는 Listbox전용. Treeview에서는 사용 불가
@@ -150,16 +157,15 @@ def select_money(event=None):
         # index = selected[0]
 
         selected_id = selected[0] # 선택한 Treeview 행 ID
-        rows = money_list.get_children() # Treeview 전체 행
-        index = rows.index(selected_id) # 실제 데이터 위치(index)
 
         global selected_index
-        selected_index = index
+        selected_index = int(selected_id)
         
-        money = money_data[index]
+        money = money_data[selected_index]
 
-        date_entry.delete(0, tk.END)
-        date_entry.insert(0, money["date"])
+        # date_entry.delete(0, tk.END)
+        # date_entry.insert(0, money["date"]) # entry 방식(delete & insert)
+        date_entry.set_date(money["date"]) # DateEntry 방식
 
         category_combo.set(money["category"])
 
@@ -167,7 +173,7 @@ def select_money(event=None):
         item_entry.insert(0, money["item"])
 
         price_entry.delete(0, tk.END)
-        price_entry.insert(0, money["price"])
+        price_entry.insert(0, str(money["price"]))
     
 def update_money():
     global selected_index
