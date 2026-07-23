@@ -29,18 +29,21 @@ sort_reverse = {
 
 # 메인 윈도우(창) 생성
 window = tk.Tk()
+window.title("💒 신혼 자금 관리") # 창 제목
+window.geometry("820x900") # 창 크기 (widthxheight)
+window.configure(bg="#F7F9FC")
 
 # =====================
 # 화면 큰 구조
 # =====================
-title_frame = tk.Frame(window)
+title_frame = tk.Frame(window, bg="#F7F9FC")
 title_frame.grid(
     row=0,
     column=0,
     pady=10
 )
 
-top_frame = tk.Frame(window)
+top_frame = tk.Frame(window, bg="#F7F9FC")
 top_frame.grid(
     row=1,
     column=0,
@@ -50,7 +53,7 @@ top_frame.grid(
 top_frame.columnconfigure(0, weight=1)
 top_frame.columnconfigure(1, weight=1)
 
-bottom_frame = tk.Frame(window)
+bottom_frame = tk.Frame(window, bg="#F7F9FC")
 bottom_frame.grid(
     row=2,
     column=0,
@@ -62,15 +65,13 @@ bottom_frame.columnconfigure(1, weight=1)
 
 title_label = tk.Label(
     title_frame,
-    # text="💰 신혼 가계부",
-    font=("맑은 고딕", 10, "bold")
+    # text="💰 신혼 자금 관리",
+    text="💍 예식 비용 관리",
+    font=("맑은 고딕", 10, "bold"),
+    bg="#F7F9FC",
+    fg="#333333"
 )
-
 title_label.pack()
-
-# 창 설정
-window.title("💒 신혼 자금 관리") # 창 제목
-window.geometry("820x900") # 창 크기 (widthxheight)
 
 # =====================
 # 화면 영역 Frame 분리
@@ -84,41 +85,6 @@ dashboard_frame.grid(
     pady=20
 )
 
-# 대시보드 카드 --
-budget_card = tk.Label(
-    dashboard_frame,
-    text=f"💰 예산\n\n{budget:,}원",
-    font=("맑은 고딕", 10, "bold"),
-    width=18,
-    height=5,
-    relief="groove", # solid: 실선, groove: 홈이 파인 듯한 이중 테두리
-    bg="#E8F5E9"
-)
-budget_card.grid(row=0, column=0, pady=10) # pady: 위아래 여백
-
-used_card = tk.Label(
-    dashboard_frame,
-    text="💸 현재 지출\n\n0원",
-    font=("맑은 고딕", 10, "bold"),
-    width=18,
-    height=5,
-    relief="groove",
-    bg="#FFF3E0"
-)
-used_card.grid(row=0, column=1, pady=10)
-
-remain_card = tk.Label(
-    dashboard_frame,
-    text=f"💵 남은 금액\n\n{budget:,}원",
-    font=("맑은 고딕", 10, "bold"),
-    width=18,
-    height=5,
-    relief="groove",
-    bg="#E3F2FD"
-)
-remain_card.grid(row=0, column=2, pady=10)
-# -- 대시보드 카드
-
 budget_frame = tk.Frame(top_frame)
 budget_frame.grid(
     row=0,
@@ -127,12 +93,34 @@ budget_frame.grid(
     pady=10
 )
 
-input_frame = tk.Frame(top_frame)
+input_frame = tk.Frame(
+    top_frame,
+    bg="white",
+    padx=25,
+    pady=25,
+    relief="flat",
+    highlightbackground="#E5E7EB", # 테두리
+    highlightthickness=1
+)
 input_frame.grid(
     row=0,
     column=0,
     padx=20,
-    pady=20
+    pady=20,
+    
+)
+input_title = tk.Label(
+    input_frame,
+    text="💸 지출 입력",
+    font=("맑은 고딕", 13, "bold"),
+    bg="white",
+    fg="#333333"
+)
+input_title.grid(
+    row=0,
+    column=0,
+    columnspan=3,
+    pady=(0,15)
 )
 
 list_frame = tk.Frame(bottom_frame)
@@ -169,6 +157,90 @@ button_frame.grid(
 )
 button_frame.grid_columnconfigure(0, weight=1)
 button_frame.grid_columnconfigure(1, weight=1)
+
+# =====================
+# 대시보드 카드 디자인
+# =====================
+def create_card(parent, title, value, color):
+    card = tk.Frame(
+        parent,
+        bg="white",
+        width=200,
+        height=120
+    )
+
+    card.pack_propagate(False)
+
+    title_label = tk.Label(
+        card,
+        text=title,
+        font=("맑은 고딕", 10),
+        bg="white",
+        fg="#777777"
+    )
+
+    title_label.pack(
+        anchor="w",
+        padx=15,
+        pady=(15,5)
+    )
+
+    value_label = tk.Label(
+        card,
+        text=value,
+        font=("맑은 고딕", 14, "bold"),
+        bg="white",
+        fg=color
+    )
+
+    value_label.pack(
+        anchor="w",
+        padx=15
+    )
+
+    return card, value_label
+
+budget_card, budget_value = create_card(
+    dashboard_frame,
+    "💰 총 예산",
+    f"{budget:,}원",
+    "#5B8FF9"
+)
+
+used_card, used_value = create_card(
+    dashboard_frame,
+    "💸 현재 지출",
+    "0원",
+    "#F4664A"
+)
+
+remain_card, remain_value = create_card(
+    dashboard_frame,
+    "💵 남은 금액",
+    f"{budget:,}원",
+    "#5AD8A6"
+)
+
+budget_card.grid(
+    row=0,
+    column=0,
+    padx=10,
+    pady=10
+)
+
+used_card.grid(
+    row=0,
+    column=1,
+    padx=10,
+    pady=10
+)
+
+remain_card.grid(
+    row=0,
+    column=2,
+    padx=10,
+    pady=10
+)
 
 # =====================
 # 함수 영역
@@ -232,9 +304,9 @@ def update_total():
 
     remain = budget - total
 
-    budget_card.config(text=f"💰 예산\n\n{budget:,}원")
-    used_card.config(text=f"💸 현재 지출\n\n{total:,}원\n사용률 {rate:.1f}%")
-    remain_card.config(text=f"💵 남은 금액\n\n{remain:,}원")
+    budget_value.config(text=f"{budget:,}원")
+    used_value.config(text=f"{total:,}원\n({rate:.1f}%)")
+    remain_value.config(text=f"{remain:,}원")
 
 def delete_money():
     # selected = money_list.curselection() # Listbox형태. 선택한 위치 가져오기
@@ -653,18 +725,11 @@ def sort_column(column):
 # 화면 영역
 # =====================
 # 창 꾸미기
-entry_style = {
-    "font": ("맑은 고딕", 11),
-    "width": 30,
-    "relief": "flat",
-    "bd": 1
-}
-
 button_font = ("맑은 고딕", 10, "bold")
 normal_button = {
     "font": button_font,
-    "width": 15,
-    "height": 2,
+    "width": 10,
+    # "height": 2,
     "relief": "flat", # 입체 버튼 효과 제거
     "bd": 0, # 테두리 제거
     "cursor": "hand2",
@@ -681,19 +746,19 @@ stat_button = {
 insert_button = {
     **normal_button,
     "bg": "#70AD47",
-    "activebackground": "#649A40"
+    "activebackground": "#486E2E"
 }
 
 update_button = {
     **normal_button,
-    "bg": "#ED7D31",
-    "activebackground": "#DD742E"
+    "bg": "#5B8FF9",
+    "activebackground": "#4678D0"
 }
 
 delete_button = {
     **normal_button,
-    "bg": "#C00000",
-    "activebackground": "#900000"
+    "bg": "#F4664A",
+    "activebackground": "#D94A32"
 }
 
 search_button = {
@@ -701,6 +766,21 @@ search_button = {
     "height": 1,
     "bg": "#4F81BD", # 기본 버튼 색
     "activebackground": "#3B6A9E" # 클릭할 때 색
+}
+
+label_style = {
+    "font": ("맑은 고딕", 10),
+    "bg": "white",
+    "fg": "#666666",
+    "width": 6,
+    "anchor": "w"
+}
+
+entry_style = {
+    "font": ("맑은 고딕", 10),
+    "width": 22,
+    "relief": "solid",
+    "bd": 1
 }
 
 # Entry → 사용자가 입력하는 곳
@@ -715,16 +795,16 @@ budget_entry.grid(row=0, column=1)
 budget_button = tk.Button(budget_frame, text="적용", command=update_budget)
 budget_button.grid(row=0, column=2, padx=5)
 
-date_label = tk.Label(input_frame, text="날짜") # tk.Label(넣을_창, 표시할_글자)
-date_label.grid(row=0, column=0)
+date_label = tk.Label(input_frame, text="날짜", **label_style) # tk.Label(넣을_창, 표시할_글자)
+date_label.grid(row=1, column=0)
 # 1. pack() : 자동 배치
 # 2. grid() : 행(row), 열(column) 기준 배치
 # 3. place() : 좌표(x, y) 기준 배치
 date_entry = DateEntry(input_frame, date_pattern="yyyy-mm-dd", **entry_style)
-date_entry.grid(row=0, column=1)
+date_entry.grid(row=1, column=1)
 
-category_label = tk.Label(input_frame, text="분류")
-category_label.grid(row=1, column=0)
+category_label = tk.Label(input_frame, text="분류", **label_style)
+category_label.grid(row=2, column=0)
 
 style = ttk.Style()
 style.configure(
@@ -733,31 +813,31 @@ style.configure(
     padding=5
 )
 category_combo = ttk.Combobox(input_frame, values=["가구","가전","생활용품","여행"], state="readonly", style="Custom.TCombobox")
-category_combo.grid(row=1, column=1)
+category_combo.grid(row=2, column=1)
 
-item_label = tk.Label(input_frame, text="항목") 
-item_label.grid(row=2, column=0)
+item_label = tk.Label(input_frame, text="항목", **label_style) 
+item_label.grid(row=3, column=0)
 
 item_entry = tk.Entry(input_frame, **entry_style)
-item_entry.grid(row=2, column=1)
+item_entry.grid(row=3, column=1)
 
-price_label = tk.Label(input_frame, text="금액")
-price_label.grid(row=3, column=0)
+price_label = tk.Label(input_frame, text="금액", **label_style)
+price_label.grid(row=4, column=0)
 
 price_entry = tk.Entry(input_frame, **entry_style)
-price_entry.grid(row=3, column=1)
+price_entry.grid(row=4, column=1)
 
 add_button = tk.Button(input_frame, text="➕ 추가", command=add_money, **insert_button) # command=add_money() 프로그램 시작할 때 바로 실행
-add_button.grid(row=4, column=0)
+add_button.grid(row=5, column=0)
 
 # select_button = tk.Button(window, text="수정 선택", command=select_money)
 # select_button.grid(row=4, column=1)
 
 update_button = tk.Button(input_frame, text="✏ 수정", command=update_money, **update_button)
-update_button.grid(row=4, column=1)
+update_button.grid(row=5, column=1)
 
 delete_button = tk.Button(input_frame, text="🗑 삭제", command=delete_money, **delete_button)
-delete_button.grid(row=4, column=2)
+delete_button.grid(row=5, column=2)
 
 search_entry = tk.Entry(search_frame, **entry_style)
 search_entry.grid(row=0, column=0, sticky="ew")
