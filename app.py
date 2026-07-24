@@ -10,9 +10,13 @@ from tkinter import ttk
 import matplotlib.pyplot as plt # 그래프를 만들기 위한 matplotlib 라이브러리 불러오기 (pyplot: 그래프 그리는 기능)
 import matplotlib.font_manager as fm
 
+# Matplotlib 한글 폰트 설정
 plt.rcParams["font.family"] = "Malgun Gothic" # or plt.rc("font", family="Malgun Gothic")
 plt.rcParams["axes.unicode_minus"] = False
 
+# ==========================================
+# 전역 변수
+# ==========================================
 money_data = []
 selected_index = None
 budget = 30000000
@@ -24,13 +28,16 @@ sort_reverse = {
     "price": False
 }
 
+
+# ==========================================
 # 메인 윈도우(창) 생성
+# ==========================================
 window = tk.Tk()
 window.title("💒 신혼 자금 관리") # 창 제목
 window.geometry("820x920") # 창 크기 (widthxheight)
 window.configure(bg="#F4F6F9")
 
-# TTK 기본 테마를 세련된 clam 스타일로 변경
+# Tkinter 스타일 설정
 style = ttk.Style()
 style.theme_use("clam")
 
@@ -53,27 +60,29 @@ title_label = tk.Label(
     bg="#F4F6F9",
     fg="#1E293B"
 )
-title_label.pack(side="left") # "left" : 왼쪽부터 배치 / "right" : 오른쪽부터 배치 / "top" : 위쪽부터 배치(기본값) / "bottom" : 아래쪽부터 배치
+# title_label.pack(side="left") # "left" : 왼쪽부터 배치 / "right" : 오른쪽부터 배치 / "top" : 위쪽부터 배치(기본값) / "bottom" : 아래쪽부터 배치
+title_label.pack(anchor="w", pady=(0, 15))
 
 # 예산 설정 영역
 budget_frame = tk.Frame(header_frame, bg="#F4F6F9")
-budget_frame.pack(side="right")
+# budget_frame.pack(side="right")
+budget_frame.pack(anchor="w")
 
 budget_label = tk.Label(budget_frame, text="총 예산 :", font=("맑은 고딕", 9, "bold"), bg="#F4F6F9", fg="#64748B")
-budget_label.pack(side="left", padx=5)
+budget_label.pack(side="left", padx=(0, 8))
 
 budget_entry = tk.Entry(budget_frame, font=("맑은 고딕", 10), width=12, relief="solid", bd=1)
-budget_entry.pack(side="left", padx=5)
+budget_entry.pack(side="left", padx=(0, 8))
 
 budget_button = tk.Button(
     budget_frame, 
-    text="수정", 
+    text="적용", 
     command=lambda: update_budget(),
     font=("맑은 고딕", 8, "bold"), 
-    bg="#2563EB", 
+    bg="#334155", 
     fg="white", 
     activeforeground="white",
-    activebackground="#1D4ED8", 
+    activebackground="#1E293B", 
     relief="flat", 
     bd=0, 
     padx=8, 
@@ -173,7 +182,7 @@ item_entry.grid(row=0, column=5, padx=(0, 15), pady=5)
 
 # 4. 금액
 tk.Label(fields_frame, text="금액", **label_style).grid(row=0, column=6, padx=(0, 5), sticky="w")
-price_entry = tk.Entry(fields_frame, width=12, **entry_style)
+price_entry = tk.Entry(fields_frame, width=20, **entry_style)
 price_entry.grid(row=0, column=7, padx=(0, 5), pady=5)
 
 # 버튼 영역 (입력창 하단)
