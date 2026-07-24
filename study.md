@@ -1,966 +1,146 @@
-# tkinter 신혼 자금 관리 프로그램 만들기
+# 📚 Python Tkinter 신혼 자금 관리 Dashboard 개발 정리 노트
 
-## 전체 흐름
-
-이번 프로그램은 tkinter를 이용해서 만든 간단한 가계부 프로그램이다.
-
-기능:
-
-- 항목 입력
-- 금액 입력
-- 지출 추가
-- 지출 삭제
-- 총 지출 계산
-- JSON 파일 저장
-- 프로그램 실행 시 기존 데이터 불러오기
-
-사용 기술:
-
-- tkinter → GUI 화면 제작
-- json → 데이터 저장 및 불러오기
-
+Tkinter GUI 프레임워크와 Matplotlib 시각화 라이브러리를 활용해 **실제 동작하는 자금 관리 대시보드 애플리케이션**을 제작하면서 학습한 개념을 정리한 문서입니다.
 
 ---
 
-# import 영역
+## 📌 1. 전체 프로그램 아키텍처
 
-```python
-import tkinter as tk
-from tkinter import messagebox
-import json
+```text
+[ 사용자 입력 및 조작 ]
+        │
+        ├── (1) 지출 내역 입력 (DateEntry, Combobox, Entry)
+        ├── (2) 검색 및 정렬 (Entry, Header Click)
+        └── (3) 예산 변경 / 데이터 수정 및 삭제
+        │
+        ▼
+[ 이벤트 처리 함수 (Functions) ]
+        │
+        ├── add_money() / update_money() / delete_money()
+        ├── search_money() / sort_column()
+        └── show_bar_chart() / show_pie_chart()
+        │
+        ▼
+[ 메모리 데이터 관리 (Global State) ]
+        │
+        ├── budget (int)
+        └── money_data (List of Dicts)
+        │
+        ├──▶ [ GUI 갱신 (update_total, display_data) ]
+        └──▶ [ 파일 입출력 (save_data ⇄ money.json) ]
 ```
+--- 
 
-## import tkinter as tk
+## 📦 2. 라이브러리 (Import) 및 역할
 
-- tkinter GUI 라이브러리 가져오기
-- `as tk` : 별명 지정
-
-이후 tkinter 기능을 사용할 때
-
-```python
-tk.Label()
-tk.Button()
-tk.Entry()
-```
-
-처럼 사용할 수 있다.
-
+| 라이브러리 / 모듈 | 주요 역할 및 사용 목적 |
+| :--- | :--- |
+| `tkinter (as tk)` | 기본 GUI 창 생성 및 레이아웃 위젯 (Frame, Label, Button, Entry) 제공 |
+| `tkinter.messagebox` | 사용자 경고, 에러 알림, 삭제 확인 등의 대화상자(Modal Window) 출력 |
+| `tkinter.ttk` | 개선된 테마 기반 위젯 (Combobox, Treeview, Scrollbar, Style) 제공 |
+| `tkcalendar.DateEntry` | 달력 팝업을 지원하는 날짜 선택 위젯 |
+| `json` | 예산 및 지출 내역 데이터를 로컬 파일(`money.json`)로 저장/로드 |
+| `datetime` | 오늘 날짜 가져오기 및 날짜 문자열 포맷팅 |
+| `matplotlib.pyplot` | 지출 데이터를 기반으로 막대그래프 및 도넛형 원형그래프 생성 |
 
 ---
 
-## from tkinter import messagebox
+## 🎨 3. GUI 레이아웃 & 위젯 배치 기법
 
-- tkinter 내부의 메시지 창 기능 가져오기
+### 3.1 배치 관리자 (Geometry Managers)
+* **`pack()`**: 위젯을 상/하/좌/우 방향으로 유연하게 추가할 때 사용 (대형 틀 배치에 유리)
+  * `fill="x"`: 가로 방향으로 영역을 채움
+  * `expand=True`: 부모 창 크기가 커질 때 남는 공간을 배분받음
+  * `anchor="w"`: 위젯 내부 정렬 (w: 서쪽/왼쪽, e: 동쪽/오른쪽, n: 북쪽/위)
+* **`grid()`**: 정교한 바둑판 배열(행`row`, 열`column`) 형태로 위젯을 입력 폼 내부 등에 배치
+  * `sticky="ew"`: 셀 내부에서 좌우로 늘어나도록 밀착시킴
+  * `columnconfigure(col, weight=1)`: 특정 열이 창 크기 변화에 맞춰 늘어나는 비율 설정
 
-사용 예:
-
-```python
-messagebox.showwarning(
-    "입력 오류",
-    "항목과 금액을 입력하세요."
-)
-```
-
-결과:
-
-- 경고창 표시
-
+### 3.2 핵심 고급 위젯
+* **`ttk.Treeview`**: 단순히 한 줄씩 보여주는 `Listbox`와 달리, 여러 컬럼(날짜, 분류, 항목, 금액)을 갖는 표 형태로 데이터를 표시
+* **`ttk.Combobox`**: 드롭다운 메뉴를 제공하여 입력 오류 방지 (`values=[...]`)
+* **`tkcalendar.DateEntry`**: 사용자 입력을 간편하게 만드는 팝업 달력 위젯
 
 ---
 
-## import json
+## 💡 4. 핵심 파이썬 문법 및 응용 개념
 
-JSON 파일을 다루기 위한 라이브러리
-
-사용 목적:
-
-- 프로그램 종료 후 데이터 유지
-- 입력한 지출 내역 저장
-
-
----
-
-# 데이터 저장 변수
-
-```python
-money_data = []
-```
-
-## 리스트(List)
-
-- 지출 데이터를 저장하는 공간
-
-예:
-
-```python
-[
-    {
-        "item": "식비",
-        "price": 50000
-    },
-    {
-        "item": "가구",
-        "price": 1000000
-    }
-]
-```
-
-
----
-
-# 메인 윈도우 생성
-
-```python
-window = tk.Tk()
-```
-
-- 프로그램의 메인 창 생성
-
-Java 기준:
-
-```java
-new JFrame()
-```
-
-과 비슷한 개념
-
-
----
-
-# 함수 영역
-
-
-# add_money()
-
-## 지출 추가 함수
-
-```python
-def add_money():
-```
-
-역할:
-
-- 입력값 가져오기
-- 데이터 검증
-- 리스트 추가
-- 총 금액 업데이트
-- JSON 저장
-
-
----
-
-## 입력값 가져오기
-
-```python
-item = item_entry.get()
-price = price_entry.get()
-```
-
-## Entry.get()
-
-- Entry 입력창 안의 값을 가져오는 함수
-
-
-예:
-
-입력:
-
-```
-가구
-500000
-```
-
-결과:
-
-```python
-item = "가구"
-price = "500000"
-```
-
-
----
-
-# 입력값 검사
-
-```python
-if item == "" or price == "":
-```
-
-빈 값인지 확인
-
-빈 값이면:
-
-```python
-messagebox.showwarning()
-```
-
-으로 경고창 표시
-
-
----
-
-# 숫자 변환
-
-```python
-price = int(price)
-```
-
-Entry에서 가져온 값은 문자열(str)
-
-예:
-
-```python
-"50000"
-```
-
-을
-
-```python
-50000
-```
-
-숫자로 변환
-
-
----
-
-## try / except
-
-```python
-try:
-    price = int(price)
-
-except:
-```
-
-예외 처리
-
-잘못된 입력:
-
-```
-abc
-```
-
-같은 값이 들어오면 오류 발생
-
-→ 프로그램 종료 방지
-
-
----
-
-# Listbox에 데이터 추가
-
-```python
-money_list.insert(
-    tk.END,
-    f"{item} - {price}원"
-)
-```
-
-## tk.END
-
-- 리스트 마지막 위치 의미
-
-
-예:
-
-기존:
-
-```
-식비 - 50000원
-```
-
-추가:
-
-```
-가구 - 1000000원
-```
-
-결과:
-
-```
-식비 - 50000원
-가구 - 1000000원
-```
-
-
----
-
-# f-string
-
-```python
-f"{item} - {price}원"
-```
-
-문자열 안에 변수를 넣는 방법
-
-
-예:
-
-```python
-name="철수"
-
-f"{name}님"
-```
-
-결과:
-
-```
-철수님
-```
-
-
----
-
-## f-string 포맷
-
-소수점:
-
-```python
-f"{price:.2f}"
-```
-
-퍼센트:
-
-```python
-f"{rate:.0%}"
-```
-
-
----
-
-# dictionary 저장
-
-```python
-money_data.append({
-    "item": item,
-    "price": price
-})
-```
-
-
-## Dictionary(딕셔너리)
-
-Key와 Value 형태의 데이터
-
-
-예:
-
+### 4.1 데이터 구조 (JSON & Python)
+메모리 상에서는 **딕셔너리를 포함한 리스트** 형태로 데이터를 관리합니다.
 ```python
 {
-    "item": "식비",
-    "price": 50000
+    "budget": 30000000,
+    "money_data": [
+        {"date": "2026-05-10", "category": "가전", "item": "냉장고", "price": 2500000},
+        {"date": "2026-05-12", "category": "예식장", "item": "계약금", "price": 5000000}
+    ]
 }
 ```
-
-
-사용:
-
+### 4.2 파일 입출력 및 예외 처리 (try-except)
 ```python
-money["price"]
+def load_data():
+    global money_data, budget
+    try:
+        with open("money.json", "r", encoding="utf-8") as file:
+            data = json.load(file)
+            # 예전 버전 JSON 데이터(리스트 형식)와의 호환성 예외 처리
+            if isinstance(data, list):
+                money_data = data
+                budget = 30000000
+            else:
+                budget = data.get("budget", 30000000) # Safety Get
+                money_data = data.get("money_data", [])
+    except FileNotFoundError:
+        money_data = [] # 파일이 없으면 초기 상태 유지
 ```
 
-결과:
-
+### 4.3 데이터 정렬 (sort & lambda)
+``` python
+def sort_column(column):
+    # sort_reverse 딕셔너리를 통해 현재 상태 반전
+    money_data.sort(key=lambda money: money[column], reverse=sort_reverse[column])
+    sort_reverse[column] = not sort_reverse[column]
+    display_data() # 정렬된 데이터로 화면 재갱신
 ```
-50000
-```
 
+### 4.4 데이터 시각화 및 클로저(Closure) 활용
+``` python
+def make_autopct(values):
+    def my_autopct(percent):
+        total = sum(values)
+        price = int(total * percent / 100)
+        if percent < 5:
+            return f"{percent:.1f}%" # 비중이 작으면 퍼센트만 표시
+        else:
+            return f"{percent:.1f}%\n({price:,}원)" # 퍼센트와 금액 함께 표시
+    return my_autopct
+```
 
 ---
 
-# 입력창 초기화
+## 🔄 5. 주요 이벤트 흐름 (Event Flow)
 
-```python
-item_entry.delete(0, tk.END)
-price_entry.delete(0, tk.END)
-```
+### 5.1 지출 항목 추가 / 수정
+1. 사용자가 폼 필드 입력 후 `➕ 추가` 또는 `✏ 수정` 버튼 클릭
+2. `get()` 함수로 날짜, 카테고리, 항목명, 금액 입력값 추출
+3. `int(price)` 예외 검증을 거쳐 `money_data` 리스트 업데이트
+4. `save_data()` ➔ `display_data()` ➔ `update_total()` 연속 실행으로 상태 동기화
+5. `refresh_input_entry()`를 호출하여 입력 폼 초기화
 
-
-## Entry.delete()
-
-입력창 내용 삭제
-
-
-```python
-delete(0, tk.END)
-```
-
-의미:
-
-- 0번째 글자부터
-- 마지막 글자까지 삭제
-
+### 5.2 지출 항목 삭제
+1. `money_list.selection()`으로 `Treeview`에서 선택된 행의 Index 확인
+2. `messagebox.askyesno()` 모달창으로 사용자 재확인
+3. `money_data.pop(index)`로 메모리 데이터 제거 및 화면/파일 업데이트
 
 ---
 
-# update_total()
-
-## 총 지출 계산 함수
-
-
-```python
-def update_total():
-```
-
-역할:
-
-- 저장된 모든 금액 합산
-- 화면에 표시
-
-
----
-
-## 반복문으로 합계 계산
-
-```python
-for money in money_data:
-    total += money["price"]
-```
-
-
-예:
-
-```python
-money_data=[
- {"price":10000},
- {"price":20000}
-]
-```
-
-결과:
-
-```
-total = 30000
-```
-
-
----
-
-## config()
-
-```python
-total_label.config(
-    text=f"총 지출 : {total:,}원"
-)
-```
-
-
-이미 만들어진 위젯의 설정 변경
-
-
-예:
-
-기존:
-
-```
-총 지출 : 0원
-```
-
-변경:
-
-```
-총 지출 : 30,000원
-```
-
-
----
-
-# delete_money()
-
-## 선택한 지출 삭제
-
-
-```python
-selected = money_list.curselection()
-```
-
-
-## curselection()
-
-현재 선택된 Listbox 위치 반환
-
-
-예:
-
-두 번째 항목 선택
-
-결과:
-
-```python
-(1,)
-```
-
-
----
-
-## 삭제
-
-```python
-money_data.pop(index)
-```
-
-리스트에서 해당 위치 데이터 제거
-
-
-```python
-money_list.delete(index)
-```
-
-화면 리스트에서도 제거
-
-
----
-
-# save_data()
-
-## JSON 파일 저장
-
-
-```python
-with open(
-    "money.json",
-    "w",
-    encoding="utf-8"
-)
-```
-
-파일 열기
-
-
-## open()
-
-파일을 여는 함수
-
-
-모드:
-
-| 모드 | 의미 |
-|---|---|
-| r | 읽기 |
-| w | 새로 쓰기 |
-| a | 이어 쓰기 |
-
-
----
-
-## with
-
-파일 자동 관리
-
-
-일반 방식:
-
-```python
-file=open()
-
-file.close()
-```
-
-with 사용:
-
-```python
-with open() as file:
-```
-
-자동으로 닫힘
-
-
----
-
-# json.dump()
-
-```python
-json.dump(
-    money_data,
-    file,
-    ensure_ascii=False,
-    indent=4
-)
-```
-
-
-Python 데이터를 JSON 파일로 저장
-
-
----
-
-## ensure_ascii=False
-
-한글 저장 유지
-
-
-True:
-
-```json
-"\uc2dd\ube44"
-```
-
-
-False:
-
-```json
-"식비"
-```
-
-
----
-
-## indent=4
-
-JSON 파일 보기 좋게 들여쓰기
-
-
----
-
-# load_data()
-
-## 저장된 데이터 불러오기
-
-
-```python
-json.load(file)
-```
-
-
-JSON 데이터를 Python 객체로 변환
-
-
----
-
-## global
-
-```python
-global money_data
-```
-
-
-함수 밖의 변수를 함수 안에서 변경하기 위해 사용
-
-
----
-
-# FileNotFoundError
-
-```python
-except FileNotFoundError:
-```
-
-파일이 없을 때 발생하는 오류
-
-
-예:
-
-처음 실행하면
-
-```
-money.json 없음
-```
-
-→ 빈 리스트 생성
-
-
----
-
-# display_data()
-
-## 저장된 데이터 화면 표시
-
-
-```python
-for money in money_data:
-```
-
-저장된 데이터를 하나씩 꺼내서
-
-
-```python
-money_list.insert()
-```
-
-Listbox에 출력
-
-
----
-
-# 화면 구성 영역
-
-
-# 창 설정
-
-```python
-window.title(
-"💒 신혼 자금 관리"
-)
-```
-
-창 제목 설정
-
-
----
-
-```python
-window.geometry(
-"800x600"
-)
-```
-
-
-창 크기 설정
-
-
-형식:
-
-```
-가로x세로
-```
-
-
----
-
-# tkinter 위젯
-
-
-## Label
-
-```python
-tk.Label()
-```
-
-글자를 표시하는 위젯
-
-
-예:
-
-```
-항목
-금액
-총 지출
-```
-
-
----
-
-## Entry
-
-```python
-tk.Entry()
-```
-
-사용자가 입력하는 공간
-
-
-예:
-
-```
-[ 식비      ]
-[ 50000     ]
-```
-
-
----
-
-## Button
-
-```python
-tk.Button()
-```
-
-버튼 생성
-
-
-예:
-
-```
-추가
-삭제
-```
-
-
----
-
-## Listbox
-
-```python
-tk.Listbox()
-```
-
-목록 표시
-
-
-예:
-
-```
-식비 - 50000원
-가구 - 100000원
-```
-
-
----
-
-# 위젯 배치
-
-
-## grid()
-
-```python
-widget.grid(
-row=0,
-column=0
-)
-```
-
-
-행(row), 열(column) 기준 배치
-
-
-예:
-
-```
-        0열        1열
-
-0행     항목       입력창
-
-1행     금액       입력창
-
-2행     삭제       추가
-```
-
-
----
-
-# columnspan
-
-```python
-columnspan=2
-```
-
-
-두 개의 열을 합침
-
-
-예:
-
-```
-|       총 지출       |
-```
-
-
----
-
-# Button command
-
-
-```python
-command=add_money
-```
-
-
-버튼 클릭 시 함수 실행
-
-
-주의:
-
-```python
-command=add_money()
-```
-
-하면 프로그램 시작할 때 바로 실행됨
-
-
----
-
-# 프로그램 실행
-
-
-```python
-load_data()
-
-display_data()
-
-update_total()
-```
-
-
-순서:
-
-1. 저장된 데이터 불러오기
-2. 화면에 표시
-3. 총 금액 계산
-
-
----
-
-# mainloop()
-
-```python
-window.mainloop()
-```
-
-
-## 이벤트 루프 시작
-
-
-역할:
-
-- 창 유지
-- 버튼 클릭 감지
-- 입력 처리
-
-
-프로그램은 mainloop 안에서 계속 대기한다.
-
-
----
-
-# 최종 프로그램 구조
-
-
-```
-tkinter GUI
-    |
-    |
-사용자 입력
-    |
-    |
-add_money()
-    |
-    |
-money_data 저장
-    |
-    |
-save_data()
-    |
-    |
-money.json 저장
-
-
-프로그램 시작
-
-load_data()
-    |
-display_data()
-    |
-update_total()
-```
-
-
----
-
-# 이번 실습 핵심 개념
-
-- tkinter 기본 GUI 제작
-- 위젯(Label, Entry, Button, Listbox)
-- grid 배치
-- 함수와 이벤트 연결
-- JSON 데이터 저장
-- 파일 입출력
-- 예외 처리(try/except)
-- 리스트와 딕셔너리 활용
-
-| 목적          | Tkinter  | Java Swing   |
-| ----------- | -------- | ------------ |
-| 그냥 보여주는 글자  | `Label`  | `JLabel`     |
-| 사용자가 입력하는 칸 | `Entry`  | `JTextField` |
-| 여러 줄 입력     | `Text`   | `JTextArea`  |
-| 버튼          | `Button` | `JButton`    |
+## 📑 6. Tkinter vs Java Swing 위젯 대응표
+
+| 목적 | Tkinter (Python) | Java Swing (Java) |
+| :--- | :--- | :--- |
+| 단순 텍스트 레이블 | `tk.Label` | `JLabel` |
+| 한 줄 텍스트 입력창 | `tk.Entry` | `JTextField` |
+| 선택 항목 드롭다운 | `ttk.Combobox` | `JComboBox` |
+| 다중 컬럼 표(테이블) | `ttk.Treeview` | `JTable` |
+| 클릭 버튼 | `tk.Button` | `JButton` |
+| 레이아웃 컨테이너 | `tk.Frame` | `JPanel` |

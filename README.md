@@ -14,7 +14,6 @@
 큰 규모의 지출이 발생합니다.
 
 WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 프로그램으로,
-
 다음과 같은 목표를 가지고 제작했습니다.
 
 * 결혼 준비 비용 기록
@@ -28,65 +27,46 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 ## ✨ 주요 기능
 
 ### 💰 비용 관리
-
-* 결혼 준비 비용 등록
+* 결혼 준비 비용 및 예산 등록
 * 날짜 / 분류 / 항목 / 금액 기록
 * 지출 내역 수정 및 삭제
-* 저장된 데이터 불러오기
-
+* JSON 파일 기반 자동 데이터 저장 및 불러오기
 
 ### 📋 지출 관리
-
 * Treeview 기반 지출 목록 표시
-* 날짜별 정렬
-* 분류별 정렬
-* 항목별 정렬
-* 금액별 정렬
-* 검색 기능 제공
-
+* 컬럼 클릭을 통한 항목별 정렬 (날짜, 분류, 항목, 금액)
+* 실시간 키워드 검색 기능 제공 (항목명, 카테고리)
 
 ### 💳 예산 관리
-
-* 전체 예산 설정
-* 현재 지출 금액 확인
-* 예산 대비 사용률 표시
-* 남은 금액 확인
-
+* 전체 예산 설정 및 실시간 반영
+* 현재 총 지출 금액 및 예산 대비 소진율(%) 계산
+* 남은 금액 실시간 확인
 
 ### 📊 비용 분석
-
 Matplotlib을 활용한 지출 데이터 시각화
-
-* 카테고리별 지출 비교 그래프
-* 카테고리별 지출 비율 그래프
-* 지출 패턴 분석
+* 카테고리별 지출 금액 비교 (막대그래프)
+* 카테고리별 지출 비율 분석 (도넛형 원형그래프)
 
 ---
 
 ## 🛠 기술 스택
 
 ### Language
-
-* Python
+* Python 3.x
 
 ### GUI
-
-* Tkinter
+* Tkinter, ttk
 
 ### Data Storage
-
 * JSON
 
 ### Visualization
-
 * Matplotlib
 
 ### External Library
-
 * tkcalendar
 
 ### Development Environment
-
 * Visual Studio Code
 * Git / GitHub
 
@@ -97,11 +77,10 @@ Matplotlib을 활용한 지출 데이터 시각화
 ```text
 WeddingMoneyManager
 │
-├── main.py              # 메인 프로그램
-├── money.json           # 지출 데이터 저장 파일
-├── README.md            # 프로젝트 설명
-│
-└── requirements.txt     # 패키지 목록 (예정)
+├── main.py             # 메인 프로그램 소스코드
+├── money.json          # 예산 및 지출 데이터 저장 파일 (자동 생성)
+├── README.md           # 프로젝트 설명
+└── requirements.txt    # 필요 패키지 목록
 ```
 
 ---
@@ -111,7 +90,8 @@ WeddingMoneyManager
 ### 1. 저장소 다운로드
 
 ```bash
-git clone https://github.com/username/WeddingMoneyManager.git
+git clone [https://github.com/username/WeddingMoneyManager.git](https://github.com/username/WeddingMoneyManager.git)
+cd WeddingMoneyManager
 ```
 
 ### 2. 가상환경 생성
@@ -125,7 +105,11 @@ python -m venv venv
 Windows:
 
 ```bash
-.\.venv\Scripts\Activate.ps
+# PowerShell
+.\venv\Scripts\Activate.ps1
+
+# Command Prompt (cmd)
+.\venv\Scripts\activate.bat
 ```
 
 ### 4. 패키지 설치
