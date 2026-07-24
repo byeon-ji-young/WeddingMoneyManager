@@ -1,7 +1,5 @@
-# GUI를 만들기 위한 tkinter 라이브러리 불러오기
-import tkinter as tk
-# tkinter 안에 있는 messagebox 기능 가져와줘
-from tkinter import messagebox
+import tkinter as tk # GUI를 만들기 위한 tkinter 라이브러리 불러오기
+from tkinter import messagebox # tkinter 안에 있는 messagebox 기능 가져와줘
 
 import json
 
@@ -9,8 +7,7 @@ from datetime import datetime
 from tkcalendar import DateEntry
 from tkinter import ttk
 
-# 그래프를 만들기 위한 matplotlib 라이브러리 불러오기 (pyplot: 그래프 그리는 기능)
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # 그래프를 만들기 위한 matplotlib 라이브러리 불러오기 (pyplot: 그래프 그리는 기능)
 import matplotlib.font_manager as fm
 
 plt.rcParams["font.family"] = "Malgun Gothic" # or plt.rc("font", family="Malgun Gothic")
@@ -33,220 +30,288 @@ window.title("💒 신혼 자금 관리") # 창 제목
 window.geometry("820x920") # 창 크기 (widthxheight)
 window.configure(bg="#F4F6F9")
 
-# =====================
-# 화면 큰 구조
-# =====================
-title_frame = tk.Frame(window, bg="#F4F6F9")
-title_frame.grid(
-    row=0,
-    column=0,
-    pady=(20, 10)
-)
+# TTK 기본 테마를 세련된 clam 스타일로 변경
+style = ttk.Style()
+style.theme_use("clam")
 
-top_frame = tk.Frame(window, bg="#F4F6F9")
-top_frame.grid(
-    row=1,
-    column=0,
-    padx=20,
-    pady=10
-)
-top_frame.columnconfigure(0, weight=1)
-top_frame.columnconfigure(1, weight=1)
 
-bottom_frame = tk.Frame(window, bg="#F4F6F9")
-bottom_frame.grid(
-    row=2,
-    column=0,
-    padx=20,
-    pady=10
-)
-bottom_frame.columnconfigure(0, weight=1)
-bottom_frame.columnconfigure(1, weight=1)
+# ==========================================
+# 1. 헤더 타이틀 영역 (Top Header)
+# ==========================================
+# 1. pack() : 자동 배치
+# 2. grid() : 행(row), 열(column) 기준 배치
+# 3. place() : 좌표(x, y) 기준 배치
+
+header_frame = tk.Frame(window, bg="#F4F6F9")
+header_frame.pack(fill="x", padx=30, pady=(20, 10)) # fill="x" : 가로 방향으로 부모 크기에 맞게 늘어남 / "y" : 세로 방향으로 늘어남 / "both" : 가로와 세로 모두 늘어남
+# padx: 위젯 바깥쪽의 가로(좌우) 여백 / ipadx: 위젯 안쪽의 좌우 여백(위젯 자체의 너비를 늘림) / pady: 위젯 바깥쪽의 세로(상하) 여백
 
 title_label = tk.Label(
-    title_frame,
-    # text="💰 신혼 자금 관리",
-    text="💍 예식 비용 관리",
+    header_frame,
+    text="💍 예식 비용 관리 Dashboard",
     font=("맑은 고딕", 16, "bold"),
     bg="#F4F6F9",
     fg="#1E293B"
 )
-title_label.pack()
+title_label.pack(side="left") # "left" : 왼쪽부터 배치 / "right" : 오른쪽부터 배치 / "top" : 위쪽부터 배치(기본값) / "bottom" : 아래쪽부터 배치
 
-# =====================
-# 화면 영역 Frame 분리
-# =====================
-dashboard_frame = tk.Frame(bottom_frame, bg="#F4F6F9")
-dashboard_frame.grid(
-    row=0,
-    column=0,
-    columnspan=2,
-    padx=20,
-    pady=10
-)
+# 예산 설정 영역
+budget_frame = tk.Frame(header_frame, bg="#F4F6F9")
+budget_frame.pack(side="right")
 
-budget_frame = tk.Frame(top_frame, bg="#F4F6F9")
-budget_frame.grid(
-    row=0,
-    column=1,
-    columnspan=2,
-    pady=10
-)
+budget_label = tk.Label(budget_frame, text="총 예산 :", font=("맑은 고딕", 9, "bold"), bg="#F4F6F9", fg="#64748B")
+budget_label.pack(side="left", padx=5)
 
-input_frame = tk.Frame(
-    top_frame,
-    bg="white",
-    padx=25,
-    pady=20,
-    relief="flat",
-    highlightbackground="#E2E8F0", # 테두리
-    highlightthickness=1
-)
-input_frame.grid(
-    row=0,
-    column=0,
-    padx=20,
-    pady=10,
-)
-input_title = tk.Label(
-    input_frame,
-    text="💸 지출 입력",
-    font=("맑은 고딕", 12, "bold"),
-    bg="white",
-    fg="#1E293B"
-)
-input_title.grid(
-    row=0,
-    column=0,
-    columnspan=3,
-    pady=(0,15)
-)
+budget_entry = tk.Entry(budget_frame, font=("맑은 고딕", 10), width=12, relief="solid", bd=1)
+budget_entry.pack(side="left", padx=5)
 
-list_frame = tk.Frame(bottom_frame, bg="#F4F6F9")
-list_frame.grid(
-    row=3,
-    column=0,
-    columnspan=2,
-    padx=20,
-    pady=10,
-    sticky="nsew"
+budget_button = tk.Button(
+    budget_frame, 
+    text="수정", 
+    command=lambda: update_budget(),
+    font=("맑은 고딕", 8, "bold"), 
+    bg="#2563EB", 
+    fg="white", 
+    activeforeground="white",
+    activebackground="#1D4ED8", 
+    relief="flat", 
+    bd=0, 
+    padx=8, 
+    pady=2
 )
-list_frame.grid_columnconfigure(0, weight=1) # list_frame의 0번째 컬럼은 남는 공간이 있으면 늘어나라
-list_frame.grid_columnconfigure(1, weight=0) # list_frame의 1번째 컬럼은 남는 공간을 받지 마라
-# column 0(Treeview) → 남은 공간 차지 / column 1(scrollbar) → 고정 크기
-list_frame.grid_rowconfigure(0, weight=0)
-list_frame.grid_rowconfigure(1, weight=1) # grid_rowconfigure()의 숫자는 list_frame 내부의 row 번호. 즉, money_list의 row가 1이면 매칭 됨
+budget_button.config(cursor="hand2") # 버튼 설정 추가하고 싶으면 config()로 추가해도 됨
+budget_button.pack(side="left")
 
-search_frame = tk.Frame(list_frame, bg="#F4F6F9")
-search_frame.grid(
-    row=0,
-    column=0,
-    columnspan=2,
-    sticky="ew",
-    pady=(0, 5)
-)
-search_frame.grid_columnconfigure(0, weight=1)
-search_frame.grid_columnconfigure(1, weight=0)
 
-button_frame = tk.Frame(list_frame, bg="#F4F6F9")
-button_frame.grid(
-    row=2,
-    column=0,
-    columnspan=2,
-    sticky="ew"
-)
-button_frame.grid_columnconfigure(0, weight=1)
-button_frame.grid_columnconfigure(1, weight=1)
+# ==========================================
+# 2. 요약 카드 영역 (Dashboard Summary Cards)
+# ==========================================
+dashboard_frame = tk.Frame(window, bg="#F4F6F9")
+dashboard_frame.pack(fill="x", padx=30, pady=10)
 
-# =====================
-# 대시보드 카드 디자인
-# =====================
 def create_card(parent, title, value, color):
     card = tk.Frame(
         parent,
         bg="white",
-        width=210,
-        height=95,
-        highlightbackground="#E2E8F0",
-        highlightthickness=1
+        height=85,
+        highlightbackground="#E2E8F0", # 포커스가 없을 때 테두리 (highlightcolor: 포커스가 있을 때 테두리 색)
+        highlightthickness=1 # 강조 테두리 두께
     )
+    card.pack_propagate(False) # 내부 위젯 크기에 따라 상자가 줄어들지 않게 고정
 
-    card.pack_propagate(False)
+    title_lbl = tk.Label(card, text=title, font=("맑은 고딕", 9, "bold"), bg="white", fg="#64748B")
+    title_lbl.pack(anchor="w", padx=15, pady=(12, 2)) # anchor="w" : 왼쪽(west)에 붙임 / "e": 오른쪽(east)에 붙임 / "n": 위쪽(north)에 붙임 / "s": 아래쪽(sount)에 붙임 / "center": 가운데에 붙임
 
-    title_label = tk.Label(
-        card,
-        text=title,
-        font=("맑은 고딕", 9, "bold"),
-        bg="white",
-        fg="#64748B"
-    )
+    val_lbl = tk.Label(card, text=value, font=("맑은 고딕", 13, "bold"), bg="white", fg=color)
+    val_lbl.pack(anchor="w", padx=15)
 
-    title_label.pack(
-        anchor="w",
-        padx=15,
-        pady=(12,2)
-    )
+    return card, val_lbl
 
-    value_label = tk.Label(
-        card,
-        text=value,
-        font=("맑은 고딕", 13, "bold"),
-        bg="white",
-        fg=color
-    )
+# 3개의 대시보드 카드 생성 (1:1:1 비율)
+# columnconfigure: Frame이나 Window의 Column의 속성을 설정하는 함수 => 부모위젯.columnconfigure(열번호, 옵션)
+dashboard_frame.columnconfigure(0, weight=1) # weight가 커지면 더 많은 공간 비율을 차지. 만약 0이면 창이 커져도 열의 크기는 유지
+dashboard_frame.columnconfigure(1, weight=1)
+dashboard_frame.columnconfigure(2, weight=1)
 
-    value_label.pack(
-        anchor="w",
-        padx=15
-    )
+budget_card, budget_value = create_card(dashboard_frame, "💰 총 예산", f"{budget:,}원", "#2563EB")
+used_card, used_value = create_card(dashboard_frame, "💸 현재 지출", "0원", "#DC2626")
+remain_card, remain_value = create_card(dashboard_frame, "💵 남은 금액", f"{budget:,}원", "#16A34A")
 
-    return card, value_label
+budget_card.grid(row=0, column=0, padx=(0, 5), sticky="ew") # sticky="w" : 왼쪽(west)에 붙임 / "e": 오른쪽(east)에 붙임 / "n": 위쪽(north)에 붙임 / "s": 아래쪽(sount)에 붙임 ex) "ex": 왼쪽과 오른쪽에 모두 붙어라
+used_card.grid(row=0, column=1, padx=5, sticky="ew")
+remain_card.grid(row=0, column=2, padx=(5, 0), sticky="ew")
 
-budget_card, budget_value = create_card(
-    dashboard_frame,
-    "💰 총 예산",
-    f"{budget:,}원",
-    "#2563EB"
+# anchor : 위젯 내부(or 배정된 공간)에서 내용(텍스트 등)을 어디에 붙일지 결정
+# sticky : grid 셀 안의 위젯에서 위젯을 어디에 붙이고 얼마나 늘릴지 결정
+# => anchor은 내용의 정렬, sticky는 위젯의 배치와 확장 개념
+
+# ==========================================
+# 3. 데이터 입력 영역 (Input Form)
+# ==========================================
+input_frame = tk.Frame(
+    window,
+    bg="white",
+    padx=20,
+    pady=15,
+    # highlightbackground="#E2E8F0", # 포커스가 없을 때 테두리 (highlightcolor: 포커스가 있을 때 테두리 색)
+    # highlightthickness=1 # 강조 테두리 두께
+    highlightthickness=0
 )
+input_frame.pack(fill="x", padx=30, pady=10)
 
-used_card, used_value = create_card(
-    dashboard_frame,
-    "💸 현재 지출",
-    "0원",
-    "#DC2626"
+input_title = tk.Label(input_frame, text="💸 지출 내역 입력", font=("맑은 고딕", 11, "bold"), bg="white", fg="#1E293B")
+input_title.pack(anchor="w", pady=(0, 10))
+
+fields_frame = tk.Frame(input_frame, bg="white")
+fields_frame.pack(fill="x")
+
+# 입력 항목 스타일 공통 지정
+label_style = {"font": ("맑은 고딕", 9, "bold"), "bg": "white", "fg": "#475569"}
+entry_style = {"font": ("맑은 고딕", 10), "relief": "solid", "bd": 1} # relief: 위젯의 테두리 모양 옵션. "solid": 실선, "flat": 테두리 없음 ...
+
+# 1. 날짜
+date_label = tk.Label(fields_frame, text="날짜", **label_style).grid(row=0, column=0, padx=(0, 5), sticky="w")
+date_entry = DateEntry(fields_frame, date_pattern="yyyy-mm-dd", width=12, **entry_style)
+date_entry.grid(row=0, column=1, padx=(0, 15), pady=5)
+
+# 2. 분류
+tk.Label(fields_frame, text="분류", **label_style).grid(row=0, column=2, padx=(0, 5), sticky="w")
+style.configure("Custom.TCombobox", font=("맑은 고딕", 10), padding=3)
+category_combo = ttk.Combobox(
+    fields_frame, 
+    values=["가구", "가전", "생활용품", "여행", "예식장", "스드메", "기타"], 
+    # state="readonly", 
+    style="Custom.TCombobox", 
+    width=12
 )
+category_combo.grid(row=0, column=3, padx=(0, 15), pady=5)
 
-remain_card, remain_value = create_card(
-    dashboard_frame,
-    "💵 남은 금액",
-    f"{budget:,}원",
-    "#16A34A"
+# 3. 항목
+tk.Label(fields_frame, text="항목", **label_style).grid(row=0, column=4, padx=(0, 5), sticky="w")
+item_entry = tk.Entry(fields_frame, width=15, **entry_style)
+item_entry.grid(row=0, column=5, padx=(0, 15), pady=5)
+
+# 4. 금액
+tk.Label(fields_frame, text="금액", **label_style).grid(row=0, column=6, padx=(0, 5), sticky="w")
+price_entry = tk.Entry(fields_frame, width=12, **entry_style)
+price_entry.grid(row=0, column=7, padx=(0, 5), pady=5)
+
+# 버튼 영역 (입력창 하단)
+btn_group = tk.Frame(input_frame, bg="white")
+btn_group.pack(anchor="e", pady=(10, 0))
+
+normal_button = {
+    "font": ("맑은 고딕", 9, "bold"),
+    "width": 8,
+    "relief": "flat",
+    "bd": 0,
+    "cursor": "hand2",
+    "fg": "white",
+    "activeforeground": "white"
+}
+
+add_button = tk.Button(btn_group, text="➕ 추가", command=lambda: add_money(), bg="#16A34A", activebackground="#15803D", **normal_button) 
+# lambda 사용하는 이유: 클릭했을 때 실행하라는 의미. command=add_money() 이렇게 쓰면 프로그램 시작할 때 바로 실행
+# lambda 사용 안하려면 command=add_money 까지만 작성
+add_button.pack(side="left", padx=3) # side="left": 왼쪽부터 배치하라. 기본값은 top
+
+update_button = tk.Button(btn_group, text="✏ 수정", command=lambda: update_money(), bg="#2563EB", activebackground="#1D4ED8", **normal_button)
+update_button.pack(side="left", padx=3)
+
+delete_button = tk.Button(btn_group, text="🗑 삭제", command=lambda: delete_money(), bg="#DC2626", activebackground="#B91C1C", **normal_button)
+delete_button.pack(side="left", padx=3)
+
+
+# ==========================================
+# 4. 목록 및 검색 영역 (Treeview & Search)
+# ==========================================
+list_frame = tk.Frame(window, bg="#F4F6F9")
+list_frame.pack(fill="both", expand=True, padx=30, pady=10) # expand는 부모 창에 남는 공간을 위젯이 가져갈지 결정. true면 남는 공간이 있을 경우 이 위젯에게 배분함
+
+# 검색 바 (Search Bar)
+search_frame = tk.Frame(list_frame, bg="#F4F6F9")
+search_frame.pack(fill="x", pady=(0, 8))
+
+search_entry = tk.Entry(search_frame, font=("맑은 고딕", 10), relief="solid", bd=1)
+search_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+
+search_button = tk.Button(
+    search_frame, 
+    text="🔍 검색", 
+    command=lambda: search_money(),
+    font=("맑은 고딕", 9, "bold"), 
+    bg="#475569", 
+    fg="white", 
+    activeforeground="white", # active 상태일 때 글자색 (active 상태란 마우스 오버 or 마우스 클릭)
+    activebackground="#334155", # active 상태일 때 배경색
+    relief="flat", 
+    bd=0, 
+    cursor="hand2", 
+    width=8
 )
+search_button.pack(side="right")
 
-budget_card.grid(
-    row=0,
-    column=0,
-    padx=6,
-    pady=5
+# 표(Treeview) 디자인 세부 설정
+# 데이터 영역(행/셀)
+style.configure("Treeview", font=("맑은 고딕", 10), rowheight=30, background="white", fieldbackground="white", borderwidth=0) # background: 전체 배경 색 / fieldbackground: 각 셀의 배경색
+# 헤더 영역
+style.configure("Treeview.Heading", font=("맑은 고딕", 10, "bold"), background="#E2E8F0", foreground="#333333", relief="flat")
+# 상태(선택됨, 눌림 등)에 따른 변화
+style.map("Treeview", background=[("selected", "#E0F2FE")], foreground=[("selected", "#0369A1")])
+
+tree_container = tk.Frame(list_frame, bg="white", highlightbackground="#E2E8F0", highlightthickness=1)
+tree_container.pack(fill="both", expand=True)
+
+money_list = ttk.Treeview(tree_container, columns=("date", "category", "item", "price"), show="headings", height=8) # show="headings": 트리 표시(#0 컬럼)는 숨기고, 컬럼 제목(heading)만 보여줘라. 기본값은 tree
+scrollbar = ttk.Scrollbar(tree_container, orient="vertical", command=money_list.yview) # money_list.yview: Treeview → Scrollbar. 스크롤바 움직이면 Treeview의 세로 위치를 바꿔라
+money_list.configure(yscrollcommand=scrollbar.set) # scrollbar.set: Scrollbar → Treeview. Treeview가 현재 위치를 스크롤바에 알려줘라
+
+money_list.heading("date", text="날짜", command=lambda: sort_column("date"))
+money_list.heading("category", text="분류", command=lambda: sort_column("category"))
+money_list.heading("item", text="항목", command=lambda: sort_column("item"))
+money_list.heading("price", text="금액", command=lambda: sort_column("price"))
+
+money_list.column("date", width=110, anchor="center")
+money_list.column("category", width=90, anchor="center")
+money_list.column("item", width=250, anchor="w", stretch=True)
+money_list.column("price", width=120, anchor="e")
+
+money_list.bind("<<TreeviewSelect>>", lambda event: select_money(event)) # lambda event: select_money(event) 대신 select_money만 적어도 됨
+
+money_list.pack(side="left", fill="both", expand=True)
+scrollbar.pack(side="right", fill="y")
+
+
+# ==========================================
+# 5. 하단 통계 및 합계 영역 (Footer)
+# ==========================================
+footer_frame = tk.Frame(window, bg="#F4F6F9")
+footer_frame.pack(fill="x", padx=30, pady=(5, 20))
+
+total_label = tk.Label(footer_frame, text="총 지출 : 0원", font=("맑은 고딕", 11, "bold"), bg="#F4F6F9", fg="#1E293B")
+total_label.pack(side="left")
+# side: 위젯을 어느 방향으로 배치할지 (side는 pack()에서만 사용하는 옵션)
+# anchor: 배치된 공간 안에서 위젯(또는 내용)을 어느 쪽에 붙일지
+
+stat_btn_frame = tk.Frame(footer_frame, bg="#F4F6F9")
+stat_btn_frame.pack(side="right")
+
+bar_button = tk.Button(
+    stat_btn_frame, text="📈 지출 비교", command=lambda: show_bar_chart(),
+    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+    activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
+bar_button.pack(side="left", padx=3)
 
-used_card.grid(
-    row=0,
-    column=1,
-    padx=6,
-    pady=5
+pie_button = tk.Button(
+    stat_btn_frame, text="📊 카테고리 비율", command=lambda: show_pie_chart(),
+    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+    activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
+pie_button.pack(side="left", padx=3)
 
-remain_card.grid(
-    row=0,
-    column=2,
-    padx=6,
-    pady=5
-)
+# category_stats_button = tk.Button(
+#     stat_btn_frame, text="통계", command=lambda: show_category_state(),
+#     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+#     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
+# )
+# category_stats_button.pack(side="left", padx=3)
+# month_stats_button = tk.Button(
+#     stat_btn_frame, text="월별 통계", command=lambda: show_month_state(),
+#     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+#     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
+# )
+# month_stats_button.pack(side="left", padx=3)
+# detail_stats_button = tk.Button(
+#     stat_btn_frame, text="상세 통계", command=lambda: show_detail_state(),
+#     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+#     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
+# )
+# detail_stats_button.pack(side="left", padx=3)
 
-# =====================
-# 함수 영역
-# =====================
+# ==========================================
+# 함수 영역 
+# ==========================================
 def add_money():
     date = date_entry.get()
     category = category_combo.get()
@@ -266,15 +331,6 @@ def add_money():
         messagebox.showwarning("입력 오류", "금액은 숫자로 입력하세요.")
         return
 
-    # listbox 형태
-    # money_list.insert(tk.END, f"{date} | {category} | {item} | {price}원") # Listbox형태. tk.END: 맨 마지막 위치에 추가
-    # f"문자열 {변수:포맷} 문자열"
-    # ex) 소수점 f"{price:.2f}" / 퍼센트 f"{rate:.0%}"
-
-    # Treeview 형태. 화면(Treeview)에 직접 추가
-    # money_list.insert("", "end", values=(date, category, item, f"{price:,}원"))
-    # 주석한 이유 - display_data() 호출을 하기 때문. 여기서 money_list에 insert 함
-
     # 실제 데이터 추가
     money_data.append({
         "date": date,
@@ -282,13 +338,12 @@ def add_money():
         "item": item,
         "price": price
     }) # Python의 dictionary(딕셔너리)
-
-    item_entry.delete(0, tk.END)
-    price_entry.delete(0, tk.END)
     
     save_data()
     display_data()
     update_total()
+
+    refresh_input_entry() # 입력창 초기화
 
 def update_total():
     total = 0
@@ -311,26 +366,14 @@ def update_total():
     remain_value.config(text=f"{remain:,}원")
 
 def delete_money():
-    # selected = money_list.curselection() # Listbox형태. 선택한 위치 가져오기
     selected = money_list.selection()
 
     if not selected:
-        messagebox.showwarning(
-            "삭제 오류",
-            "삭제할 항목을 선택하세요."
-        )
-    
+        messagebox.showwarning("삭제 오류", "삭제할 항목을 선택하세요.")
         return
     
     if selected:
-        # index = selected[0]
-        # money_data.pop(index)
-        # money_list.delete(index)
-        
-        result = messagebox.askyesno(
-            "삭제 확인",
-            "정말 삭제하시겠습니까?"
-        )
+        result = messagebox.askyesno("삭제 확인", "정말 삭제하시겠습니까?")
 
         if not result:
             return
@@ -345,8 +388,7 @@ def delete_money():
         display_data() # 삭제 후 인덱스 재배치
         update_total()
 
-        # 입력창 초기화
-        refresh_input_entry()
+        refresh_input_entry() # 입력창 초기화
 
 def save_data():
     # with: 열고 → 사용하고 → 자동 정리
@@ -358,7 +400,7 @@ def save_data():
             },
             file,
             ensure_ascii=False, # 한글을 그대로 저장(true로 하면 유니코드로 변화돼서 저장됨)
-            indent=4
+            indent=4 # 들여쓰기 간격
         )
 
 def load_data():
@@ -366,13 +408,11 @@ def load_data():
 
     try:
         with open("money.json", "r", encoding="utf-8") as file:
-            data = json.load(file) #json.load(): JSON 파일을 Python 데이터로 읽음
+            data = json.load(file) # json.load(): JSON 파일을 Python 데이터로 읽음
 
             if isinstance(data, list): # isinstance(변수, 자료형): 이 변수가 이 자료형이 맞는지 확인 ex)isinstance(money_data, dict): money_data가 딕셔너리 타입인지 확인
-                # 기존 money.json은 리스트 형식으로 저장되어 있음
                 money_data = data
                 budget = 30000000
-
             else:
                 # 새로운 money.json은 딕서녀리 형식으로 저장되어 있음(budget이 추가 됐기 때문)
                 budget = data.get("budget", 30000000) # data에 budget이 있으면 사용, 없으면 30000000 사용
@@ -383,25 +423,16 @@ def load_data():
         money_data = []
 
 def display_data():
-    # money_list.delete(0, tk.END) # listbox 형태
-
-    for row in money_list.get_children(): #treeview 형태
+    for row in money_list.get_children(): # treeview 형태
         money_list.delete(row)
 
-    # for money in money_data:
-    #     # money_list.insert(tk.END, f"{money['date']} | {money['category']} | {money['item']} | {money['price']:,}원")
-    #     money_list.insert("", "end", values=(money['date'], money['category'], money['item'], f"{money['price']:,}원")) # 이게 Treeview 형태
-
     for index, money in enumerate(money_data):
-        money_list.insert("", "end", iid=index, values=(money['date'], money['category'], money['item'], f"{money['price']:,}원")) # 이게 Treeview 형태
+        money_list.insert("", "end", iid=index, values=(money['date'], money['category'], money['item'], f"{money['price']:,}원"))
 
 def select_money(event=None):
-    # selected = money_list.curselection() # 이거는 Listbox전용. Treeview에서는 사용 불가
     selected = money_list.selection()
 
     if selected:
-        # index = selected[0]
-
         selected_id = selected[0] # 선택한 Treeview 행 ID
 
         global selected_index
@@ -409,14 +440,11 @@ def select_money(event=None):
         
         money = money_data[selected_index]
 
-        # date_entry.delete(0, tk.END)
-        # date_entry.insert(0, money["date"]) # entry 방식(delete & insert)
         date_entry.set_date(money["date"]) # DateEntry 방식
-
         category_combo.set(money["category"])
 
         item_entry.delete(0, tk.END)
-        item_entry.insert(0, money["item"])
+        item_entry.insert(0, money["item"]) # entry 방식(delete & insert)
 
         price_entry.delete(0, tk.END)
         price_entry.insert(0, str(money["price"]))
@@ -425,11 +453,7 @@ def update_money():
     global selected_index
 
     if selected_index is None:
-        messagebox.showwarning(
-            "수정 오류",
-            "수정할 항목을 먼저 선택하세요."
-        )
-
+        messagebox.showwarning("수정 오류", "수정할 항목을 먼저 선택하세요.")
         return
 
     date = date_entry.get()
@@ -440,11 +464,7 @@ def update_money():
     try:
         price = int(price)
     except:
-        messagebox.showwarning(
-            "입력 오류",
-            "금액은 숫자로 입력하세요."
-        )
-
+        messagebox.showwarning("입력 오류", "금액은 숫자로 입력하세요.")
         return
 
     money_data[selected_index]["date"] = date
@@ -456,11 +476,8 @@ def update_money():
     display_data()
     update_total()
 
-    # 입력창 초기화
-    refresh_input_entry()
-
-    # 선택 상태 초기화
-    selected_index = None
+    refresh_input_entry() # 입력창 초기화
+    selected_index = None # 선택 상태 초기화
 
 def search_money():
     keyword = search_entry.get()
@@ -468,32 +485,13 @@ def search_money():
     # 검색어가 없으면 전체 출력
     if keyword == "":
         display_data()
-        
         return
-    
-    # money_list.delete(0, tk.END)
-
-    # for money in money_data:
-    #     if keyword in money["item"] or keyword in money["category"]:
-    #         money_list.insert(
-    #             tk.END,
-    #             f"{money['date']} | {money['category']} | {money['item']} | {money['price']:,}원"
-    #         )
 
     money_list.delete(*money_list.get_children()) # *는 unpacking(언패킹)
 
     for money in money_data:
         if keyword in money["item"] or keyword in money["category"]:
-            money_list.insert(
-                "",
-                "end",
-                values=(
-                    money["date"],
-                    money["category"],
-                    money["item"],
-                    f"{money['price']:,}원"
-                )
-            )
+            money_list.insert("", "end", values=(money["date"], money["category"], money["item"], f"{money['price']:,}원"))
 
 def show_category_state():
     category_total = {}
@@ -504,12 +502,10 @@ def show_category_state():
 
         if category in category_total:
             category_total[category] += price
-
         else:
             category_total[category] = price
 
     result = ""
-
     for category, total_price in category_total.items():
         result += f"{category} : {total_price:,}원\n"
 
@@ -525,12 +521,10 @@ def show_month_state():
 
         if month in month_total:
             month_total[month] += price
-
         else:
             month_total[month] = price
 
     result = ""
-
     for month, total_price in month_total.items():
         result += f"{month} : {total_price:,}원\n"
 
@@ -550,15 +544,12 @@ def show_detail_state():
 
         if category in month_category_total[month]:
             month_category_total[month][category] += price
-
         else:
             month_category_total[month][category] = price
 
     result = ""
-
     for month, categories in month_category_total.items():
         result += f"\n[{month}]\n"
-
         for category, total_price in categories.items():
             result += f"{category} : {total_price:,}원\n"
 
@@ -573,10 +564,9 @@ def show_bar_chart():
 
         if category in category_total:
             category_total[category] += price
-
         else:
             category_total[category] = price
-            
+
     # matplotlib은 리스트 형태를 선호함
     categories = list(category_total.keys()) # keys(): 기능 실행, keys: 기능 자체. ex)get()
     prices = list(category_total.values())
@@ -585,7 +575,6 @@ def show_bar_chart():
     bars = plt.bar(categories, prices, color="#3B82F6") # 막대 그래프 생성. bar: 세로 / barh: 가로
     for bar in bars:
         height = bar.get_height()
-
         plt.text(
             bar.get_x() + bar.get_width()/2,
             height,
@@ -603,11 +592,7 @@ def show_pie_chart():
     category_total = {}
 
     if not money_data:
-        messagebox.showinfo(
-            "통계",
-            "등록된 지출 내역이 없습니다."
-        )
-
+        messagebox.showinfo("통계", "등록된 지출 내역이 없습니다.")
         return
 
     for money in money_data:
@@ -616,16 +601,11 @@ def show_pie_chart():
 
         if category in category_total:
             category_total[category] += price
-
         else:
             category_total[category] = price
 
     if not category_total:
-        messagebox.showinfo(
-            "통계",
-            "표시할 데이터가 없습니다."
-        )
-
+        messagebox.showinfo("통계", "표시할 데이터가 없습니다.")
         return
     
     categories = list(category_total.keys())
@@ -638,18 +618,13 @@ def show_pie_chart():
     plt.figure(figsize=(6,6))
     wedges, texts, autotexts = plt.pie(
         prices,
-        # labels=categories,
         labels=None,
-        # autopct="%1.1f%%",
         autopct=make_autopct(prices),
         startangle=90, # 기본은 3시 방향부터 시작하는데 90도를 주면 12시 방향부터 시작함
-        # shadow=True,
-        wedgeprops={"width": 0.45}, # 도넛
+        wedgeprops={"width": 0.45}, # 도넛형 그래프
         explode=explode, # 자동으로 살짝 튀어나오게
         textprops={"fontsize": 9}
-        # labeldistance=1.15
-        # pctdistance=0.6
-    )# 원형 그래프 생성
+    ) # 원형 그래프 생성
     plt.legend(
         wedges,
         categories,
@@ -658,13 +633,12 @@ def show_pie_chart():
         bbox_to_anchor=(1, 0, 0.5, 1)
     )
     plt.title("💒 신혼 자금 사용 비율")
-    plt.axis("equal") # 원으로
-    plt.tight_layout() # 여백 자동 맞춤
+    plt.axis("equal") # 원형으로 맞춤
+    plt.tight_layout()
     plt.show()
 
-def make_autopct(values): # 설정값(values)을 기억하는 함수를 만들어서 반환하는 역할
-
-    def my_autopct(percent): # percent는 matplotlib가 자동으로 넣어주는 값
+def make_autopct(values): # 설정값(values)을 기억하는 함수를 만들어서 반환하는 역할 (함수를 만들어서 반환하는 함수: 클로저(closure))
+    def my_autopct(percent): # percent는 matplotlib가 자동으로 넣어주는 값. matplotlib이 사용할 함수
         total = sum(values)
         price = int(total * percent / 100)
         
@@ -680,13 +654,8 @@ def update_budget():
 
     try:
         budget = int(budget_entry.get().replace(",", ""))
-
     except:
-        messagebox.showwarning(
-            "입력 오류",
-            "예산은 숫자로 입력하세요."
-        )
-        
+        messagebox.showwarning("입력 오류", "예산은 숫자로 입력하세요.")
         return
 
     save_data() 
@@ -697,7 +666,6 @@ def refresh_budget_entry():
     budget_entry.insert(0, f"{budget:,}")
 
 def refresh_input_entry():
-    # 입력창 초기화
     date_entry.delete(0, tk.END)
     date_entry.set_date(datetime.today())
     category_combo.set("")
@@ -709,7 +677,6 @@ def sort_price():
 
     # 오름차순이면 내림차순(reverse=True)으로 정렬 / 내림차순이면 오름차순(reverse=False)으로 정렬
     money_data.sort(key=lambda money: money["price"], reverse=price_reverse) # money_data를 금액 기준으로 정렬. money: money["price"]에서 money는 내가 지정한 변수명. 다른걸로 바꿔도 상관없음
-
     price_reverse = not price_reverse
 
     display_data()
@@ -718,197 +685,17 @@ def sort_column(column):
     # 오름차순이면 내림차순(reverse=True)으로 정렬 / 내림차순이면 오름차순(reverse=False)으로 정렬
     money_data.sort(key=lambda money: money[column], reverse=sort_reverse[column])
 
-    sort_reverse[column] = not sort_reverse[column] # 새 딕셔너리 통째로 바꾸는게 아니니까 global 사용 안함
+    sort_reverse[column] = not sort_reverse[column] # 새 딕셔너리 통째로 바꾸는게 아니니까 global 사용 안
 
     display_data()
 
 
-# =====================
-# 화면 영역
-# =====================
-# 창 꾸미기
-button_font = ("맑은 고딕", 9, "bold")
-normal_button = {
-    "font": button_font,
-    "width": 10,
-    # "height": 2,
-    "relief": "flat", # 입체 버튼 효과 제거
-    "bd": 0, # 테두리 제거
-    "cursor": "hand2",
-    "fg": "white", # 글자 색
-    "activeforeground": "white" # 클릭할 때 글자색
-}
-
-stat_button = {
-    **normal_button,
-    "bg": "#475569", # 기본 버튼 색
-    "activebackground": "#334155" # 클릭할 때 색
-}
-
-insert_button = {
-    **normal_button,
-    "bg": "#16A34A",
-    "activebackground": "#15803D"
-}
-
-update_button = {
-    **normal_button,
-    "bg": "#2563EB",
-    "activebackground": "#1D4ED8"
-}
-
-delete_button = {
-    **normal_button,
-    "bg": "#DC2626",
-    "activebackground": "#B91C1C"
-}
-
-search_button = {
-    **normal_button,
-    "height": 1,
-    "bg": "#475569", # 기본 버튼 색
-    "activebackground": "#334155" # 클릭할 때 색
-}
-
-label_style = {
-    "font": ("맑은 고딕", 9, "bold"),
-    "bg": "white",
-    "fg": "#475569",
-    "width": 6,
-    "anchor": "w"
-}
-
-entry_style = {
-    "font": ("맑은 고딕", 10),
-    "width": 20,
-    "relief": "solid",
-    "bd": 1
-}
-
-# Entry → 사용자가 입력하는 곳
-# Button → 사용자가 누르는 곳
-# Label → 정보를 보여주는 곳
-budget_label = tk.Label(budget_frame, text="예산 설정 :", font=("맑은 고딕", 10, "bold"), bg="#F4F6F9", fg="#475569")
-budget_label.grid(row=0, column=0, padx=5) # padx: 위젯 바깥쪽의 가로(좌우) 여백 / ipadx: 위젯 안쪽의 좌우 여백(위젯 자체의 너비를 늘림) / pady: 위젯 바깥쪽의 세로(상하) 여백
-
-budget_entry = tk.Entry(budget_frame, font=("맑은 고딕", 10), width=15, relief="solid", bd=1)
-budget_entry.grid(row=0, column=1)
-
-budget_button = tk.Button(budget_frame, text="적용", command=update_budget, **stat_button)
-budget_button.config(width=6)
-budget_button.grid(row=0, column=2, padx=5)
-
-date_label = tk.Label(input_frame, text="날짜", **label_style) # tk.Label(넣을_창, 표시할_글자)
-date_label.grid(row=1, column=0, pady=4)
-# 1. pack() : 자동 배치
-# 2. grid() : 행(row), 열(column) 기준 배치
-# 3. place() : 좌표(x, y) 기준 배치
-date_entry = DateEntry(input_frame, date_pattern="yyyy-mm-dd", **entry_style)
-date_entry.grid(row=1, column=1, pady=4)
-
-category_label = tk.Label(input_frame, text="분류", **label_style)
-category_label.grid(row=2, column=0, pady=4)
-
-style = ttk.Style()
-style.theme_use("clam") # clam 테마로 변경
-style.configure(
-    "Custom.TCombobox",
-    font=("맑은 고딕", 10),
-    padding=3
-)
-category_combo = ttk.Combobox(input_frame, values=["가구","가전","생활용품","여행","예식장","스드메","기타"], state="readonly", style="Custom.TCombobox", width=18)
-category_combo.grid(row=2, column=1, pady=4)
-
-item_label = tk.Label(input_frame, text="항목", **label_style) 
-item_label.grid(row=3, column=0, pady=4)
-
-item_entry = tk.Entry(input_frame, **entry_style)
-item_entry.grid(row=3, column=1, pady=4)
-
-price_label = tk.Label(input_frame, text="금액", **label_style)
-price_label.grid(row=4, column=0, pady=4)
-
-price_entry = tk.Entry(input_frame, **entry_style)
-price_entry.grid(row=4, column=1, pady=4)
-
-add_button = tk.Button(input_frame, text="➕ 추가", command=add_money, **insert_button) # command=add_money() 프로그램 시작할 때 바로 실행
-add_button.grid(row=5, column=0, pady=(15,0))
-
-# select_button = tk.Button(window, text="수정 선택", command=select_money)
-# select_button.grid(row=4, column=1)
-
-update_button = tk.Button(input_frame, text="✏ 수정", command=update_money, **update_button)
-update_button.grid(row=5, column=1, pady=(15,0))
-
-delete_button = tk.Button(input_frame, text="🗑 삭제", command=delete_money, **delete_button)
-delete_button.grid(row=5, column=2, pady=(15,0))
-
-search_entry = tk.Entry(search_frame, **entry_style)
-search_entry.grid(row=0, column=0, sticky="ew", padx=(0,5))
-
-search_button = tk.Button(search_frame, text="🔍 검색", command=search_money, **search_button)
-search_button.config(width=8)
-search_button.grid(row=0, column=1)
-
-# listbox
-# money_list = tk.Listbox(list_frame, width=50)
-# money_list.bind("<<ListboxSelect>>", select_money)
-# money_list.grid(row=6, column=0, columnspan=2)
-
-# treeview
-style.configure("Treeview", font=("맑은 고딕", 10), rowheight=30, background="white", fieldbackground="white", borderwidth=0)
-style.configure("Treeview.Heading", font=("맑은 고딕", 10, "bold"), background="#E2E8F0", foreground="#333333", relief="flat")
-style.map(
-    "Treeview",
-    background=[
-        ("selected", "#E0F2FE")
-    ],
-    foreground=[
-        ("selected", "#0369A1")
-    ]
-)
-money_list = ttk.Treeview(list_frame, columns=("date", "category", "item", "price"), show="headings", height=8)
-scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=money_list.yview) # money_list.yview: Treeview → Scrollbar. 스크롤바 움직이면 Treeview의 세로 위치를 바꿔라
-money_list.configure(yscrollcommand=scrollbar.set) # scrollbar.set: Scrollbar → Treeview. Treeview가 현재 위치를 스크롤바에 알려줘라
-money_list.heading("date", text="날짜", command=lambda: sort_column("date")) # lambda 사용하는 이유: 클릭했을 때 실행하라는 의미. command=sort_column("date") 이렇게 쓰면 프로그램 시작할 때 바로 실행
-money_list.heading("category", text="분류", command=lambda: sort_column("category"))
-money_list.heading("item", text="항목", command=lambda: sort_column("item"))
-money_list.heading("price", text="금액", command=lambda: sort_column("price"))
-money_list.column("date", width=110, anchor="center")
-money_list.column("category", width=90, anchor="center")
-money_list.column("item", width=220, anchor="w", stretch=True)
-money_list.column("price", width=110, anchor="e")
-money_list.bind("<<TreeviewSelect>>", select_money)
-money_list.grid(row=1, column=0, sticky="nsew") #sticky: 위젯을 셀의 어느 방향으로 붙일지 정하는 옵션. n(north), s(south), e(east), w(west)
-# nsew: 위,아래,왼,오 모든 방향으로 붙으라는거니까 커진 grid 칸 안에서 Treeview도 같이 늘어나라는 뜻
-scrollbar.grid(row=1, column=1, sticky="ns")
-
-total_label = tk.Label(list_frame, text="총 지출 : 0원", font=("맑은 고딕", 11, "bold"), bg="#F4F6F9", fg="#1E293B")
-total_label.grid(row=2, column=0, columnspan=2, pady=10)
-
-# category_stats_button = tk.Button(window, text="통계", command=show_category_state)
-# category_stats_button.grid(row=8, column=0)
-
-# month_stats_button = tk.Button(window, text="월별 통계", command=show_month_state)
-# month_stats_button.grid(row=8, column=1)
-
-# detail_stats_button = tk.Button(window, text="상세 통계", command=show_detail_state)
-# detail_stats_button.grid(row=8, column=2)
-
-bar_button = tk.Button(button_frame, text="📈 지출 비교", command=show_bar_chart, **stat_button)
-bar_button.grid(row=0, column=0, padx=10, pady=5)
-
-pie_button = tk.Button(button_frame, text="📊 카테고리 비율", command=show_pie_chart, **stat_button)
-pie_button.grid(row=0, column=1, padx=10, pady=5)
-
-# =====================
+# ==========================================
 # 실행
-# =====================
-# 프로그램 실행
+# ==========================================
 load_data()
 display_data()
 update_total()
-
 refresh_budget_entry()
 
 window.mainloop() # 이벤트 루프 시작(창이 종료될 때까지 프로그램 실행)
