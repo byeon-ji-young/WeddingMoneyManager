@@ -702,18 +702,35 @@ def refresh_input_entry():
     price_entry.delete(0, tk.END)
 
 def format_price(event=None):
+    cursor = price_entry.index(tk.INSERT) # tk.INSERT: 현재 커서 위치
+    
+    # 콤마 제거
     text = price_entry.get().replace(",", "")
 
+    # 빈칸이면 종료
     if text == "":
         return
 
-    # 숫자가 아니면 무시
+    # 숫자가 아니면 문자 입력 취소
     if not text.isdigit():
-        return
+        text = "".join(filter(str.isdigit, text)) # filter(str.isdigit, text): 숫자만 남기기 위해 사용
 
-    # 콤마 붙이기
+    # 콤마 추가
+    formatted = f"{int(text):,}"
+
+    # 커서 보정
+    comma_before = price_entry.get()[:cursor].count(",")
+    comma_after = formatted[:cursor].count(",")
+
+    new_cursor = cursor + (comma_after - comma_before)
+
+    # 다시 출력
     price_entry.delete(0, tk.END)
-    price_entry.insert(0, f"{int(text):,}")
+    price_entry.insert(0, formatted)
+
+    # 커서 원래 위치 근처로 이동
+    if new_cursor <= len(formatted):
+        price_entry.icursor(new_cursor) # icursor(): Entry의 커서를 지정한 위치로 이동
 
 def sort_price():
     global price_reverse
