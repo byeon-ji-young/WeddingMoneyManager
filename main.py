@@ -532,10 +532,17 @@ def load_data():
 
 # 목록 새로고침
 def display_data():
+    # 기존 목록 삭제
     # for row in money_list.get_children(): # treeview 형태
     #     money_list.delete(row)
     money_list.delete(*money_list.get_children())
 
+    # 데이터가 없으면 안내 메시지 표시
+    if not money_data:
+        money_list.insert("", "end", values=("", "", "등록된 지출 내역이 없습니다.", "", "", ""))
+        return
+
+    # 데이터가 있으면 정상 출력
     for index, money in enumerate(money_data):
         money_list.insert("", "end", iid=index, values=(money['date'], money['category'], money['item'], money.get("shop", ""), f"{money['price']:,}원", money.get("payment", "")))
 
@@ -559,6 +566,8 @@ def search_money():
 
     money_list.delete(*money_list.get_children()) # *는 unpacking(언패킹)
 
+    result_count = 0
+
     for index, money in enumerate(money_data):
         if keyword:
             if keyword not in money["item"] and keyword not in money.get("shop", ""):
@@ -573,6 +582,12 @@ def search_money():
                 continue
 
         money_list.insert("", "end", iid=index, values=(money["date"], money["category"], money["item"], money.get("shop", ""), f"{money['price']:,}원", money.get("payment", "")))
+
+        result_count += 1
+
+    # 검색 결과 없음
+    if result_count == 0:
+        money_list.insert("", "end", values=("", "", "검색 결과가 없습니다.", "", "", ""))
 
 # 검색 조건 초기화
 def reset_search():
