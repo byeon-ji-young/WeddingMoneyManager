@@ -348,7 +348,7 @@ def add_money():
         return
 
     try:
-        price = int(price)
+        price = int(price.replace(",", ""))
     except:
         messagebox.showwarning("입력 오류", "금액은 숫자로 입력하세요.")
         return
@@ -489,7 +489,7 @@ def update_money():
     price = price_entry.get()
 
     try:
-        price = int(price)
+        price = int(price.replace(",", ""))
     except:
         messagebox.showwarning("입력 오류", "금액은 숫자로 입력하세요.")
         return
@@ -701,6 +701,20 @@ def refresh_input_entry():
     shop_entry.set("")
     price_entry.delete(0, tk.END)
 
+def format_price(event=None):
+    text = price_entry.get().replace(",", "")
+
+    if text == "":
+        return
+
+    # 숫자가 아니면 무시
+    if not text.isdigit():
+        return
+
+    # 콤마 붙이기
+    price_entry.delete(0, tk.END)
+    price_entry.insert(0, f"{int(text):,}")
+
 def sort_price():
     global price_reverse
 
@@ -722,6 +736,8 @@ def sort_column(column):
 # ==========================================
 # 실행
 # ==========================================
+price_entry.bind("<KeyRelease>", format_price)
+
 load_data()
 display_data()
 update_total()
