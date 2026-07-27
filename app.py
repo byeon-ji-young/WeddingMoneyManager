@@ -732,6 +732,39 @@ def format_price(event=None):
     if new_cursor <= len(formatted):
         price_entry.icursor(new_cursor) # icursor(): Entry의 커서를 지정한 위치로 이동
 
+def format_price2(event=None):
+    # 숫자만 추출
+    numbers = "".join(filter(str.isdigit, price_entry.get()))
+
+    # 비어있으면 종료
+    if not numbers:
+        price_entry.delete(0, tk.END)
+        return
+
+    # 현재 숫자의 개수
+    digit_pos = len("".join(filter(str.isdigit, price_entry.get()[:price_entry.index(tk.INSERT)]))) # price_entry.get()[:tk.INSERT]: 현재 커서 앞까지만 자른다. "".join(...): 다시 문자열로 만든다
+
+    # 콤마 추가
+    formatted = f"{int(numbers):,}"
+
+    # 다시 출력
+    price_entry.delete(0, tk.END)
+    price_entry.insert(0, formatted)
+
+    # 숫자 개수를 기준으로 커서 위치 계산
+    count = 0
+    cursor = len(formatted)
+
+    for idx, char in enumerate(formatted):
+        if char.isdigit():
+            count += 1
+
+        if count == digit_pos:
+            cursor = idx + 1
+            break
+
+    price_entry.icursor(cursor)
+
 def sort_price():
     global price_reverse
 
@@ -753,7 +786,7 @@ def sort_column(column):
 # ==========================================
 # 실행
 # ==========================================
-price_entry.bind("<KeyRelease>", format_price)
+price_entry.bind("<KeyRelease>", format_price2)
 
 load_data()
 display_data()
