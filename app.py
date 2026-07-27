@@ -200,7 +200,7 @@ style.configure("Custom.TCombobox", font=("맑은 고딕", 10), padding=3)
 category_combo = ttk.Combobox(
     fields_frame, 
     values=["가구", "가전", "생활용품", "여행", "예식장", "스드메", "기타"], 
-    # state="readonly", 
+    state="readonly", 
     style="Custom.TCombobox", 
     width=12
 )
@@ -224,6 +224,17 @@ shop_entry.grid(row=0, column=7, padx=(0, 5), pady=5)
 tk.Label(fields_frame, text="금액", **label_style).grid(row=1, column=0, padx=(0, 5), sticky="w")
 price_entry = tk.Entry(fields_frame, width=20, **entry_style)
 price_entry.grid(row=1, column=1, padx=(0, 5), pady=5)
+
+# 6. 결제수단
+tk.Label(fields_frame, text="결제수단", **label_style).grid(row=1, column=2, padx=(0, 5), sticky="w")
+payment_combo = ttk.Combobox(
+    fields_frame,
+    values=["신용카드", "체크카드", "현금", "계좌이체"],
+    state="readonly",
+    style="Custom.TCombobox",
+    width=12
+)
+payment_combo.grid(row=1, column=3, padx=(0, 15), pady=5)
 
 # 버튼 영역 (입력창 하단)
 btn_group = tk.Frame(input_frame, bg="white")
@@ -291,7 +302,7 @@ style.map("Treeview", background=[("selected", "#E0F2FE")], foreground=[("select
 tree_container = tk.Frame(list_frame, bg="white", highlightbackground="#E2E8F0", highlightthickness=1)
 tree_container.pack(fill="both", expand=True)
 
-money_list = ttk.Treeview(tree_container, columns=("date", "category", "item", "shop", "price"), show="headings", height=8) # show="headings": 트리 표시(#0 컬럼)는 숨기고, 컬럼 제목(heading)만 보여줘라. 기본값은 tree
+money_list = ttk.Treeview(tree_container, columns=("date", "category", "item", "shop", "price", "payment"), show="headings", height=8) # show="headings": 트리 표시(#0 컬럼)는 숨기고, 컬럼 제목(heading)만 보여줘라. 기본값은 tree
 scrollbar = ttk.Scrollbar(tree_container, orient="vertical", command=money_list.yview) # money_list.yview: Treeview → Scrollbar. 스크롤바 움직이면 Treeview의 세로 위치를 바꿔라
 money_list.configure(yscrollcommand=scrollbar.set) # scrollbar.set: Scrollbar → Treeview. Treeview가 현재 위치를 스크롤바에 알려줘라
 
@@ -300,12 +311,14 @@ money_list.heading("category", text="분류", command=lambda: sort_column("categ
 money_list.heading("item", text="항목", command=lambda: sort_column("item"))
 money_list.heading("shop", text="구매처", command=lambda: sort_column("shop"))
 money_list.heading("price", text="금액", command=lambda: sort_column("price"))
+money_list.heading("payment", text="결제수단", command=lambda: sort_column("payment"))
 
-money_list.column("date", width=110, anchor="center")
-money_list.column("category", width=90, anchor="center")
-money_list.column("item", width=250, anchor="w", stretch=True) # stretch=True: 가용 공간을 채움
-money_list.column("shop", width=130, anchor="center", stretch=True)
-money_list.column("price", width=120, anchor="e")
+money_list.column("date", width=90, anchor="center")
+money_list.column("category", width=70, anchor="center")
+money_list.column("item", width=160, anchor="w", stretch=True) # stretch=True: 가용 공간을 채움
+money_list.column("shop", width=130, anchor="center")
+money_list.column("price", width=100, anchor="e")
+money_list.column("payment", width=90, anchor="center")
 
 money_list.bind("<<TreeviewSelect>>", lambda event: select_money(event)) # lambda event: select_money(event) 대신 select_money만 적어도 됨
 
@@ -369,6 +382,7 @@ def add_money():
     item = item_entry.get()
     shop = shop_entry.get()
     price = price_entry.get()
+    payment = payment_combo.get()
 
     if date == "":
         date = datetime.today().strftime("%Y-%m-%d")
@@ -389,7 +403,8 @@ def add_money():
         "category": category if category else "기타",
         "item": item,
         "shop": shop,
-        "price": price
+        "price": price,
+        "payment": payment if payment else "미선택"
     }) # Python의 dictionary(딕셔너리)
     
     save_data()
@@ -533,7 +548,7 @@ def display_data():
         money_list.delete(row)
 
     for index, money in enumerate(money_data):
-        money_list.insert("", "end", iid=index, values=(money['date'], money['category'], money['item'], money.get("shop", ""), f"{money['price']:,}원"))
+        money_list.insert("", "end", iid=index, values=(money['date'], money['category'], money['item'], money.get("shop", ""), f"{money['price']:,}원", money.get("payment", "")))
 
 def select_money(event=None):
     selected = money_list.selection()
@@ -557,6 +572,8 @@ def select_money(event=None):
 
         price_entry.delete(0, tk.END)
         price_entry.insert(0, str(money["price"]))
+
+        payment_combo.set(money.get("payment", "미선택"))
     
 def update_money():
     global selected_index
@@ -570,6 +587,7 @@ def update_money():
     item = item_entry.get()
     shop = shop_entry.get()
     price = price_entry.get()
+    payment = payment_combo.get()
 
     try:
         price = int(price.replace(",", ""))
@@ -582,6 +600,7 @@ def update_money():
     money_data[selected_index]["item"] = item
     money_data[selected_index]["shop"] = shop
     money_data[selected_index]["price"] = price
+    money_data[selected_index]["payment"] = payment
 
     save_data()
     display_data()
@@ -602,7 +621,7 @@ def search_money():
 
     for money in money_data:
         if (keyword in money["item"] or keyword in money["category"] or keyword in money.get("shop", "")):
-            money_list.insert("", "end", values=(money["date"], money["category"], money["item"], f"{money['price']:,}원"))
+            money_list.insert("", "end", values=(money["date"], money["category"], money["item"], f"{money['price']:,}원", money["payment"]))
 
 def show_category_state():
     category_total = {}
@@ -783,6 +802,7 @@ def refresh_input_entry():
     item_entry.delete(0, tk.END)
     shop_entry.set("")
     price_entry.delete(0, tk.END)
+    payment_combo.set("")
 
 def format_price(event=None):
     cursor = price_entry.index(tk.INSERT) # tk.INSERT: 현재 커서 위치
