@@ -172,7 +172,7 @@ class ExpenseDialog(tk.Toplevel):
         self.item_entry.insert(0, self.initial_data["item"])
         self.shop_combo.set(self.initial_data.get("shop", ""))
         self.price_entry.insert(0, f"{self.initial_data['price']:,}")
-        self.payment_combo.set(self.initial_data.get("payment", "미선택"))
+        self.payment_combo.set(self.initial_data.get("payment", ""))
 
     # 데이터 검증 후 메인 창으로 데이터 전달
     def on_save(self):

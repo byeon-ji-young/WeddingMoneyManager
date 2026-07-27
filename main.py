@@ -399,6 +399,11 @@ def open_edit_dialog():
         display_data()
         update_total()
 
+        # 수정한 항목 다시 선택
+        money_list.selection_set(idx) # 해당 행 선택
+        money_list.focus(idx) # Treeview 내부 커서 이동
+        money_list.see(idx) # 해당 행이 안 보이면 자동 스크롤
+
 # 선택 항목 삭제
 def delete_money():
     selected = money_list.selection()
