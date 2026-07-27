@@ -1,3 +1,7 @@
+# [2026-07-27]
+# 현재는 main.py를 사용
+# 이 파일은 원본 코드 보관 및 참고용
+
 import tkinter as tk # GUI를 만들기 위한 tkinter 라이브러리 불러오기
 from tkinter import messagebox # tkinter 안에 있는 messagebox 기능 가져와줘
 
