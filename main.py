@@ -376,6 +376,12 @@ def open_add_dialog():
         display_data()
         update_total()
 
+        # 추가한 항목 자동 선택
+        new_index = len(money_data) - 1
+
+        money_list.selection_set(new_index) # 해당 행 선택
+        money_list.focus(new_index) # Treeview 내부 커서 이동
+        money_list.see(new_index) # 해당 행이 안 보이면 자동 스크롤
 
 # 선택 항목 수정 (팝업 연동)
 def open_edit_dialog():
