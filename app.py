@@ -27,6 +27,7 @@ sort_reverse = {
     "item": False,
     "price": False
 }
+progress_value = 0
 
 
 # ==========================================
@@ -134,6 +135,35 @@ remain_card.grid(row=0, column=2, padx=(5, 0), sticky="ew")
 # anchor : 위젯 내부(or 배정된 공간)에서 내용(텍스트 등)을 어디에 붙일지 결정
 # sticky : grid 셀 안의 위젯에서 위젯을 어디에 붙이고 얼마나 늘릴지 결정
 # => anchor은 내용의 정렬, sticky는 위젯의 배치와 확장 개념
+
+# 예산 진행률
+progress = ttk.Progressbar(
+    dashboard_frame,
+    orient="horizontal", # horizontal: 가로
+    mode="determinate", # determinate: 진행률이 있는 바(몇 %인지 표시). indeterminate: 왔다 갔다 하는 로딩바
+    style="Green.Horizontal.TProgressbar"
+)
+progress.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(10, 0))
+style.configure(
+    "Green.Horizontal.TProgressbar",
+    troughcolor="#E5E7EB", # 안채워진 부분 색
+    background="#22C55E" # 채워진 부분 색
+)
+
+style.configure(
+    "Orange.Horizontal.TProgressbar",
+    troughcolor="#E5E7EB",
+    background="#F59E0B"
+)
+
+style.configure(
+    "Red.Horizontal.TProgressbar",
+    troughcolor="#E5E7EB",
+    background="#EF4444"
+)
+
+progress_status = tk.Label(dashboard_frame, text="예산 사용률 0%", font=("맑은 고딕", 10), bg="#F4F6F9", fg="#64748B")
+progress_status.grid(row=2, column=0, columnspan=3, pady=(5, 10))
 
 # ==========================================
 # 3. 데이터 입력 영역 (Input Form)
@@ -368,6 +398,27 @@ def add_money():
 
     refresh_input_entry() # 입력창 초기화
 
+def animate_progress(target):
+    global progress_value
+
+    target = min(target, 100) # 더 작은 값 반환
+
+    # 목표까지 남은 거리
+    diff = target - progress_value
+
+    # 거의 도착했으면 종료
+    if abs(diff) < 0.3: # 절댓값(absolute value) 반환
+        progress_value = target
+        progress["value"] = progress_value
+        return
+
+    # 남은 거리의 20%만 이동 (처음엔 빠르고 끝에는 느림)
+    progress_value += diff * 0.2
+
+    progress["value"] = progress_value
+
+    window.after(15, lambda: animate_progress(target)) # 15ms(0.015초) 뒤에 다시 함수 실행
+
 def update_total():
     total = 0
 
@@ -387,6 +438,38 @@ def update_total():
     budget_value.config(text=f"{budget:,}원")
     used_value.config(text=f"{total:,}원\n({rate:.1f}%)")
     remain_value.config(text=f"{remain:,}원")
+
+    # Progressbar
+    progress["value"] = min(rate, 100)
+
+    # 상태 표시
+    if rate < 70:
+        progress.configure(style="Green.Horizontal.TProgressbar")
+
+        progress_status.config(
+            text=f"✅ 예산의 {rate:.1f}%를 사용했습니다.",
+            fg="#16A34A"
+        )
+
+    elif rate < 100:
+        progress.configure(style="Orange.Horizontal.TProgressbar")
+
+        progress_status.config(
+            text=f"⚠ 예산의 {rate:.1f}%를 사용했습니다.",
+            fg="#F59E0B"
+        )
+
+    else:
+        progress.configure(style="Red.Horizontal.TProgressbar")
+
+        over = total - budget
+
+        progress_status.config(
+            text=f"🚨 예산을 {over:,}원 초과했습니다.",
+            fg="#DC2626"
+        )
+
+    animate_progress(rate)
 
 def delete_money():
     selected = money_list.selection()
