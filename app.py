@@ -25,7 +25,9 @@ sort_reverse = {
     "date": False,
     "category": False,
     "item": False,
-    "price": False
+    "shop": False,
+    "price": False,
+    "payment": False
 }
 progress_value = 0
 
@@ -274,9 +276,40 @@ search_frame.pack(fill="x", pady=(0, 8))
 
 search_entry = tk.Entry(search_frame, font=("맑은 고딕", 10), relief="solid", bd=1)
 search_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+search_entry.bind("<KeyRelease>", lambda e: search_money())
 
+# 필터 영역
+filter_frame = tk.Frame(list_frame, bg="#F4F6F9")
+filter_frame.pack(fill="x", pady=(0, 8))
+
+tk.Label(filter_frame, text="분류", bg="#F4F6F9").pack(side="left")
+category_filter = ttk.Combobox(
+    filter_frame,
+    values=["전체","가구","가전","생활용품","여행","예식장","스드메","기타"],
+    width=10,
+    state="readonly"
+)
+category_filter.current(0)
+category_filter.pack(side="left", padx=(5,15))
+category_filter.bind("<<ComboboxSelected>>", lambda e: search_money())
+
+tk.Label(filter_frame, text="결제수단", bg="#F4F6F9").pack(side="left")
+payment_filter = ttk.Combobox(
+    filter_frame,
+    values=["전체","신용카드","체크카드","현금","계좌이체"],
+    width=10,
+    state="readonly"
+)
+payment_filter.current(0)
+payment_filter.pack(side="left")
+payment_filter.bind("<<ComboboxSelected>>", lambda e: search_money())
+
+# "<KeyRelease>" → 일반 이벤트 (기본 이벤트)
+# "<<ComboboxSelected>>" → 가상 이벤트 (Virtual Event)
+
+# 검색 버튼
 search_button = tk.Button(
-    search_frame, 
+    filter_frame, 
     text="🔍 검색", 
     command=lambda: search_money(),
     font=("맑은 고딕", 9, "bold"), 
@@ -290,6 +323,21 @@ search_button = tk.Button(
     width=8
 )
 search_button.pack(side="right")
+
+# 초기화 버튼
+reset_button = tk.Button(
+    filter_frame,
+    text="↻ 초기화",
+    command=lambda: reset_search(),
+    font=("맑은 고딕", 9, "bold"),
+    bg="#94A3B8",
+    fg="white",
+    relief="flat",
+    bd=0,
+    cursor="hand2",
+    width=8
+)
+reset_button.pack(side="right", padx=(0,5))
 
 # 표(Treeview) 디자인 세부 설정
 # 데이터 영역(행/셀)
@@ -610,18 +658,38 @@ def update_money():
     selected_index = None # 선택 상태 초기화
 
 def search_money():
-    keyword = search_entry.get()
+    keyword = search_entry.get().strip() # strip: 앞 뒤 공백 제거
+    category = category_filter.get()
+    payment = payment_filter.get()
 
     # 검색어가 없으면 전체 출력
-    if keyword == "":
+    if keyword == "" and category == "" and payment == "":
         display_data()
         return
 
+    # 전체 선택이면 조건 제거
+    if category == "전체":
+        category = ""
+
+    if payment == "전체":
+        payment = ""
+
     money_list.delete(*money_list.get_children()) # *는 unpacking(언패킹)
 
-    for money in money_data:
-        if (keyword in money["item"] or keyword in money["category"] or keyword in money.get("shop", "")):
-            money_list.insert("", "end", values=(money["date"], money["category"], money["item"], f"{money['price']:,}원", money["payment"]))
+    for index, money in enumerate(money_data):
+        if keyword:
+            if keyword not in money["item"] and keyword not in money.get("shop", ""):
+                continue # continue: 다음 데이터 검사하러 가
+
+        if category:
+            if money["category"] != category:
+                continue
+
+        if payment:
+            if money.get("payment", "") != payment:
+                continue
+
+        money_list.insert("", "end", iid=index, values=(money["date"], money["category"], money["item"], money.get("shop", ""), f"{money['price']:,}원", money.get("payment", "")))
 
 def show_category_state():
     category_total = {}
@@ -879,10 +947,21 @@ def sort_price():
 
 def sort_column(column):
     # 오름차순이면 내림차순(reverse=True)으로 정렬 / 내림차순이면 오름차순(reverse=False)으로 정렬
-    money_data.sort(key=lambda money: money[column], reverse=sort_reverse[column])
+    money_data.sort(key=lambda money: money.get(column, ""), reverse=sort_reverse[column])
 
-    sort_reverse[column] = not sort_reverse[column] # 새 딕셔너리 통째로 바꾸는게 아니니까 global 사용 안
+    sort_reverse[column] = not sort_reverse[column] # 새 딕셔너리 통째로 바꾸는게 아니니까 global 사용 안함
 
+    display_data()
+
+def reset_search():
+     # 검색어 초기화
+    search_entry.delete(0, tk.END)
+
+    # 필터 초기화
+    category_filter.set("전체")
+    payment_filter.set("전체")
+
+    # 전체 목록 다시 표시
     display_data()
 
 
