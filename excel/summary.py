@@ -7,6 +7,31 @@ from collections import defaultdict # defaultdict: 카테고리별 합계를 만
 def create_summary_sheet(worksheet, money_data, budget):
     # 시트 이름
     worksheet.title = "대시보드"
+    
+    # ----------------------------------------------------
+    # 이벤트 처리 함수 정의
+    # ----------------------------------------------------
+    # 병합 영역 전체에 스타일(배경색, 테두리, 정렬) 적용
+    def style_range(worksheet, cell_range, fill=None, font=None, alignment=None, border=styles.border_all): # fill=None: fill 값을 안 넣으면 기본적으로 None으로 처리
+        for row in worksheet[cell_range]:
+            for cell in row:
+                if fill:
+                    cell.fill = fill
+                if font:
+                    cell.font = font
+                if alignment:
+                    cell.alignment = alignment
+                if border:
+                    cell.border = border
+
+    # 막대 그리기
+    def create_bar(price, max_price):
+        if max_price == 0:
+            return ""
+
+        length = int(price / max_price * 10) # 막대 최대 10칸
+
+        return "█" * max(length, 1)
 
     # ----------------------------------------------------
     # 데이터 계산
@@ -31,6 +56,11 @@ def create_summary_sheet(worksheet, money_data, budget):
         reverse=True # reverse=True: 내림차순
     )
 
+    # 최고 금액 구하기
+    max_category_price = 0
+    if category_data:
+        max_category_price = category_data[0][1] # 이미 내림차순으로 정렬해놓은 상태라 첫번째 리스트 뽑으면 됨
+
     # 지출 금액 TOP 5
     top_expenses = sorted(
         money_data,
@@ -43,22 +73,7 @@ def create_summary_sheet(worksheet, money_data, budget):
     for money in money_data:
         payment = money.get("payment", "미입력") # money["payment"]: payment가 없으면 keyError 발생. get("payment", "미입력"): 있으면 가져오고 아니면 미입력
         payment_data[payment] += money["price"]
-
-    # ----------------------------------------------------
-    # 병합 영역 전체에 스타일(배경색, 테두리, 정렬) 적용
-    # ----------------------------------------------------
-    def style_range(worksheet, cell_range, fill=None, font=None, alignment=None, border=styles.border_all): # fill=None: fill 값을 안 넣으면 기본적으로 None으로 처리
-        for row in worksheet[cell_range]:
-            for cell in row:
-                if fill:
-                    cell.fill = fill
-                if font:
-                    cell.font = font
-                if alignment:
-                    cell.alignment = alignment
-                if border:
-                    cell.border = border
-
+    
     # ----------------------------------------------------
     # 1. 메인 제목 영역
     # ----------------------------------------------------
@@ -99,8 +114,15 @@ def create_summary_sheet(worksheet, money_data, budget):
 
     row = 4
     for category, price in category_data[:5]:
+        bar = create_bar(
+            price,
+            max_category_price
+        )
+        
         worksheet.merge_cells(f"D{row}:E{row}")
-        worksheet[f"D{row}"] = category
+        # worksheet[f"D{row}"] = category
+        worksheet[f"D{row}"] = (f"{category}  {bar}")
+
         worksheet[f"F{row}"] = price
         worksheet[f"F{row}"].number_format = '#,##0"원"'
 
