@@ -1,146 +1,653 @@
-# 📚 Python Tkinter 신혼 자금 관리 Dashboard 개발 정리 노트
+# 📚 Python & Tkinter Study Note
 
-Tkinter GUI 프레임워크와 Matplotlib 시각화 라이브러리를 활용해 **실제 동작하는 자금 관리 대시보드 애플리케이션**을 제작하면서 학습한 개념을 정리한 문서입니다.
-
----
-
-## 📌 1. 전체 프로그램 아키텍처
-
-```text
-[ 사용자 입력 및 조작 ]
-        │
-        ├── (1) 지출 내역 입력 (DateEntry, Combobox, Entry)
-        ├── (2) 검색 및 정렬 (Entry, Header Click)
-        └── (3) 예산 변경 / 데이터 수정 및 삭제
-        │
-        ▼
-[ 이벤트 처리 함수 (Functions) ]
-        │
-        ├── add_money() / update_money() / delete_money()
-        ├── search_money() / sort_column()
-        └── show_bar_chart() / show_pie_chart()
-        │
-        ▼
-[ 메모리 데이터 관리 (Global State) ]
-        │
-        ├── budget (int)
-        └── money_data (List of Dicts)
-        │
-        ├──▶ [ GUI 갱신 (update_total, display_data) ]
-        └──▶ [ 파일 입출력 (save_data ⇄ money.json) ]
-```
---- 
-
-## 📦 2. 라이브러리 (Import) 및 역할
-
-| 라이브러리 / 모듈 | 주요 역할 및 사용 목적 |
-| :--- | :--- |
-| `tkinter (as tk)` | 기본 GUI 창 생성 및 레이아웃 위젯 (Frame, Label, Button, Entry) 제공 |
-| `tkinter.messagebox` | 사용자 경고, 에러 알림, 삭제 확인 등의 대화상자(Modal Window) 출력 |
-| `tkinter.ttk` | 개선된 테마 기반 위젯 (Combobox, Treeview, Scrollbar, Style) 제공 |
-| `tkcalendar.DateEntry` | 달력 팝업을 지원하는 날짜 선택 위젯 |
-| `json` | 예산 및 지출 내역 데이터를 로컬 파일(`money.json`)로 저장/로드 |
-| `datetime` | 오늘 날짜 가져오기 및 날짜 문자열 포맷팅 |
-| `matplotlib.pyplot` | 지출 데이터를 기반으로 막대그래프 및 도넛형 원형그래프 생성 |
+> WeddingMoneyManager 프로젝트를 만들면서 학습한 Python, Tkinter 문법 및 개념 정리
 
 ---
 
-## 🎨 3. GUI 레이아웃 & 위젯 배치 기법
+# 1. Python 자료형(Data Type)
 
-### 3.1 배치 관리자 (Geometry Managers)
-* **`pack()`**: 위젯을 상/하/좌/우 방향으로 유연하게 추가할 때 사용 (대형 틀 배치에 유리)
-  * `fill="x"`: 가로 방향으로 영역을 채움
-  * `expand=True`: 부모 창 크기가 커질 때 남는 공간을 배분받음
-  * `anchor="w"`: 위젯 내부 정렬 (w: 서쪽/왼쪽, e: 동쪽/오른쪽, n: 북쪽/위)
-* **`grid()`**: 정교한 바둑판 배열(행`row`, 열`column`) 형태로 위젯을 입력 폼 내부 등에 배치
-  * `sticky="ew"`: 셀 내부에서 좌우로 늘어나도록 밀착시킴
-  * `columnconfigure(col, weight=1)`: 특정 열이 창 크기 변화에 맞춰 늘어나는 비율 설정
+## List (리스트)
 
-### 3.2 핵심 고급 위젯
-* **`ttk.Treeview`**: 단순히 한 줄씩 보여주는 `Listbox`와 달리, 여러 컬럼(날짜, 분류, 항목, 금액)을 갖는 표 형태로 데이터를 표시
-* **`ttk.Combobox`**: 드롭다운 메뉴를 제공하여 입력 오류 방지 (`values=[...]`)
-* **`tkcalendar.DateEntry`**: 사용자 입력을 간편하게 만드는 팝업 달력 위젯
+순서가 있는 여러 데이터를 저장하는 자료형
 
----
-
-## 💡 4. 핵심 파이썬 문법 및 응용 개념
-
-### 4.1 데이터 구조 (JSON & Python)
-메모리 상에서는 **딕셔너리를 포함한 리스트** 형태로 데이터를 관리합니다.
 ```python
-{
-    "budget": 30000000,
-    "money_data": [
-        {"date": "2026-05-10", "category": "가전", "item": "냉장고", "price": 2500000},
-        {"date": "2026-05-12", "category": "예식장", "item": "계약금", "price": 5000000}
-    ]
+numbers = [1, 2, 3]
+```
+
+### 자주 사용하는 메서드
+
+| 함수 | 설명 |
+|------|------|
+| append() | 맨 뒤에 추가 |
+| insert() | 원하는 위치에 추가 |
+| remove() | 값으로 삭제 |
+| pop() | 인덱스로 삭제 |
+| clear() | 전체 삭제 |
+| sort() | 정렬 |
+| reverse() | 순서 뒤집기 |
+
+예시
+
+```python
+money_data.append(dialog.result)
+```
+
+---
+
+## Dictionary (딕셔너리)
+
+Key : Value 형태의 자료구조
+
+```python
+person = {
+    "name":"홍길동",
+    "age":30
 }
 ```
-### 4.2 파일 입출력 및 예외 처리 (try-except)
+
+### 자주 사용하는 메서드
+
+| 함수 | 설명 |
+|------|------|
+| get() | Key가 없어도 오류 발생 안 함 |
+| update() | 기존 데이터 수정 |
+| keys() | Key 목록 |
+| values() | Value 목록 |
+| items() | Key와 Value 동시 반환 |
+| pop() | Key 삭제 |
+| clear() | 전체 삭제 |
+
+예시
+
 ```python
-def load_data():
-    global money_data, budget
-    try:
-        with open("money.json", "r", encoding="utf-8") as file:
-            data = json.load(file)
-            # 예전 버전 JSON 데이터(리스트 형식)와의 호환성 예외 처리
-            if isinstance(data, list):
-                money_data = data
-                budget = 30000000
-            else:
-                budget = data.get("budget", 30000000) # Safety Get
-                money_data = data.get("money_data", [])
-    except FileNotFoundError:
-        money_data = [] # 파일이 없으면 초기 상태 유지
+money.get("payment", "")
 ```
 
-### 4.3 데이터 정렬 (sort & lambda)
-``` python
-def sort_column(column):
-    # sort_reverse 딕셔너리를 통해 현재 상태 반전
-    money_data.sort(key=lambda money: money[column], reverse=sort_reverse[column])
-    sort_reverse[column] = not sort_reverse[column]
-    display_data() # 정렬된 데이터로 화면 재갱신
-```
-
-### 4.4 데이터 시각화 및 클로저(Closure) 활용
-``` python
-def make_autopct(values):
-    def my_autopct(percent):
-        total = sum(values)
-        price = int(total * percent / 100)
-        if percent < 5:
-            return f"{percent:.1f}%" # 비중이 작으면 퍼센트만 표시
-        else:
-            return f"{percent:.1f}%\n({price:,}원)" # 퍼센트와 금액 함께 표시
-    return my_autopct
+```python
+selected_data.update(dialog.result)
 ```
 
 ---
 
-## 🔄 5. 주요 이벤트 흐름 (Event Flow)
+# 2. 반복문
 
-### 5.1 지출 항목 추가 / 수정
-1. 사용자가 폼 필드 입력 후 `➕ 추가` 또는 `✏ 수정` 버튼 클릭
-2. `get()` 함수로 날짜, 카테고리, 항목명, 금액 입력값 추출
-3. `int(price)` 예외 검증을 거쳐 `money_data` 리스트 업데이트
-4. `save_data()` ➔ `display_data()` ➔ `update_total()` 연속 실행으로 상태 동기화
-5. `refresh_input_entry()`를 호출하여 입력 폼 초기화
+## for
 
-### 5.2 지출 항목 삭제
-1. `money_list.selection()`으로 `Treeview`에서 선택된 행의 Index 확인
-2. `messagebox.askyesno()` 모달창으로 사용자 재확인
-3. `money_data.pop(index)`로 메모리 데이터 제거 및 화면/파일 업데이트
+```python
+for money in money_data:
+```
 
 ---
 
-## 📑 6. Tkinter vs Java Swing 위젯 대응표
+## enumerate()
 
-| 목적 | Tkinter (Python) | Java Swing (Java) |
-| :--- | :--- | :--- |
-| 단순 텍스트 레이블 | `tk.Label` | `JLabel` |
-| 한 줄 텍스트 입력창 | `tk.Entry` | `JTextField` |
-| 선택 항목 드롭다운 | `ttk.Combobox` | `JComboBox` |
-| 다중 컬럼 표(테이블) | `ttk.Treeview` | `JTable` |
-| 클릭 버튼 | `tk.Button` | `JButton` |
-| 레이아웃 컨테이너 | `tk.Frame` | `JPanel` |
+인덱스와 값을 동시에 가져온다.
+
+```python
+for index, money in enumerate(money_data):
+```
+
+---
+
+## continue
+
+현재 반복을 건너뛰고 다음 반복으로 이동
+
+```python
+if payment:
+    continue
+```
+
+---
+
+## break
+
+반복 종료
+
+```python
+break
+```
+
+---
+
+# 3. 조건문
+
+```python
+if
+
+elif
+
+else
+```
+
+예시
+
+```python
+if rate < 70:
+
+elif rate < 100:
+
+else:
+```
+
+---
+
+# 4. 함수(Function)
+
+함수 정의
+
+```python
+def hello():
+```
+
+호출
+
+```python
+hello()
+```
+
+---
+
+## return
+
+값 반환
+
+```python
+return total
+```
+
+---
+
+## lambda
+
+한 줄 함수
+
+```python
+lambda x:x+1
+```
+
+예시
+
+```python
+command=lambda: search_money()
+```
+
+---
+
+# 5. 클래스(Class)
+
+클래스 정의
+
+```python
+class Person:
+```
+
+---
+
+## __init__()
+
+객체 생성 시 자동 실행
+
+```python
+def __init__(self):
+```
+
+---
+
+## self
+
+객체 자기 자신
+
+```python
+self.price_entry
+```
+
+---
+
+## super()
+
+부모 클래스 생성자 호출
+
+```python
+super().__init__(parent)
+```
+
+---
+
+# 6. 파일 입출력
+
+## with open()
+
+파일 열기
+
+```python
+with open("money.json")
+```
+
+---
+
+## json.dump()
+
+JSON 저장
+
+```python
+json.dump()
+```
+
+---
+
+## json.load()
+
+JSON 읽기
+
+```python
+json.load()
+```
+
+---
+
+## try / except
+
+예외 처리
+
+```python
+try:
+
+except FileNotFoundError:
+```
+
+---
+
+# 7. Tkinter
+
+## Frame
+
+영역을 나누는 컨테이너
+
+```python
+tk.Frame()
+```
+
+---
+
+## Label
+
+텍스트 표시
+
+```python
+tk.Label()
+```
+
+---
+
+## Entry
+
+텍스트 입력
+
+```python
+tk.Entry()
+```
+
+---
+
+## Button
+
+버튼
+
+```python
+tk.Button()
+```
+
+---
+
+## Combobox
+
+드롭다운 목록
+
+```python
+ttk.Combobox()
+```
+
+---
+
+## Treeview
+
+표 형태 데이터 표시
+
+```python
+ttk.Treeview()
+```
+
+---
+
+## Scrollbar
+
+스크롤바
+
+```python
+ttk.Scrollbar()
+```
+
+---
+
+## Progressbar
+
+진행률 표시
+
+```python
+ttk.Progressbar()
+```
+
+---
+
+# 8. 레이아웃(Layout)
+
+## pack()
+
+자동 배치
+
+```python
+widget.pack()
+```
+
+자주 사용하는 옵션
+
+- fill
+- expand
+- side
+- anchor
+
+---
+
+## grid()
+
+행/열 배치
+
+```python
+widget.grid()
+```
+
+자주 사용하는 옵션
+
+- row
+- column
+- sticky
+- padx
+- pady
+
+---
+
+## columnconfigure()
+
+열 비율 설정
+
+```python
+frame.columnconfigure(0, weight=1)
+```
+
+---
+
+# 9. 이벤트(Event)
+
+## bind()
+
+이벤트 연결
+
+```python
+widget.bind()
+```
+
+### 자주 사용하는 이벤트
+
+```python
+<KeyRelease>
+```
+
+키 입력
+
+```python
+<Double-1>
+```
+
+더블 클릭
+
+```python
+<<ComboboxSelected>>
+```
+
+콤보박스 선택
+
+---
+
+## after()
+
+일정 시간 후 함수 실행
+
+```python
+window.after(15, callback)
+```
+
+애니메이션 구현에 사용
+
+---
+
+# 10. Widget 제어
+
+## config()
+
+속성 변경
+
+```python
+label.config()
+```
+
+---
+
+## get()
+
+입력값 가져오기
+
+```python
+entry.get()
+```
+
+---
+
+## set()
+
+값 설정
+
+```python
+combobox.set()
+```
+
+---
+
+## delete()
+
+삭제
+
+```python
+entry.delete()
+```
+
+---
+
+## insert()
+
+삽입
+
+```python
+entry.insert()
+```
+
+---
+
+# 11. Treeview
+
+행 추가
+
+```python
+insert()
+```
+
+행 삭제
+
+```python
+delete()
+```
+
+전체 삭제
+
+```python
+delete(*tree.get_children())
+```
+
+선택 행
+
+```python
+selection()
+```
+
+선택
+
+```python
+selection_set()
+```
+
+포커스
+
+```python
+focus()
+```
+
+스크롤 이동
+
+```python
+see()
+```
+
+---
+
+# 12. 자주 사용하는 내장 함수
+
+```python
+len()
+```
+
+길이
+
+---
+
+```python
+sum()
+```
+
+합계
+
+---
+
+```python
+min()
+```
+
+최솟값
+
+---
+
+```python
+max()
+```
+
+최댓값
+
+---
+
+```python
+abs()
+```
+
+절댓값
+
+---
+
+```python
+int()
+```
+
+정수 변환
+
+---
+
+```python
+str()
+```
+
+문자열 변환
+
+---
+
+```python
+isinstance()
+```
+
+자료형 확인
+
+---
+
+# 13. Matplotlib
+
+## figure()
+
+그래프 생성
+
+---
+
+## bar()
+
+막대 그래프
+
+---
+
+## pie()
+
+원형 그래프
+
+---
+
+## text()
+
+그래프 위에 텍스트 출력
+
+---
+
+## legend()
+
+범례 표시
+
+---
+
+## tight_layout()
+
+여백 자동 조정
+
+---
+
+## show()
+
+그래프 출력
+
+---
+
+# 14. 프로젝트에서 자주 사용하는 함수
+
+- display_data()
+- update_total()
+- save_data()
+- load_data()
+- search_money()
+- sort_column()
+- animate_progress()
+- update_budget()
+
+각 함수의 역할은 main.py 주석 참고
