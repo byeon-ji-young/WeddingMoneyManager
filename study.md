@@ -36,7 +36,7 @@ money_data.append(dialog.result)
 
 ## Dictionary (딕셔너리)
 
-Key : Value 형태의 자료구조
+Key : Value 형태의 자료구조 (Key와 Value를 한 쌍으로 저장하는 자료형)
 
 ```python
 person = {
@@ -160,17 +160,94 @@ return total
 
 ## lambda
 
-한 줄 함수
+익명 함수(이름이 없는 함수)를 만드는 문법이다.
+
+주로 Tkinter에서 버튼 클릭이나 이벤트 처리 시
+함수의 실행을 나중으로 미루거나 인자를 전달할 때 사용한다.
 
 ```python
-lambda x:x+1
+lambda x: x + 1
 ```
 
 예시
 
 ```python
-command=lambda: search_money()
+command=lambda: save_data("Wedding")
 ```
+
+---
+
+## command와 lambda
+
+### command=func ⭐ 가장 많이 사용
+
+버튼을 클릭했을 때 함수를 실행한다.
+
+```python
+command=save_data
+```
+
+버튼 클릭 시
+
+```python
+save_data()
+```
+
+가 실행된다.
+
+> **괄호를 붙이지 않는다.**
+
+---
+
+### command=func() ❌ 사용하지 않음
+
+```python
+command=save_data()
+```
+
+프로그램이 실행되는 순간 함수가 바로 실행된다.
+
+함수의 **실행 결과(None)** 가 `command`에 저장되므로 버튼을 눌러도 아무 동작을 하지 않는다.
+
+---
+
+### command=lambda: func(args)
+
+함수에 **인자(Parameter)** 를 전달해야 할 때 사용한다.
+
+```python
+command=lambda: save_data("Wedding")
+```
+
+`lambda`는
+
+> **"이 코드를 나중에 실행해."**
+
+라는 의미의 익명 함수이다.
+
+---
+
+### bind(..., lambda e: func())
+
+마우스 클릭, 더블클릭, 키 입력 등 **이벤트(Event)** 와 연결할 때 사용한다.
+
+```python
+money_list.bind("<Double-1>", lambda e: open_edit_dialog())
+```
+
+여기서 `e`는 **Event 객체**이다.
+
+클릭 위치, 키 입력 등의 정보를 가지고 있으며, 필요하지 않으면 사용하지 않아도 된다.
+
+---
+
+### command와 bind 차이
+
+| command | bind |
+|----------|------|
+| 버튼 클릭 전용 | 모든 이벤트 처리 |
+| Event 객체 없음 | Event 객체(e) 전달 |
+| 사용이 간단 | 다양한 이벤트 처리 가능 |
 
 ---
 
@@ -211,6 +288,54 @@ self.price_entry
 ```python
 super().__init__(parent)
 ```
+
+---
+
+## 클래스(Class)와 함수(Function)의 차이
+
+### 함수(Function)
+
+하나의 기능만 수행할 때 사용한다.
+
+예시
+
+```python
+def export_excel(money_data):
+    ...
+```
+
+- 입력 데이터를 받아 처리
+- 작업이 끝나면 종료
+- 상태(State)를 유지하지 않음
+
+---
+
+### 클래스(Class)
+
+관련된 데이터와 기능을 하나로 묶을 때 사용한다.
+
+예시
+
+```python
+class ExpenseDialog:
+```
+
+클래스는 객체의 데이터와 메서드를 함께 관리한다.
+
+```python
+self.date_entry
+self.category_combo
+self.result
+self.on_save()
+```
+
+### 언제 사용할까?
+
+| 함수(Function) | 클래스(Class) |
+|----------------|---------------|
+| 기능 하나 수행 | 여러 기능과 데이터를 함께 관리 |
+| 상태를 저장하지 않음 | 상태(State)를 유지 |
+| export_excel() | ExpenseDialog |
 
 ---
 
@@ -485,46 +610,78 @@ entry.insert()
 
 # 11. Treeview
 
-행 추가
+## insert()
+
+Treeview에 새로운 행(Row)을 추가한다.
 
 ```python
-insert()
+tree.insert("", "end", values=(...))
 ```
 
-행 삭제
+---
+
+## delete()
+
+Treeview의 행을 삭제한다.
 
 ```python
-delete()
+tree.delete(item)
 ```
 
-전체 삭제
+Treeview의 행을 전체 삭제한다.
 
 ```python
-delete(*tree.get_children())
+tree.delete(*tree.get_children())
 ```
 
-선택 행
+---
+
+## get_children()
+
+Treeview의 모든 행 ID를 가져온다.
 
 ```python
-selection()
+tree.get_children()
 ```
 
-선택
+---
+
+## selection()
+
+현재 선택된 행을 가져온다.
 
 ```python
-selection_set()
+tree.selection()
 ```
 
-포커스
+---
+
+## selection_set()
+
+특정 행을 선택 상태로 만든다.
 
 ```python
-focus()
+tree.selection_set(item)
 ```
 
-스크롤 이동
+---
+
+## focus()
+
+현재 포커스를 지정한다.
 
 ```python
-see()
+tree.focus(item)
+```
+
+---
+
+## see()
+
+선택한 행이 보이도록 자동 스크롤한다.
+
+```python
+tree.see(item)
 ```
 
 ---
@@ -641,13 +798,13 @@ isinstance()
 
 # 14. 프로젝트에서 자주 사용하는 함수
 
-- display_data()
-- update_total()
-- save_data()
-- load_data()
-- search_money()
-- sort_column()
-- animate_progress()
-- update_budget()
+- display_data() → Treeview 화면 갱신
+- update_total() → 총 지출/예산 계산
+- save_data() → JSON 저장
+- load_data() → JSON 불러오기
+- search_money() → 검색 기능
+- sort_column() → 컬럼 정렬
+- animate_progress() → ProgressBar 애니메이션
+- update_budget() → 예산 변경
 
-각 함수의 역할은 main.py 주석 참고
+※ 자세한 구현 내용은 main.py의 각 함수 주석 참고
