@@ -371,6 +371,14 @@ def open_add_dialog():
 
     # 팝업이 닫힌 후, 저장된 결과값이 있으면 리스트에 추가
     if dialog.result:
+        # 새로운 ID 생성
+        if money_data:
+            new_id = max(money["id"] for money in money_data) + 1
+        else:
+            new_id = 1
+
+        dialog.result["id"] = new_id
+        
         money_data.append(dialog.result)
         save_data()
         display_data()
@@ -386,13 +394,23 @@ def open_add_dialog():
 # 선택 항목 수정 (팝업 연동)
 def open_edit_dialog():
     selected = money_list.selection()
+
     if not selected:
         messagebox.showwarning("수정 오류", "수정할 항목을 먼저 선택하세요.")
         return
 
-    idx = int(selected[0]) # 선택한 Treeview 행 ID
-    selected_data = money_data[idx]
+    selected_id = int(selected[0]) # 선택한 Treeview 행 iid
+    selected_data = None
 
+    for money in money_data:
+        if money["id"] == selected_id:
+            selected_data = money
+            break
+
+    if selected_data is None:
+        messagebox.showwarning("오류", "데이터를 찾을 수 없습니다.")
+        return
+    
     # 팝업 창 띄우기
     dialog = ExpenseDialog(window, title="지출 내역 수정", initial_data=selected_data)
     # 사용자가 팝업에서 [저장]이나 [취소]를 누르고 창을 닫을 때까지 메인 코드 대기
@@ -400,15 +418,18 @@ def open_edit_dialog():
 
     # 팝업이 닫힌 후, 저장된 결과값이 있으면 리스트에 추가
     if dialog.result:
-        money_data[idx] = dialog.result
+        # update: 딕셔너리(dictionary)의 메서드(method)
+        selected_data.update(dialog.result) # update()는 기존 값은 유지하면서 같은 key만 수정(dialog.result에 id는 없으니까 id 제외하고 다 수정됨)
+
         save_data()
         display_data()
         update_total()
 
         # 수정한 항목 다시 선택
-        money_list.selection_set(idx) # 해당 행 선택
-        money_list.focus(idx) # Treeview 내부 커서 이동
-        money_list.see(idx) # 해당 행이 안 보이면 자동 스크롤
+        money_list.selection_set(str(selected_id)) # 해당 행 선택
+        money_list.focus(str(selected_id)) # Treeview 내부 커서 이동
+        money_list.see(str(selected_id)) # 해당 행이 안 보이면 자동 스크롤
+        # str() 적은 이유: Treeview의 iid는 문자열로 관리
 
 # 선택 항목 삭제
 def delete_money():
@@ -424,11 +445,32 @@ def delete_money():
         if not result:
             return
 
-        selected_id = selected[0]
-        index = int(selected_id)
+        selected_id = int(selected[0]) # 선택한 Treeview 행 iid
+        selected_data = None
 
-        money_data.pop(index) # 실제 데이터 삭제
-        money_list.delete(selected_id) # Treeview 화면에서 삭제
+        for money in money_data:
+            if money["id"] == selected_id:
+                selected_data = money
+                break
+
+        if selected_data is None:
+            messagebox.showwarning("오류", "삭제할 데이터를 찾을 수 없습니다.")
+            return
+
+        # remove: 리스트(list)의 메서드
+        money_data.remove(selected_data) # 실제 데이터 삭제. remove는 인덱스가 아니라 삭제할 값을 받음
+
+        # 리스트(list) 메서드
+        # append() : 맨 뒤에 추가
+        # extend() : 여러 개 한꺼번에 추가
+        # insert() : 원하는 위치에 추가
+        # remove() : 값으로 삭제
+        # pop()    : 인덱스로 삭제
+        # clear()  : 전체 삭제
+        # sort()   : 정렬
+        # reverse(): 순서 뒤집기
+        # count()  : 특정 값 개수
+        # index()  : 특정 값의 위치 찾기
 
         save_data()
         display_data() # 삭제 후 인덱스 재배치
@@ -510,6 +552,17 @@ def save_data():
             indent=4 # 들여쓰기 간격
         )
 
+    # with open("money_backup.json", "w", encoding="utf-8") as file:
+    #     json.dump(
+    #         {
+    #             "budget": budget,
+    #             "money_data": money_data
+    #         },
+    #         file,
+    #         ensure_ascii=False,
+    #         indent=4
+    #     )
+
 # 데이터 불러오기
 def load_data():
     global money_data, budget # 함수 밖에 있는 변수를 사용
@@ -524,8 +577,20 @@ def load_data():
             else:
                 # 새로운 money.json은 딕서녀리 형식으로 저장되어 있음(budget이 추가 됐기 때문)
                 budget = data.get("budget", 30000000) # data에 budget이 있으면 사용, 없으면 30000000 사용
-                money_data = data.get("money_data", [])
-                # get()을 사용하는 이유: key가 없는 경우 data["key"]: keyError 발생. data.get("key"): None 반환
+                money_data = data.get("money_data", []) # get()을 사용하는 이유: key가 없는 경우 data["key"]: keyError 발생. data.get("key"): None 반환
+
+                # ID가 없거나 중복이면 다시 생성
+                used_ids = set() # 빈 집합(set) 생성
+                new_id = 1
+
+                for money in money_data:
+                    if "id" not in money or money["id"] in used_ids:
+                        while new_id in used_ids:
+                            new_id += 1
+
+                        money["id"] = new_id
+
+                    used_ids.add(money["id"])
 
     except FileNotFoundError:
         money_data = []
@@ -543,8 +608,8 @@ def display_data():
         return
 
     # 데이터가 있으면 정상 출력
-    for index, money in enumerate(money_data):
-        money_list.insert("", "end", iid=index, values=(money['date'], money['category'], money['item'], money.get("shop", ""), f"{money['price']:,}원", money.get("payment", "")))
+    for money in money_data:
+        money_list.insert("", "end", iid=money['id'], values=(money['date'], money['category'], money['item'], money.get("shop", ""), f"{money['price']:,}원", money.get("payment", "")))
 
 # 검색 및 필터링 기능
 def search_money():
@@ -568,7 +633,7 @@ def search_money():
 
     result_count = 0
 
-    for index, money in enumerate(money_data):
+    for money in money_data: # for money, index in enumerate(money_data) /  for money in money_data: index를 사용할거면 enumerate 사용
         if keyword:
             if keyword not in money["item"] and keyword not in money.get("shop", ""):
                 continue # continue: 다음 데이터 검사하러 가
@@ -581,7 +646,7 @@ def search_money():
             if money.get("payment", "") != payment:
                 continue
 
-        money_list.insert("", "end", iid=index, values=(money["date"], money["category"], money["item"], money.get("shop", ""), f"{money['price']:,}원", money.get("payment", "")))
+        money_list.insert("", "end", iid=money["id"], values=(money["date"], money["category"], money["item"], money.get("shop", ""), f"{money['price']:,}원", money.get("payment", "")))
 
         result_count += 1
 
