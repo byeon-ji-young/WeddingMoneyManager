@@ -330,14 +330,14 @@ bar_button = tk.Button(
     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
-bar_button.pack(side="left", padx=3)
+# bar_button.pack(side="left", padx=3)
 
 pie_button = tk.Button(
     stat_btn_frame, text="📊 카테고리 비율", command=lambda: show_pie_chart(),
     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
-pie_button.pack(side="left", padx=3)
+# pie_button.pack(side="left", padx=3)
 
 # category_stats_button = tk.Button(
 #     stat_btn_frame, text="통계", command=lambda: show_category_state(),

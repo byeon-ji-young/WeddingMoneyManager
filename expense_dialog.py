@@ -8,7 +8,7 @@ class ExpenseDialog(tk.Toplevel):
         # 파이썬 규칙상, 클래스 안에서 만드는 함수(메서드)는 첫 번째 인자로 무조건 self를 받도록 약속되어 있음!
         super().__init__(parent) # 부모 창(main.py의 window) 위에 뜨는 자식 창(Toplevel)으로 지정
         self.title(title)
-        self.geometry("380x480")
+        self.geometry("300x460")
         self.configure(bg="#F4F6F9")
         self.resizable(False, False)
 
