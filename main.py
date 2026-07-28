@@ -8,7 +8,7 @@ import matplotlib.font_manager as fm
 
 # [★팝업 창 분리] 팝업 창 모듈 불러오기
 from expense_dialog import ExpenseDialog
-from excel_manager import export_excel_file
+from excel_exporter import excel_export_file
 
 # Matplotlib 한글 폰트 설정
 plt.rcParams["font.family"] = "Malgun Gothic" # or plt.rc("font", family="Malgun Gothic")
@@ -540,8 +540,8 @@ def make_autopct(values): # 설정값(values)을 기억하는 함수를 만들�
     return my_autopct
 
 # 엑셀 생성
-def export_excel():
-    export_excel_file(money_data, budget)
+def excel_export():
+    excel_export_file(money_data, budget)
 
     # messagebox.showinfo("완료", "엑셀 파일이 저장되었습니다.")
 
@@ -858,7 +858,7 @@ detail_stats_button = tk.Button(
 )
 # detail_stats_button.pack(side="left", padx=3)
 excel_button = tk.Button(
-    stat_btn_frame, text="📄 Excel 저장", command=export_excel, # command=export_excel: lambda를 쓸 필요가 없는 이유는 매개변수를 전달하지 않는 함수이기 때문
+    stat_btn_frame, text="📄 Excel 저장", command=excel_export, # command=excel_export: lambda를 쓸 필요가 없는 이유는 매개변수를 전달하지 않는 함수이기 때문
     font=("맑은 고딕", 9, "bold"), bg="#16A34A", fg="white", 
     relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
 )

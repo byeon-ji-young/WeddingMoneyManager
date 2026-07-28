@@ -8,7 +8,7 @@ from excel.detail import create_detail_sheet
 today = datetime.now().strftime("%Y-%m-%d")
 
 # 상태(State)를 가지고 있으면 Class & 기능만 수행하면 Function. 즉, 기능이 많아지고 상태를 관리해야 하면 Class.
-def export_excel_file(money_data, budget):
+def excel_export_file(money_data, budget):
     # 엑셀파일
     workbook = Workbook() # workbook(): 엑셀 파일 자체를 만드는 객체
 
