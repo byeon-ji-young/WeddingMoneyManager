@@ -1,10 +1,18 @@
+# 원본 지출 내역
+
 # 엑셀 폴더 내 styles.py 불러오기
 import excel.styles as styles
 
 from openpyxl.utils import get_column_letter
 
 def create_detail_sheet(worksheet, money_data, budget):
-    # 요약 데이터 계산
+    # 시트 이름
+    worksheet.title = "지출내역"
+    
+    # 눈금선 보이게 설정
+    worksheet.views.sheetView[0].showGridLines = True # worksheet.views: 시트의 보기(View) 설정
+
+    # 요약 데이터
     total_price = sum(money["price"] for money in money_data)
     # 저 한줄을 풀어쓴 코드
     # total_price = 0
@@ -17,7 +25,7 @@ def create_detail_sheet(worksheet, money_data, budget):
     worksheet.merge_cells("A1:F1")
 
     title_cell = worksheet["A1"] # worksheet["A1"]: A1 셀 하나 가져오기 / worksheet[1]: 1행(row)의 모든 셀 가져오기 / worksheet["A"]: A열(column)의 모든 셀 가져오기
-    title_cell.value = "Wedding Money Manager 지출 내역"
+    title_cell.value = "결혼 준비 지출 내역"
     title_cell.font = styles.font_title
     title_cell.alignment = styles.align_center
 
@@ -48,6 +56,7 @@ def create_detail_sheet(worksheet, money_data, budget):
 
         # 서식 지정
         worksheet[v_cell].number_format = '#,##0"원"'
+        # worksheet[v_cell].number_format = '#,##0" 원"'
 
         # 스타일 적용 (병합 셀 전체 스타일링)
         for row_idx, r_range in enumerate([head_range, val_range]): # enumerate()를 사용하면 인덱스와 값을 동시에 가져옴
