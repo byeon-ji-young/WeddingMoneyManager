@@ -543,7 +543,7 @@ def make_autopct(values): # 설정값(values)을 기억하는 함수를 만들�
 def export_excel_file():
     export_excel(money_data)
 
-    messagebox.showinfo("완료", "엑셀 파일이 저장되었습니다.")
+    # messagebox.showinfo("완료", "엑셀 파일이 저장되었습니다.")
 
 # ==========================================
 # 4. 상단 타이틀 및 예산 설정 영역
