@@ -339,23 +339,23 @@ pie_button = tk.Button(
 )
 # pie_button.pack(side="left", padx=3)
 
-# category_stats_button = tk.Button(
-#     stat_btn_frame, text="통계", command=lambda: show_category_state(),
-#     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
-#     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
-# )
+category_stats_button = tk.Button(
+    stat_btn_frame, text="통계", command=lambda: show_category_state(),
+    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+    activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
+)
 # category_stats_button.pack(side="left", padx=3)
-# month_stats_button = tk.Button(
-#     stat_btn_frame, text="월별 통계", command=lambda: show_month_state(),
-#     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
-#     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
-# )
+month_stats_button = tk.Button(
+    stat_btn_frame, text="월별 통계", command=lambda: show_month_state(),
+    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+    activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
+)
 # month_stats_button.pack(side="left", padx=3)
-# detail_stats_button = tk.Button(
-#     stat_btn_frame, text="상세 통계", command=lambda: show_detail_state(),
-#     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
-#     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
-# )
+detail_stats_button = tk.Button(
+    stat_btn_frame, text="상세 통계", command=lambda: show_detail_state(),
+    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+    activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
+)
 # detail_stats_button.pack(side="left", padx=3)
 
 
