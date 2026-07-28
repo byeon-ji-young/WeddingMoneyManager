@@ -1,11 +1,12 @@
 import os
 
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment # Font: 글자 스타일, PatternFill: 셀 배경색, Alignment: 정렬
-from openpyxl.styles import Border, Side
 from openpyxl.utils import get_column_letter
 
 from datetime import datetime
+
+# 엑셀 폴더 내 styles.py 불러오기
+import excel.styles as styles
 
 today = datetime.now().strftime("%Y-%m-%d")
 
@@ -33,59 +34,18 @@ def export_excel_file(money_data, budget):
     worksheet.views.sheetView[0].showGridLines = True
 
     # ----------------------------------------------------
-    # 스타일 정의
-    # ----------------------------------------------------
-    # Color Palette
-    color_primary = "1E293B"  # 메인 헤더 / 제목 (진한 슬레이트)
-    color_accent = "3B82F6"  # 요약 카드 포인트 (블루)
-    color_header_bg = "F1F5F9"  # 테이블 헤더 (연한 회색)
-    color_card_bg = "F8FAFC"  # 요약 카드 배경
-
-    # Fonts
-    font_title = Font(name="맑은 고딕", size=15, bold=True, color="FFFFFF")
-    font_card_header = Font(name="맑은 고딕", size=10, bold=True, color="475569")
-    font_card_val = Font(name="맑은 고딕", size=13, bold=True, color="0F172A")
-    font_table_header = Font(name="맑은 고딕", size=10, bold=True, color="1E293B")
-    font_data = Font(name="맑은 고딕", size=10, color="334155")
-
-    # Alignments
-    align_center = Alignment(horizontal="center", vertical="center") # horizontalL 가로 정렬, vertical: 세로 정렬
-    align_right = Alignment(horizontal="right", vertical="center")
-    align_left = Alignment(horizontal="left", vertical="center")
-
-    # Borders
-    thin_side = Side(style="thin", color="CBD5E1") # Side: 테두리 한쪽의 스타일
-    thick_bottom_side = Side(style="medium", color="94A3B8")
-
-    border_all = Border(
-        left=thin_side, right=thin_side, top=thin_side, bottom=thin_side
-    )
-    border_card_header = Border(
-        left=thin_side, right=thin_side, top=thin_side, bottom=Side(style="none")
-    )
-    border_card_val = Border(
-        left=thin_side, right=thin_side, top=Side(style="none"), bottom=thin_side
-    )
-
-    # ----------------------------------------------------
     # 1. 메인 제목 영역
     # ----------------------------------------------------
     worksheet.merge_cells("A1:F1")
 
     title_cell = worksheet["A1"] # worksheet["A1"]: A1 셀 하나 가져오기 / worksheet[1]: 1행(row)의 모든 셀 가져오기 / worksheet["A"]: A열(column)의 모든 셀 가져오기
     title_cell.value = "Wedding Money Manager 지출 내역"
-    title_cell.font = font_title
-    title_cell.alignment = align_center
+    title_cell.font = styles.font_title
+    title_cell.alignment = styles.align_center
 
     # 병합된 A1:F1 전체에 배경색 채우기
-    title_fill = PatternFill( # PatternFill: 배경 채우기(Fill) 스타일을 만드는 클래스
-        fill_type="solid", # solid: 단색
-        start_color=color_primary, 
-        end_color=color_primary
-    ) 
-
     for col in range(1, 7): # range(시작, 끝)은 끝은 포함하지 않음. 즉, 1 ~ 6을 의미함
-        worksheet.cell(row=1, column=col).fill = title_fill # worksheet.cell(): 원하는 셀 객체를 가져오기 / fill: 셀의 Fill(배경색)을 지정하는 속성
+        worksheet.cell(row=1, column=col).fill = styles.title_fill # worksheet.cell(): 원하는 셀 객체를 가져오기 / fill: 셀의 Fill(배경색)을 지정하는 속성
 
     # 빈 줄 추가
     # worksheet.append([])
@@ -118,13 +78,10 @@ def export_excel_file(money_data, budget):
             # openpyxl에서는 worksheet["A3:B3"]처럼 범위(Range)를 지정하면 무조건 '2차원 튜플(행들의 모음)' 구조로 반환!
             for row in worksheet[r_range]: # worksheet[r_range]는 행(row) 단위의 튜플을 반환
                 for cell in row: # row = (A3, B3) & cell = A3, B3
-                    cell.fill = PatternFill(
-                        fill_type="solid",
-                        start_color="E2E8F0" if is_head else color_card_bg,
-                    )
-                    cell.font = font_card_header if is_head else font_card_val
-                    cell.alignment = align_center
-                    cell.border = border_card_header if is_head else border_card_val
+                    cell.fill = styles.card_header_fill if is_head else styles.card_val_fill
+                    cell.font = styles.font_card_header if is_head else styles.font_card_val
+                    cell.alignment = styles.align_center
+                    cell.border = styles.border_card_header if is_head else styles.border_card_val
 
     worksheet.row_dimensions[3].height = 22
     worksheet.row_dimensions[4].height = 28
@@ -139,15 +96,10 @@ def export_excel_file(money_data, budget):
     # 직접 6행에 헤더 할당
     for col_idx, header in enumerate(headers, 1): # enumerate(..., 1)의 의미: 인덱스를 0이 아닌 1부터 시작
         cell = worksheet.cell(row=6, column=col_idx, value=header) # 6번째 행(row=6), col_idx번째 열에 header 값을 입력하고 해당 셀 객체를 가져옴
-        cell.font = font_table_header
-        cell.fill = PatternFill(fill_type="solid", start_color=color_header_bg)
-        cell.alignment = align_center
-        cell.border = Border(
-            left=thin_side,
-            right=thin_side,
-            top=thin_side,
-            bottom=thick_bottom_side,
-        )
+        cell.font = styles.font_table_header
+        cell.fill = styles.table_header_fill
+        cell.alignment = styles.align_center
+        cell.border = styles.border_table_header
 
     worksheet.row_dimensions[6].height = 20
 
@@ -175,22 +127,22 @@ def export_excel_file(money_data, budget):
         # 날짜, 분류, 구매처, 결제수단 -> 중앙 정렬
         for col_idx in [1, 2, 4, 6]:
             cell = worksheet.cell(row=row, column=col_idx)
-            cell.alignment = align_center
-            cell.font = font_data
-            cell.border = border_all
+            cell.alignment = styles.align_center
+            cell.font = styles.font_data
+            cell.border = styles.border_all
 
         # 항목 -> 좌측 정렬
         cell_item = worksheet.cell(row=row, column=3)
-        cell_item.alignment = align_left
-        cell_item.font = font_data
-        cell_item.border = border_all
+        cell_item.alignment = styles.align_left
+        cell_item.font = styles.font_data
+        cell_item.border = styles.border_all
 
         # 금액 -> 우측 정렬 및 천단위 콤마
         cell_price = worksheet.cell(row=row, column=5)
-        cell_price.alignment = align_right
-        cell_price.font = font_data
+        cell_price.alignment = styles.align_right
+        cell_price.font = styles.font_data
         cell_price.number_format = "#,##0"
-        cell_price.border = border_all
+        cell_price.border = styles.border_all
 
     # ----------------------------------------------------
     # 5. 기타 설정 (필터, 고정, 너비 자동 조절)
@@ -233,7 +185,7 @@ def export_excel_file(money_data, budget):
         # worksheet.column_dimensions["A"] 이런식으로 사용
 
     # 저장
-    filename = f"WeddingMoney_{today}.xlsx"
+    filename = f"결혼준비비용_{today}.xlsx"
     workbook.save(filename)
 
     # 자동 실행
