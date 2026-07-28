@@ -44,8 +44,6 @@ def create_summary_sheet(worksheet, money_data, budget):
         payment = money.get("payment", "미입력") # money["payment"]: payment가 없으면 keyError 발생. get("payment", "미입력"): 있으면 가져오고 아니면 미입력
         payment_data[payment] += money["price"]
 
-    payment_rate = price / total_price * 100
-
     # ----------------------------------------------------
     # 병합 영역 전체에 스타일(배경색, 테두리, 정렬) 적용
     # ----------------------------------------------------
