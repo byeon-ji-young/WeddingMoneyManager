@@ -119,15 +119,13 @@ def create_summary_sheet(worksheet, money_data, budget):
             max_category_price
         )
         
-        worksheet.merge_cells(f"D{row}:E{row}")
-        # worksheet[f"D{row}"] = category
-        worksheet[f"D{row}"] = (f"{category}  {bar}")
-
+        worksheet[f"D{row}"] = category
+        worksheet[f"E{row}"] = bar
         worksheet[f"F{row}"] = price
         worksheet[f"F{row}"].number_format = '#,##0"원"'
 
-        style_range(worksheet, f"D{row}:E{row}", font=styles.font_data, alignment=styles.align_center)
-
+        style_range(worksheet, f"D{row}:E{row}", font=styles.font_data, alignment=styles.align_left)
+        
         worksheet[f"F{row}"].font = styles.font_data
         worksheet[f"F{row}"].alignment = styles.align_right
         worksheet[f"F{row}"].border = styles.border_all
@@ -143,7 +141,7 @@ def create_summary_sheet(worksheet, money_data, budget):
         row += 1
 
     # ----------------------------------------------------
-    # 4. 최근 지출 TOP 5 (좌측)
+    # 4. 최대 지출 TOP 5 (좌측)
     # ----------------------------------------------------
     worksheet.merge_cells("A9:C9")
     worksheet["A9"] = "최근 지출 TOP 5"
@@ -213,9 +211,6 @@ def create_summary_sheet(worksheet, money_data, budget):
     # ----------------------------------------------------
     # 열 너비
     # ----------------------------------------------------
-    worksheet.column_dimensions["A"].width = 18
-    worksheet.column_dimensions["B"].width = 18
-    worksheet.column_dimensions["C"].width = 18
-    worksheet.column_dimensions["D"].width = 18
-    worksheet.column_dimensions["E"].width = 5
-    worksheet.column_dimensions["F"].width = 18
+    # worksheet.column_dimensions["A"].width = 18
+    for col in ["A", "B", "C", "D", "E", "F"]:
+        worksheet.column_dimensions[col].width = 18
