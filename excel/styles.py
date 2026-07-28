@@ -19,6 +19,24 @@ font_card_header = Font(name="맑은 고딕", size=10, bold=True, color="475569"
 font_card_val = Font(name="맑은 고딕", size=13, bold=True, color="0F172A")
 font_table_header = Font(name="맑은 고딕", size=10, bold=True, color="1E293B")
 font_data = Font(name="맑은 고딕", size=10, color="334155")
+font_summary_title = Font(
+    name="맑은 고딕",
+    size=11,
+    bold=True,
+    color="475569"
+)
+font_summary_value = Font(
+    name="맑은 고딕",
+    size=13,
+    bold=True,
+    color="0F172A"
+)
+font_summary_sub = Font(
+    name="맑은 고딕",
+    size=10,
+    color="64748B"
+)
+
 
 # ----------------------------------------------------
 # Alignments
@@ -48,6 +66,12 @@ border_table_header = Border(
     top=Side(style="none"),
     bottom=thin_side
 )
+summary_border = Border(
+    left=thin_side,
+    right=thin_side,
+    top=thin_side,
+    bottom=thin_side
+)
 
 # ----------------------------------------------------
 # Fill
@@ -70,4 +94,12 @@ card_val_fill = PatternFill(
 table_header_fill = PatternFill(
     fill_type="solid",
     start_color=color_header_bg
+)
+summary_fill = PatternFill(
+    fill_type="solid",
+    start_color="F8FAFC"
+)
+summary_title_fill = PatternFill(
+    fill_type="solid",
+    start_color="E2E8F0"
 )

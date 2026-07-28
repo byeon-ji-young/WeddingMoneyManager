@@ -24,14 +24,14 @@ def create_summary_sheet(worksheet, money_data, budget):
     for money in money_data:
         category_data[money["category"]] += money["price"]
 
-    # 금액 높은 순 정렬
+    # 카테고리별 지출 높은 순 정렬
     category_data = sorted(
         category_data.items(), # items(): {category: price, category2: price2, ...} 이 형태를 [(category, price), (category2, price2), ...] 형태로 바꿔줌
         key=lambda x: x[1], # lambda: 일회성 작은 함수를 만드는 문법 / x[1]: 두 번째 값(price)을 기준으로 정렬
         reverse=True # reverse=True: 내림차순
     )
 
-    # 최근 지출 TOP 5
+    # 지출 금액 TOP 5
     top_expenses = sorted(
         money_data,
         key=lambda x: x["price"],
@@ -44,6 +44,23 @@ def create_summary_sheet(worksheet, money_data, budget):
         payment = money.get("payment", "미입력") # money["payment"]: payment가 없으면 keyError 발생. get("payment", "미입력"): 있으면 가져오고 아니면 미입력
         payment_data[payment] += money["price"]
 
+    payment_rate = price / total_price * 100
+
+    # ----------------------------------------------------
+    # 병합 영역 전체에 스타일(배경색, 테두리, 정렬) 적용
+    # ----------------------------------------------------
+    def style_range(worksheet, cell_range, fill=None, font=None, alignment=None, border=styles.border_all): # fill=None: fill 값을 안 넣으면 기본적으로 None으로 처리
+        for row in worksheet[cell_range]:
+            for cell in row:
+                if fill:
+                    cell.fill = fill
+                if font:
+                    cell.font = font
+                if alignment:
+                    cell.alignment = alignment
+                if border:
+                    cell.border = border
+
     # ----------------------------------------------------
     # 1. 메인 제목 영역
     # ----------------------------------------------------
@@ -51,107 +68,127 @@ def create_summary_sheet(worksheet, money_data, budget):
 
     title_cell = worksheet["A1"] # worksheet["A1"]: A1 셀 하나 가져오기 / worksheet[1]: 1행(row)의 모든 셀 가져오기 / worksheet["A"]: A열(column)의 모든 셀 가져오기
     title_cell.value = "결혼 준비 대시보드"
-    title_cell.font = styles.font_title
-    title_cell.alignment = styles.align_center
 
-    # 병합된 A1:F1 전체에 배경색 채우기
-    for col in range(1, 7): # range(시작, 끝)은 끝은 포함하지 않음. 즉, 1 ~ 6을 의미함
-        worksheet.cell(row=1, column=col).fill = styles.title_fill # worksheet.cell(): 원하는 셀 객체를 가져오기 / fill: 셀의 Fill(배경색)을 지정하는 속성
+    style_range(worksheet, "A1:F1", fill=styles.title_fill, font=styles.font_title, alignment=styles.align_center)
 
     # ----------------------------------------------------
-    # 2. 예산 사용률
+    # 2. 예산 사용률 (좌측)
     # ----------------------------------------------------
     worksheet.merge_cells("A3:C3")
-    worksheet["A3"] = "예산 사용률"
-
     worksheet.merge_cells("A4:C4")
-    worksheet["A4"] = f"{usage_rate:.1f}%"
-
     worksheet.merge_cells("A5:C5")
-    worksheet["A5"] = (
-        f"{total_price:,}원 / {budget:,}원"
-    )
+
+    worksheet["A3"] = "예산 사용률"
+    worksheet["A4"] = f"{usage_rate:.1f}%"
+    worksheet["A5"] = f"{total_price:,}원 / {budget:,}원"
+
+    # 제목
+    style_range(worksheet, "A3:C3", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
+
+    # 숫자
+    style_range(worksheet, "A4:C4", fill=styles.summary_fill, font=styles.font_summary_value, alignment=styles.align_center)
+
+    # 설명
+    style_range(worksheet, "A5:C5", fill=styles.summary_fill, font=styles.font_summary_sub, alignment=styles.align_center)
 
     # ----------------------------------------------------
-    # 3. 카테고리별 지출
+    # 3. 카테고리별 지출 (우측)
     # ----------------------------------------------------
     worksheet.merge_cells("D3:F3")
     worksheet["D3"] = "카테고리별 지출"
 
+    style_range(worksheet, "D3:F3", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
+
     row = 4
-
     for category, price in category_data[:5]:
-        worksheet.cell(
-            row=row,
-            column=4,
-            value=category
-        )
+        worksheet.merge_cells(f"D{row}:E{row}")
+        worksheet[f"D{row}"] = category
+        worksheet[f"F{row}"] = price
+        worksheet[f"F{row}"].number_format = '#,##0"원"'
 
-        worksheet.cell(
-            row=row,
-            column=6,
-            value=price
-        ).number_format = '#,##0"원"'
+        style_range(worksheet, f"D{row}:E{row}", font=styles.font_data, alignment=styles.align_center)
+
+        worksheet[f"F{row}"].font = styles.font_data
+        worksheet[f"F{row}"].alignment = styles.align_right
+        worksheet[f"F{row}"].border = styles.border_all
+
+        worksheet.row_dimensions[row].height = 20
+
+        row += 1
+
+    while row <= 8: # 4부터 5개니까 4,5,6,7,8이라서 8로 조건을 줌
+        worksheet.merge_cells(f"D{row}:E{row}")
+        style_range(worksheet, f"D{row}:F{row}")
 
         row += 1
 
     # ----------------------------------------------------
-    # 4. 최근 지출 TOP 5
+    # 4. 최근 지출 TOP 5 (좌측)
     # ----------------------------------------------------
-    worksheet.merge_cells("A8:B8")
-    worksheet["A8"] = "최근 지출 TOP 5"
+    worksheet.merge_cells("A9:C9")
+    worksheet["A9"] = "최근 지출 TOP 5"
+    style_range(worksheet, "A9:C9", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
 
-    worksheet["A9"] = "항목"
-    worksheet["B9"] = "금액"
+    # 서브 헤더
+    worksheet.merge_cells("A10:B10")
+    worksheet["A10"] = "항목"
+    worksheet["C10"] = "금액"
+    style_range(worksheet, "A10:B10", fill=styles.summary_fill, font=styles.font_card_header, alignment=styles.align_center)
 
-    row = 10
+    worksheet["C10"].fill = styles.summary_fill
+    worksheet["C10"].font = styles.font_card_header
+    worksheet["C10"].alignment = styles.align_center
+    worksheet["C10"].border = styles.border_all
 
+    row_top = 11
     for money in top_expenses:
-        worksheet.cell(
-            row=row,
-            column=1,
-            value=money["item"]
-        )
+        worksheet.merge_cells(f"A{row_top}:B{row_top}")
+        worksheet[f"A{row_top}"] = money["item"]
+        worksheet[f"C{row_top}"] = money["price"]
+        worksheet[f"C{row_top}"].number_format = '#,##0"원"'
 
-        worksheet.cell(
-            row=row,
-            column=2,
-            value=money["price"]
-        ).number_format = '#,##0"원"'
+        style_range(worksheet, f"A{row_top}:B{row_top}", font=styles.font_data, alignment=styles.align_left)
+        worksheet[f"C{row_top}"].font = styles.font_data
+        worksheet[f"C{row_top}"].alignment = styles.align_right
+        worksheet[f"C{row_top}"].border = styles.border_all
 
-        row += 1
+        worksheet.row_dimensions[row_top].height = 20
+
+        row_top += 1
     
     # ----------------------------------------------------
-    # 5. 결제수단 분석
+    # 5. 결제수단 분석 (우측)
     # ----------------------------------------------------
-    worksheet.merge_cells("D8:F8")
-    worksheet["D8"] = "결제수단 분석"
+    worksheet.merge_cells("D9:F9")
+    worksheet["D9"] = "결제수단별 금액"
+    style_range(worksheet, "D9:F9", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
 
-    row = 9
+    # 서브 헤더
+    worksheet.merge_cells("D10:E10")
+    worksheet["D10"] = "결제수단"
+    worksheet["F10"] = "금액"
+    style_range(worksheet, "D10:F10", fill=styles.summary_fill, font=styles.font_card_header, alignment=styles.align_center)
 
+    worksheet["F10"].fill = styles.summary_fill
+    worksheet["F10"].font = styles.font_card_header
+    worksheet["F10"].alignment = styles.align_center
+    worksheet["F10"].border = styles.border_all
+
+    row_pay = 11
     for payment, price in payment_data.items():
-        worksheet.cell(
-            row=row,
-            column=4,
-            value=payment
-        )
+        worksheet.merge_cells(f"D{row_pay}:E{row_pay}")
+        worksheet[f"D{row_pay}"] = payment
+        worksheet[f"F{row_pay}"] = price
+        worksheet[f"F{row_pay}"].number_format = '#,##0"원"'
 
-        worksheet.cell(
-            row=row,
-            column=6,
-            value=price
-        ).number_format = '#,##0"원"'
+        style_range(worksheet, f"D{row_pay}:E{row_pay}", font=styles.font_data, alignment=styles.align_center)
+        worksheet[f"F{row_pay}"].font = styles.font_data
+        worksheet[f"F{row_pay}"].alignment = styles.align_right
+        worksheet[f"F{row_pay}"].border = styles.border_all
 
-        row += 1
+        worksheet.row_dimensions[row_pay].height = 20
 
-    # ----------------------------------------------------
-    # 기본 스타일
-    # ----------------------------------------------------
-    for row in worksheet.iter_rows():
-        for cell in row:
-            if cell.value is not None:
-                cell.alignment = styles.align_center
-                cell.border = styles.border_all
+        row_pay += 1
 
     # ----------------------------------------------------
     # 열 너비
