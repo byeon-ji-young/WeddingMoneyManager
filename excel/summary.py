@@ -13,6 +13,8 @@ from excel.chart import (
 def create_summary_sheet(worksheet, money_data, budget):
     # 시트 이름
     worksheet.title = "대시보드"
+    # 눈금선 제거
+    worksheet.views.sheetView[0].showGridLines = False
     
     # ----------------------------------------------------
     # 이벤트 처리 함수 정의
@@ -123,6 +125,8 @@ def create_summary_sheet(worksheet, money_data, budget):
 
     style_range(worksheet, "A1:F1", fill=styles.title_fill, font=styles.font_title, alignment=styles.align_center)
 
+    worksheet.merge_cells("A2:F2")
+
     # ----------------------------------------------------
     # 2. 예산 사용률 (좌측)
     # ----------------------------------------------------
@@ -172,20 +176,22 @@ def create_summary_sheet(worksheet, money_data, budget):
 
         row += 1
 
+    worksheet.merge_cells("A9:F9")
+    
     # ----------------------------------------------------
     # 4. 최대 지출 TOP 5 (좌측)
     # ----------------------------------------------------
-    worksheet.merge_cells("A9:C9")
-    worksheet["A9"] = "최대 지출 TOP 5"
-    style_range(worksheet, "A9:C9", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
+    worksheet.merge_cells("A10:C10")
+    worksheet["A10"] = "최대 지출 TOP 5"
+    style_range(worksheet, "A10:C10", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
 
     # 서브 헤더
-    worksheet.merge_cells("A10:B10")
-    worksheet["A10"] = "항목"
-    worksheet["C10"] = "금액"
-    style_range(worksheet, "A10:C10", fill=styles.summary_fill, font=styles.font_card_header, alignment=styles.align_center)
+    worksheet.merge_cells("A11:B11")
+    worksheet["A11"] = "항목"
+    worksheet["C11"] = "금액"
+    style_range(worksheet, "A11:C11", fill=styles.summary_fill, font=styles.font_card_header, alignment=styles.align_center)
 
-    row_top = 11
+    row_top = 12
     for money in top_expenses:
         worksheet.merge_cells(f"A{row_top}:B{row_top}")
         worksheet[f"A{row_top}"] = money["item"]
@@ -202,17 +208,17 @@ def create_summary_sheet(worksheet, money_data, budget):
     # ----------------------------------------------------
     # 5. 결제수단 분석 (우측)
     # ----------------------------------------------------
-    worksheet.merge_cells("D9:F9")
-    worksheet["D9"] = "결제수단별 금액"
-    style_range(worksheet, "D9:F9", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
+    worksheet.merge_cells("D10:F10")
+    worksheet["D10"] = "결제수단별 금액"
+    style_range(worksheet, "D10:F10", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
 
     # 서브 헤더
-    worksheet.merge_cells("D10:E10")
-    worksheet["D10"] = "결제수단"
-    worksheet["F10"] = "금액"
-    style_range(worksheet, "D10:F10", fill=styles.summary_fill, font=styles.font_card_header, alignment=styles.align_center)
+    worksheet.merge_cells("D11:E11")
+    worksheet["D11"] = "결제수단"
+    worksheet["F11"] = "금액"
+    style_range(worksheet, "D11:F11", fill=styles.summary_fill, font=styles.font_card_header, alignment=styles.align_center)
 
-    row_pay = 11
+    row_pay = 12
     for payment, price in payment_data.items():
         worksheet.merge_cells(f"D{row_pay}:E{row_pay}")
 
@@ -222,13 +228,18 @@ def create_summary_sheet(worksheet, money_data, budget):
         worksheet[f"F{row_pay}"] = price
         worksheet[f"F{row_pay}"].number_format = '#,##0"원"'
 
-        style_range(worksheet, f"D{row_pay}:D{row_pay}", font=styles.font_data, alignment=styles.align_center)
-        style_cell(worksheet, f"E{row_pay}", font=styles.font_data, alignment=styles.align_left)
+        style_range(worksheet, f"D{row_pay}:E{row_pay}", font=styles.font_data, alignment=styles.align_left)
         style_cell(worksheet, f"F{row_pay}", font=styles.font_data, alignment=styles.align_right)
 
         worksheet.row_dimensions[row_pay].height = 20
 
         row_pay += 1
+
+    while row <= 16: # 12부터 5개니까 16으로 조건을 줌
+        worksheet.merge_cells(f"D{row}:E{row}")
+        style_range(worksheet, f"D{row}:F{row}")
+
+        row += 1
 
     # ----------------------------------------------------
     # 6. 차트 생성

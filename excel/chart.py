@@ -8,7 +8,7 @@ def apply_chart_style(chart, title, width, style=10, show_labels=True):
     chart.visible_cells_only = False # 숨김 데이터도 읽기
     chart.title = title
     chart.width = width
-    chart.height = 8
+    chart.height = 7.5
     chart.legend = None
     chart.style = style # Excel 기본 스타일 번호
     # 축 제목
@@ -16,7 +16,7 @@ def apply_chart_style(chart, title, width, style=10, show_labels=True):
     # chart.y_axis.title = "금액(만원)"
     # 축 표시 설정
     chart.x_axis.delete = False
-    chart.y_axis.delete = False
+    # chart.y_axis.delete = False
     # chart.y_axis.numFmt = '#,##0,"만원"' # 차트는 만원단위로 표시하려고 // 10000 추가했으니까 이 소스는 불필요함
     chart.y_axis.numFmt = '#,##0'
     # 눈금선 제거
@@ -40,9 +40,8 @@ def apply_chart_style(chart, title, width, style=10, show_labels=True):
     # chart.dataLabels.numFmt = '#,##0' 
 
 def create_category_chart(worksheet, category_data):
-    """
-    카테고리별 지출 막대 차트 생성
-    """
+    """카테고리별 지출 막대 차트 생성"""
+
     # ----------------------------------------------------
     # 차트 데이터 생성
     # ----------------------------------------------------
@@ -80,20 +79,17 @@ def create_category_chart(worksheet, category_data):
     chart.add_data(data)
     chart.set_categories(categories)
 
-    chart.type = "col" # bar: 가로 막대 그래프, col: 세로 막대 그래프
-    apply_chart_style(chart, "카테고리별 지출 (만원)", 22.5, style=10)
+    apply_chart_style(chart, "카테고리별 지출 (만원)", 22.5, style=2)
+    # chart.type = "col" # bar: 가로 막대 그래프, col: 세로 막대 그래프
 
     # ----------------------------------------------------
     # 시트에 추가
     # ----------------------------------------------------
-    CATEGORY_CHART_POSITION  = "A18"
-
-    worksheet.add_chart(chart, CATEGORY_CHART_POSITION) # A18: 왼쪽 위 시작 위치. 즉, A18부터 그래프가 그려짐
+    worksheet.add_chart(chart, "A18") # A18: 왼쪽 위 시작 위치. 즉, A18부터 그래프가 그려짐
 
 def create_payment_chart(worksheet, payment_data):
-    """
-    결제수단별 지출 막대 차트 생성
-    """
+    """결제수단별 지출 막대 차트 생성"""
+
     # ----------------------------------------------------
     # 차트 데이터 생성
     # ----------------------------------------------------
@@ -126,19 +122,16 @@ def create_payment_chart(worksheet, payment_data):
     chart.add_data(data)
     chart.set_categories(payments)
 
-    apply_chart_style(chart, "결제수단별 지출 (만원)", 7.5, style=10)
+    apply_chart_style(chart, "결제수단별 지출 (만원)", 7.5, style=2)
 
     # ----------------------------------------------------
     # 시트에 추가
     # ----------------------------------------------------
-    PAYMENT_CHART_POSITION = "A32"
-
-    worksheet.add_chart(chart, PAYMENT_CHART_POSITION)
+    worksheet.add_chart(chart, "A32")
 
 def create_monthly_chart(worksheet, monthly_data):
-    """
-    월별 지출 추이 차트 생성
-    """
+    """월별 지출 추이 차트 생성"""
+
     # ----------------------------------------------------
     # 차트 데이터 생성
     # ----------------------------------------------------
@@ -174,10 +167,10 @@ def create_monthly_chart(worksheet, monthly_data):
     apply_chart_style(chart, "월별 지출 추이 (만원)", 15)
     chart.dLbls.dLblPos = "t" # dLblPos: 라벨 위치 지정(t:top, b:bottom, l:left, r:right, ctr:center)
     chart.varyColors = False # varyColors: 각 가로값(데이터 포인트)마다 색 바뀌는 옵션
+    # 직선 연결 (과도한 곡선 왜곡 방지)
+    chart.smooth = False
 
     # ----------------------------------------------------
     # 시트에 추가
     # ----------------------------------------------------
-    MONTHLY_CHART_POSITION = "C32"
-
-    worksheet.add_chart(chart, MONTHLY_CHART_POSITION)
+    worksheet.add_chart(chart, "C32")
