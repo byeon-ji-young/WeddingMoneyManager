@@ -24,14 +24,28 @@ def create_summary_sheet(worksheet, money_data, budget):
                 if border:
                     cell.border = border
 
+    # 특정 셀에 스타일(배경색, 테두리, 정렬) 적용
+    def style_cell(worksheet, cell_address, fill=None, font=None, alignment=None, border=styles.border_all,):
+        cell = worksheet[cell_address]
+
+        if fill:
+            cell.fill = fill
+        if font:
+            cell.font = font
+        if alignment:
+            cell.alignment = alignment
+        if border:
+            cell.border = border
+
     # 막대 그리기
-    def create_bar(price, max_price):
+    def create_bar(price, max_price, max_length=10):
         if max_price == 0:
             return ""
 
-        length = int(price / max_price * 10) # 막대 최대 10칸
+        length = int(price / max_price * max_length) # max_length: 막대 최대 길이 조절
+        # length = max(1, length)
 
-        return "█" * max(length, 1)
+        return "█" * length
 
     # ----------------------------------------------------
     # 데이터 계산
@@ -57,9 +71,9 @@ def create_summary_sheet(worksheet, money_data, budget):
     )
 
     # 최고 금액 구하기
-    max_category_price = 0
+    max_categor = 0
     if category_data:
-        max_category_price = category_data[0][1] # 이미 내림차순으로 정렬해놓은 상태라 첫번째 리스트 뽑으면 됨
+        max_category = category_data[0][1] # 이미 내림차순으로 정렬해놓은 상태라 첫번째 리스트 뽑으면 됨
 
     # 지출 금액 TOP 5
     top_expenses = sorted(
@@ -73,6 +87,19 @@ def create_summary_sheet(worksheet, money_data, budget):
     for money in money_data:
         payment = money.get("payment", "미입력") # money["payment"]: payment가 없으면 keyError 발생. get("payment", "미입력"): 있으면 가져오고 아니면 미입력
         payment_data[payment] += money["price"]
+
+    # 결제수단별 지출 비율
+    payment_total = sum(payment_data.values()) # values(): 70000, 20000, 10000, ...
+    payment_ratio = {}
+
+    for payment, price in payment_data.items(): # items(): ("카드", 70000), ("현금", 20000), ("계좌이체", 10000), ...
+        if payment_total > 0:
+            payment_ratio[payment] = price / payment_total * 100
+        else:
+            payment_ratio[payment] = 0
+
+    # 결제수단별 최고 금액 구하기
+    max_payment = max(payment_data.values()) if payment_data else 0
     
     # ----------------------------------------------------
     # 1. 메인 제목 영역
@@ -88,21 +115,21 @@ def create_summary_sheet(worksheet, money_data, budget):
     # 2. 예산 사용률 (좌측)
     # ----------------------------------------------------
     worksheet.merge_cells("A3:C3")
-    worksheet.merge_cells("A4:C4")
-    worksheet.merge_cells("A5:C5")
+    worksheet.merge_cells("A4:C7")
+    worksheet.merge_cells("A8:C8")
 
     worksheet["A3"] = "예산 사용률"
     worksheet["A4"] = f"{usage_rate:.1f}%"
-    worksheet["A5"] = f"{total_price:,}원 / {budget:,}원"
+    worksheet["A8"] = f"지출 금액 {total_price:,}원, 남은 예산 {budget-total_price:,}원"
 
     # 제목
     style_range(worksheet, "A3:C3", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
 
     # 숫자
-    style_range(worksheet, "A4:C4", fill=styles.summary_fill, font=styles.font_summary_value, alignment=styles.align_center)
+    style_range(worksheet, "A4:C7", fill=styles.summary_fill, font=styles.font_summary_value, alignment=styles.align_center)
 
     # 설명
-    style_range(worksheet, "A5:C5", fill=styles.summary_fill, font=styles.font_summary_sub, alignment=styles.align_center)
+    style_range(worksheet, "A8:C8", fill=styles.summary_fill, font=styles.font_summary_sub, alignment=styles.align_center)
 
     # ----------------------------------------------------
     # 3. 카테고리별 지출 (우측)
@@ -114,10 +141,7 @@ def create_summary_sheet(worksheet, money_data, budget):
 
     row = 4
     for category, price in category_data[:5]:
-        bar = create_bar(
-            price,
-            max_category_price
-        )
+        bar = create_bar(price, max_category)
         
         worksheet[f"D{row}"] = category
         worksheet[f"E{row}"] = bar
@@ -125,10 +149,7 @@ def create_summary_sheet(worksheet, money_data, budget):
         worksheet[f"F{row}"].number_format = '#,##0"원"'
 
         style_range(worksheet, f"D{row}:E{row}", font=styles.font_data, alignment=styles.align_left)
-        
-        worksheet[f"F{row}"].font = styles.font_data
-        worksheet[f"F{row}"].alignment = styles.align_right
-        worksheet[f"F{row}"].border = styles.border_all
+        style_cell(worksheet, f"F{row}", font=styles.font_data, alignment=styles.align_right)
 
         worksheet.row_dimensions[row].height = 20
 
@@ -144,19 +165,14 @@ def create_summary_sheet(worksheet, money_data, budget):
     # 4. 최대 지출 TOP 5 (좌측)
     # ----------------------------------------------------
     worksheet.merge_cells("A9:C9")
-    worksheet["A9"] = "최근 지출 TOP 5"
+    worksheet["A9"] = "최대 지출 TOP 5"
     style_range(worksheet, "A9:C9", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
 
     # 서브 헤더
     worksheet.merge_cells("A10:B10")
     worksheet["A10"] = "항목"
     worksheet["C10"] = "금액"
-    style_range(worksheet, "A10:B10", fill=styles.summary_fill, font=styles.font_card_header, alignment=styles.align_center)
-
-    worksheet["C10"].fill = styles.summary_fill
-    worksheet["C10"].font = styles.font_card_header
-    worksheet["C10"].alignment = styles.align_center
-    worksheet["C10"].border = styles.border_all
+    style_range(worksheet, "A10:C10", fill=styles.summary_fill, font=styles.font_card_header, alignment=styles.align_center)
 
     row_top = 11
     for money in top_expenses:
@@ -166,9 +182,7 @@ def create_summary_sheet(worksheet, money_data, budget):
         worksheet[f"C{row_top}"].number_format = '#,##0"원"'
 
         style_range(worksheet, f"A{row_top}:B{row_top}", font=styles.font_data, alignment=styles.align_left)
-        worksheet[f"C{row_top}"].font = styles.font_data
-        worksheet[f"C{row_top}"].alignment = styles.align_right
-        worksheet[f"C{row_top}"].border = styles.border_all
+        style_cell(worksheet, f"C{row_top}", font=styles.font_data, alignment=styles.align_right)
 
         worksheet.row_dimensions[row_top].height = 20
 
@@ -187,22 +201,20 @@ def create_summary_sheet(worksheet, money_data, budget):
     worksheet["F10"] = "금액"
     style_range(worksheet, "D10:F10", fill=styles.summary_fill, font=styles.font_card_header, alignment=styles.align_center)
 
-    worksheet["F10"].fill = styles.summary_fill
-    worksheet["F10"].font = styles.font_card_header
-    worksheet["F10"].alignment = styles.align_center
-    worksheet["F10"].border = styles.border_all
-
     row_pay = 11
     for payment, price in payment_data.items():
-        worksheet.merge_cells(f"D{row_pay}:E{row_pay}")
-        worksheet[f"D{row_pay}"] = payment
-        worksheet[f"F{row_pay}"] = price
-        worksheet[f"F{row_pay}"].number_format = '#,##0"원"'
+        bar = create_bar(price, payment_total)
 
-        style_range(worksheet, f"D{row_pay}:E{row_pay}", font=styles.font_data, alignment=styles.align_center)
-        worksheet[f"F{row_pay}"].font = styles.font_data
-        worksheet[f"F{row_pay}"].alignment = styles.align_right
-        worksheet[f"F{row_pay}"].border = styles.border_all
+        ratio = price / payment_total * 100 if payment_total else 0
+
+        worksheet[f"D{row_pay}"] = payment
+        worksheet[f"E{row_pay}"] = bar
+        worksheet[f"F{row_pay}"] = f"{price:,}원({ratio:.1f}%)"
+        # worksheet[f"F{row_pay}"].number_format = '#,##0"원"'
+
+        style_range(worksheet, f"D{row_pay}:D{row_pay}", font=styles.font_data, alignment=styles.align_center)
+        style_cell(worksheet, f"E{row_pay}", font=styles.font_data, alignment=styles.align_left)
+        style_cell(worksheet, f"F{row_pay}", font=styles.font_data, alignment=styles.align_right)
 
         worksheet.row_dimensions[row_pay].height = 20
 
