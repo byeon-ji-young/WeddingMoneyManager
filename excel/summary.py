@@ -237,7 +237,7 @@ def create_summary_sheet(worksheet, money_data, budget):
     # ----------------------------------------------------
     create_category_chart(worksheet, category_data)
     create_payment_chart(worksheet, payment_data)
-    create_monthly_chart(worksheet, payment_data)
+    create_monthly_chart(worksheet, monthly_data)
 
     # ----------------------------------------------------
     # 열 너비
