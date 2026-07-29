@@ -557,7 +557,7 @@ header_frame.pack(fill="x", padx=30, pady=(20, 10)) # fill="x" : 가로 방향�
 
 title_label = tk.Label(
     header_frame,
-    text="💍 예식 비용 관리 Dashboard",
+    text="💍 결혼 준비 비용 관리",
     font=("맑은 고딕", 16, "bold"),
     bg="#F4F6F9",
     fg="#1E293B"
