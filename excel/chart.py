@@ -1,6 +1,7 @@
 from openpyxl.chart import BarChart, Reference, LineChart #BarChart: 막대 차트 객체, Reference: 어느 셀을 차트 데이터로 사용할지 지정
 from openpyxl.chart.label import DataLabelList
 
+# 차트 스타일 적용
 def apply_chart_style(chart, title, width, style=10, show_labels=True):
     # ----------------------------------------------------
     # 차트 설정
@@ -38,6 +39,17 @@ def apply_chart_style(chart, title, width, style=10, show_labels=True):
     chart.dataLabels.showLegendKey = False
 
     # chart.dataLabels.numFmt = '#,##0' 
+
+# 차트 색상 설정
+def set_series_color(chart, hex_color="1F497D"):
+    """차트 시리즈(막대/선)의 색상을 상단 헤더(다크블루) 계열 단색으로 설정"""
+
+    for series in chart.series:
+        # 막대 그래프 채우기 색상 지정
+        series.graphicalProperties.solidFill = hex_color
+        # 꺾은선 그래프 선 색상 및 두께 지정
+        series.graphicalProperties.line.solidFill = hex_color
+        series.graphicalProperties.line.width = 25000  # 선 두께
 
 def create_category_chart(worksheet, category_data):
     """카테고리별 지출 막대 차트 생성"""
@@ -83,6 +95,8 @@ def create_category_chart(worksheet, category_data):
     # chart.type = "col" # bar: 가로 막대 그래프, col: 세로 막대 그래프
     chart.gapWidth = 50
 
+    set_series_color(chart, "1F497D")
+
     # ----------------------------------------------------
     # 시트에 추가
     # ----------------------------------------------------
@@ -126,6 +140,8 @@ def create_payment_chart(worksheet, payment_data):
     apply_chart_style(chart, "결제수단별 지출 (만원)", 7.5, style=2)
     chart.gapWidth = 50
 
+    set_series_color(chart, "1F497D")
+
     # ----------------------------------------------------
     # 시트에 추가
     # ----------------------------------------------------
@@ -166,7 +182,7 @@ def create_monthly_chart(worksheet, monthly_data):
     chart.add_data(data)
     chart.set_categories(months)
 
-    apply_chart_style(chart, "월별 지출 추이 (만원)", 15)
+    apply_chart_style(chart, "월별 지출 추이 (만원)", 15, style=2)
     chart.dLbls.dLblPos = "t" # dLblPos: 라벨 위치 지정(t:top, b:bottom, l:left, r:right, ctr:center)
     chart.varyColors = False # varyColors: 각 가로값(데이터 포인트)마다 색 바뀌는 옵션
     # 직선 연결 (과도한 곡선 왜곡 방지)
@@ -176,6 +192,10 @@ def create_monthly_chart(worksheet, monthly_data):
     line_series = chart.series[0] # series[0]: 첫 번째 데이터 계열(Series). chart.add_data(data)를 호출하면 Series가 1개 생성 - 금액(원). 만약에 뒤에 열을 추가하면 series[0]은 금액, series[1]은 추가열
     line_series.marker.symbol = "circle"
     line_series.marker.size = 7
+    line_series.marker.graphicalProperties.solidFill = "1F497D"
+    line_series.marker.graphicalProperties.line.noFill = True # noFill: 테두리 없애기
+
+    set_series_color(chart, "1F497D")
 
     # ----------------------------------------------------
     # 시트에 추가
