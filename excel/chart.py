@@ -81,6 +81,7 @@ def create_category_chart(worksheet, category_data):
 
     apply_chart_style(chart, "카테고리별 지출 (만원)", 22.5, style=2)
     # chart.type = "col" # bar: 가로 막대 그래프, col: 세로 막대 그래프
+    chart.gapWidth = 50
 
     # ----------------------------------------------------
     # 시트에 추가
@@ -123,6 +124,7 @@ def create_payment_chart(worksheet, payment_data):
     chart.set_categories(payments)
 
     apply_chart_style(chart, "결제수단별 지출 (만원)", 7.5, style=2)
+    chart.gapWidth = 50
 
     # ----------------------------------------------------
     # 시트에 추가
@@ -169,6 +171,11 @@ def create_monthly_chart(worksheet, monthly_data):
     chart.varyColors = False # varyColors: 각 가로값(데이터 포인트)마다 색 바뀌는 옵션
     # 직선 연결 (과도한 곡선 왜곡 방지)
     chart.smooth = False
+
+    # 라인차트 마커
+    line_series = chart.series[0] # series[0]: 첫 번째 데이터 계열(Series). chart.add_data(data)를 호출하면 Series가 1개 생성 - 금액(원). 만약에 뒤에 열을 추가하면 series[0]은 금액, series[1]은 추가열
+    line_series.marker.symbol = "circle"
+    line_series.marker.size = 7
 
     # ----------------------------------------------------
     # 시트에 추가
