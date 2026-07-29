@@ -22,6 +22,8 @@ font_data = Font(name="맑은 고딕", size=10, color="334155")
 font_summary_title = Font(name="맑은 고딕", size=10, bold=True, color="475569")
 font_summary_value = Font(name="맑은 고딕", size=18, bold=True, color="0F172A")
 font_summary_sub = Font(name="맑은 고딕", size=10, color="64748B")
+font_summary_value_danger = Font(name="맑은 고딕", size=24, bold=True, color="FF0000")
+font_summary_sub_danger = Font(name="맑은 고딕", size=10, bold=True, color="FF0000")
 
 # ----------------------------------------------------
 # Alignments
