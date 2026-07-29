@@ -136,16 +136,27 @@ def create_summary_sheet(worksheet, money_data, budget):
 
     worksheet["A3"] = "예산 사용률"
     worksheet["A4"] = f"{usage_rate:.1f}%"
-    worksheet["A8"] = f"지출 금액 {total_price:,}원, 남은 예산 {budget-total_price:,}원"
 
     # 제목
     style_range(worksheet, "A3:C3", fill=styles.summary_title_fill, font=styles.font_summary_title, alignment=styles.align_center)
 
-    # 숫자
-    style_range(worksheet, "A4:C7", fill=styles.summary_fill, font=styles.font_summary_value, alignment=styles.align_center)
+    if usage_rate > 100:
+        over_price = total_price - budget
+        worksheet["A8"] = (f"지출 금액 {total_price:,}원 (예산 {over_price:,}원 초과!)")
+    
+        # 숫자
+        style_range(worksheet, "A4:C7", fill=styles.summary_fill, font=styles.font_summary_value_danger, alignment=styles.align_center)
+    
+        # 설명
+        style_range(worksheet, "A8:C8", fill=styles.summary_fill, font=styles.font_summary_sub_danger, alignment=styles.align_center)
+    else:
+        worksheet["A8"] = f"지출 금액 {total_price:,}원, 남은 예산 {budget-total_price:,}원"
 
-    # 설명
-    style_range(worksheet, "A8:C8", fill=styles.summary_fill, font=styles.font_summary_sub, alignment=styles.align_center)
+        # 숫자
+        style_range(worksheet, "A4:C7", fill=styles.summary_fill, font=styles.font_summary_value, alignment=styles.align_center)
+
+        # 설명
+        style_range(worksheet, "A8:C8", fill=styles.summary_fill, font=styles.font_summary_sub, alignment=styles.align_center)
 
     # ----------------------------------------------------
     # 3. 카테고리별 지출 (우측)
