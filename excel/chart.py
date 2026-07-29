@@ -1,5 +1,6 @@
 from openpyxl.chart import BarChart, Reference, LineChart #BarChart: 막대 차트 객체, Reference: 어느 셀을 차트 데이터로 사용할지 지정
 from openpyxl.chart.label import DataLabelList
+from openpyxl.chart.shapes import GraphicalProperties
 
 # 차트 스타일 적용
 def apply_chart_style(chart, title, width, style=10, show_labels=True):
@@ -39,6 +40,18 @@ def apply_chart_style(chart, title, width, style=10, show_labels=True):
     chart.dataLabels.showLegendKey = False
 
     # chart.dataLabels.numFmt = '#,##0' 
+
+    # ----------------------------------------------------
+    # 차트 외곽선(Border) 설정
+    # ----------------------------------------------------
+    if chart.graphical_properties is None: # 차트의 그래픽 속성 객체가 없으면 새로 만들어라
+        chart.graphical_properties = GraphicalProperties()
+
+    # 테두리 완전히 제거
+    # chart.graphical_properties.line.noFill = True
+
+    chart.graphical_properties.line.solidFill = "CBD5E1"
+    chart.roundedCorners = False # 둥근 모서리
 
 # 차트 색상 설정
 def set_series_color(chart, hex_color="1F497D"):
