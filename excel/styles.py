@@ -17,6 +17,7 @@ color_card_bg = "F8FAFC"  # 요약 카드 배경
 font_title = Font(name="맑은 고딕", size=15, bold=True, color="FFFFFF")
 font_card_header = Font(name="맑은 고딕", size=10, bold=True, color="475569")
 font_card_val = Font(name="맑은 고딕", size=13, bold=True, color="0F172A")
+font_card_val_danger = Font(name="맑은 고딕", size=13, bold=True, color="FF0000")
 font_table_header = Font(name="맑은 고딕", size=10, bold=True, color="1E293B")
 font_data = Font(name="맑은 고딕", size=10, color="334155")
 font_summary_title = Font(name="맑은 고딕", size=10, bold=True, color="475569")
@@ -29,8 +30,8 @@ font_summary_sub_danger = Font(name="맑은 고딕", size=10, bold=True, color="
 # Alignments
 # ----------------------------------------------------
 align_center = Alignment(horizontal="center", vertical="center") # horizontalL 가로 정렬, vertical: 세로 정렬
-align_right = Alignment(horizontal="right", vertical="center")
-align_left = Alignment(horizontal="left", vertical="center")
+align_right = Alignment(horizontal="right", vertical="center", indent=1) # Indent: 좌측/우측 텍스트 여백 ex. indent=1
+align_left = Alignment(horizontal="left", vertical="center", indent=1)
 
 # ----------------------------------------------------
 # Borders
@@ -50,7 +51,8 @@ border_card_val = Border(
 border_table_header = Border(
     left=thin_side,
     right=thin_side,
-    top=Side(style="none"),
+    # top=Side(style="none"),
+    top=thin_side,
     bottom=thin_side
 )
 summary_border = Border(
@@ -72,15 +74,18 @@ card_header_fill = PatternFill(
     fill_type="solid",
     start_color="E2E8F0"
 )
-
 card_val_fill = PatternFill(
     fill_type="solid",
     start_color=color_card_bg
 )
-
 table_header_fill = PatternFill(
     fill_type="solid",
     start_color=color_header_bg
+)
+table_zebra_fill = PatternFill(
+    start_color="F9FAFB", 
+    end_color="F9FAFB", 
+    fill_type="solid"
 )
 summary_fill = PatternFill(
     fill_type="solid",

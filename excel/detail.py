@@ -18,7 +18,8 @@ def create_detail_sheet(worksheet, money_data, budget):
     # total_price = 0
     # for money in money_data:
     #     total_price += money["price"]
-    
+    remaining_budget = budget - total_price
+
     # ----------------------------------------------------
     # 1. 메인 제목 영역
     # ----------------------------------------------------
@@ -36,16 +37,18 @@ def create_detail_sheet(worksheet, money_data, budget):
     # 빈 줄 추가
     # worksheet.append([])
 
+    worksheet.merge_cells("A2:F2")
+    
     # ----------------------------------------------------
     # 2. 요약 카드 영역 (A3:F4)
     # ----------------------------------------------------
     cards = [
-        ("A3:B3", "A4:B4", "A3", "A4", "총 예산", budget),
-        ("C3:D3", "C4:D4", "C3", "C4", "총 지출", total_price),
-        ("E3:F3", "E4:F4", "E3", "E4", "남은 금액", budget - total_price),
+        ("A3:B3", "A4:B4", "A3", "A4", "총 예산", budget, False),
+        ("C3:D3", "C4:D4", "C3", "C4", "총 지출", total_price, False),
+        ("E3:F3", "E4:F4", "E3", "E4", "남은 금액", remaining_budget, remaining_budget < 0),
     ] # 리스트[] 안에 튜플()이 3개 들어있는 형태
 
-    for head_range, val_range, h_cell, v_cell, label, val in cards:
+    for head_range, val_range, h_cell, v_cell, label, val, is_over in cards:
         # 셀 병합
         worksheet.merge_cells(head_range)
         worksheet.merge_cells(val_range)
@@ -66,9 +69,12 @@ def create_detail_sheet(worksheet, money_data, budget):
             for row in worksheet[r_range]: # worksheet[r_range]는 행(row) 단위의 튜플을 반환
                 for cell in row: # row = (A3, B3) & cell = A3, B3
                     cell.fill = styles.card_header_fill if is_head else styles.card_val_fill
-                    cell.font = styles.font_card_header if is_head else styles.font_card_val
                     cell.alignment = styles.align_center
                     cell.border = styles.border_card_header if is_head else styles.border_card_val
+                    if not is_head and is_over:
+                        cell.font = styles.font_card_val_danger
+                    else:
+                        cell.font = styles.font_card_header if is_head else styles.font_card_val
 
     worksheet.row_dimensions[3].height = 22
     worksheet.row_dimensions[4].height = 28
@@ -78,7 +84,8 @@ def create_detail_sheet(worksheet, money_data, budget):
     # ----------------------------------------------------
     headers = ["날짜", "분류", "항목", "구매처", "금액", "결제수단"]
 
-    worksheet.append([])  # 5행 생성을 위한 빈 레이아웃 맞춰주기 (append 활용 대신 direct 지정도 가능)
+    worksheet.append([]) # 5행 생성을 위한 빈 레이아웃 맞춰주기 (append 활용 대신 direct 지정도 가능)
+    worksheet.merge_cells("A5:F5")
 
     # 직접 6행에 헤더 할당
     for col_idx, header in enumerate(headers, 1): # enumerate(..., 1)의 의미: 인덱스를 0이 아닌 1부터 시작
@@ -111,25 +118,27 @@ def create_detail_sheet(worksheet, money_data, budget):
     for row in range(start_row, end_row + 1):  # range(시작, 끝)은 끝은 포함하지 않음. 즉, start_row ~ end_row을 의미함
         worksheet.row_dimensions[row].height = 22
 
-        # 날짜, 분류, 구매처, 결제수단 -> 중앙 정렬
-        for col_idx in [1, 2, 4, 6]:
+        is_even = row % 2 == 0  # 교차 배경 적용 여부
+
+        for col_idx in range(1, 7):
             cell = worksheet.cell(row=row, column=col_idx)
-            cell.alignment = styles.align_center
             cell.font = styles.font_data
             cell.border = styles.border_all
 
-        # 항목 -> 좌측 정렬
-        cell_item = worksheet.cell(row=row, column=3)
-        cell_item.alignment = styles.align_left
-        cell_item.font = styles.font_data
-        cell_item.border = styles.border_all
+             # 짝수 행 약간 연한 배경 처리
+            if is_even:
+                cell.fill = styles.table_zebra_fill
 
-        # 금액 -> 우측 정렬 및 천단위 콤마
-        cell_price = worksheet.cell(row=row, column=5)
-        cell_price.alignment = styles.align_right
-        cell_price.font = styles.font_data
-        cell_price.number_format = "#,##0"
-        cell_price.border = styles.border_all
+            # 날짜, 분류, 구매처, 결제수단 -> 중앙 정렬
+            if col_idx in [1, 2, 4, 6]:
+                cell.alignment = styles.align_center
+            # 항목 -> 좌측 정렬
+            elif col_idx == 3: 
+                cell.alignment = styles.align_left
+            # 금액 -> 우측 정렬 및 천단위 콤마
+            elif col_idx == 5:
+                cell.alignment = styles.align_right
+                cell.number_format = "#,##0"
 
     # ----------------------------------------------------
     # 5. 기타 설정 (필터, 고정, 너비 자동 조절)
