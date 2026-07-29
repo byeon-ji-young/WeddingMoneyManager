@@ -59,12 +59,12 @@ class ExpenseDialog(tk.Toplevel):
         tk.Label(container, text="분류", **label_style).grid(row=2, column=0, sticky="w", pady=(0, 2))
         self.category_combo = ttk.Combobox(
             container,
-            values=["가구", "가전", "생활용품", "여행", "예식장", "스드메", "기타"],
-            state="readonly",
+            values=["예식장", "스드메", "스냅영상", "맞춤정장", "예물", "신혼여행", "가전", "가구", "생활용품", "기타"],
+            # state="readonly",
             width=28,
         )
         self.category_combo.grid(row=3, column=0, pady=(0, 12), sticky="ew")
-        self.category_combo.current(0)
+        # self.category_combo.current(0)
 
         # 3. 항목 입력
         tk.Label(container, text="항목", **label_style).grid(row=4, column=0, sticky="w", pady=(0, 2))

@@ -72,7 +72,7 @@ def open_add_dialog():
         update_total()
 
         # 추가한 항목 자동 선택
-        new_index = len(money_data) - 1
+        new_index = len(money_data)
 
         money_list.selection_set(new_index) # 해당 행 선택
         money_list.focus(new_index) # Treeview 내부 커서 이동
@@ -670,7 +670,7 @@ search_entry.bind("<KeyRelease>", lambda e: search_money())
 tk.Label(search_frame, text="분류", font=("맑은 고딕", 9), bg="#F4F6F9", fg="#475569").pack(side="left", padx=(0, 4))
 category_filter = ttk.Combobox(
     search_frame,
-    values=["전체", "가구", "가전", "생활용품", "여행", "예식장", "스드메", "기타"],
+    values=["전체", "예식장", "스드메", "스냅영상", "맞춤정장", "예물", "신혼여행", "가전", "가구", "생활용품", "기타"],
     width=8,
     state="readonly"
 )
