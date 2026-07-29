@@ -37,7 +37,7 @@ def apply_chart_style(chart, title, width, style=10, show_labels=True):
     chart.dataLabels.showSerName = False
     chart.dataLabels.showLegendKey = False
 
-    chart.dataLabels.numFmt = '#,##0' 
+    # chart.dataLabels.numFmt = '#,##0' 
 
 def create_category_chart(worksheet, category_data):
     """
@@ -54,6 +54,7 @@ def create_category_chart(worksheet, category_data):
     for category, price in category_data:
         worksheet[f"H{chart_row}"] = category
         worksheet[f"I{chart_row}"] = price // 10000 # //: 정수 나눗셈(Floor Division). 소수점 버리고 몫만 남김
+        worksheet[f"I{chart_row}"].number_format = '#,##0'
 
         chart_row += 1
 
@@ -104,6 +105,7 @@ def create_payment_chart(worksheet, payment_data):
     for payment, price in payment_data.items():
         worksheet[f"K{chart_row}"] = payment
         worksheet[f"L{chart_row}"] = price // 10000
+        worksheet[f"L{chart_row}"].number_format = '#,##0'
 
         chart_row += 1
 
@@ -148,6 +150,7 @@ def create_monthly_chart(worksheet, monthly_data):
     for month, price in sorted(monthly_data.items()):
         worksheet[f"N{chart_row}"] = month
         worksheet[f"O{chart_row}"] = price // 10000
+        worksheet[f"O{chart_row}"].number_format = '#,##0'
 
         chart_row += 1
 
@@ -169,6 +172,8 @@ def create_monthly_chart(worksheet, monthly_data):
     chart.set_categories(months)
 
     apply_chart_style(chart, "월별 지출 추이 (만원)", 15)
+    chart.dLbls.dLblPos = "t" # dLblPos: 라벨 위치 지정(t:top, b:bottom, l:left, r:right, ctr:center)
+    chart.varyColors = False # varyColors: 각 가로값(데이터 포인트)마다 색 바뀌는 옵션
 
     # ----------------------------------------------------
     # 시트에 추가

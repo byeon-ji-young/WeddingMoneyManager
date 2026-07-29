@@ -153,10 +153,9 @@ def create_summary_sheet(worksheet, money_data, budget):
 
     row = 4
     for category, price in category_data[:5]:
-        bar = create_bar(price, max_category)
+        worksheet.merge_cells(f"D{row}:E{row}")
         
         worksheet[f"D{row}"] = category
-        worksheet[f"E{row}"] = bar
         worksheet[f"F{row}"] = price
         worksheet[f"F{row}"].number_format = '#,##0"원"'
 
@@ -215,14 +214,13 @@ def create_summary_sheet(worksheet, money_data, budget):
 
     row_pay = 11
     for payment, price in payment_data.items():
-        bar = create_bar(price, payment_total)
+        worksheet.merge_cells(f"D{row_pay}:E{row_pay}")
 
         ratio = price / payment_total * 100 if payment_total else 0
 
         worksheet[f"D{row_pay}"] = payment
-        worksheet[f"E{row_pay}"] = bar
-        worksheet[f"F{row_pay}"] = f"{price:,}원({ratio:.1f}%)"
-        # worksheet[f"F{row_pay}"].number_format = '#,##0"원"'
+        worksheet[f"F{row_pay}"] = price
+        worksheet[f"F{row_pay}"].number_format = '#,##0"원"'
 
         style_range(worksheet, f"D{row_pay}:D{row_pay}", font=styles.font_data, alignment=styles.align_center)
         style_cell(worksheet, f"E{row_pay}", font=styles.font_data, alignment=styles.align_left)
