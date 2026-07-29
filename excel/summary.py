@@ -4,7 +4,11 @@ import excel.styles as styles
 
 from collections import defaultdict # defaultdict: 카테고리별 합계를 만들 때 사용
 
-from excel.chart import create_category_chart
+from excel.chart import (
+    create_category_chart,
+    create_payment_chart,
+    create_monthly_chart
+)
 
 def create_summary_sheet(worksheet, money_data, budget):
     # 시트 이름
@@ -102,7 +106,13 @@ def create_summary_sheet(worksheet, money_data, budget):
 
     # 결제수단별 최고 금액 구하기
     max_payment = max(payment_data.values()) if payment_data else 0
-    
+
+    # 월별 지출
+    monthly_data = defaultdict(int)
+    for money in money_data:
+        month = money["date"][:7] # YYYY-MM 추출
+        monthly_data[month] += money["price"]
+
     # ----------------------------------------------------
     # 1. 메인 제목 영역
     # ----------------------------------------------------
@@ -226,6 +236,8 @@ def create_summary_sheet(worksheet, money_data, budget):
     # 6. 차트 생성
     # ----------------------------------------------------
     create_category_chart(worksheet, category_data)
+    create_payment_chart(worksheet, payment_data)
+    create_monthly_chart(worksheet, payment_data)
 
     # ----------------------------------------------------
     # 열 너비
