@@ -808,3 +808,69 @@ isinstance()
 - update_budget() → 예산 변경
 
 ※ 자세한 구현 내용은 main.py의 각 함수 주석 참고
+
+---
+
+# 15. openpyxl (Excel 자동화)
+
+WeddingMoneyManager의 Excel Report 생성 기능 구현을 위해 사용하였다.
+주요 기능:
+- 지출 상세 내역 시트 생성
+- 예산 분석 Summary 시트 생성
+- 셀 스타일 및 차트 적용
+
+## Workbook
+
+Excel 파일 자체를 의미한다.
+
+```python
+from openpyxl import Workbook
+
+wb = Workbook()
+```
+
+---
+
+## Worksheet
+
+Excel 파일 내부의 하나의 시트를 의미한다.
+
+```python
+ws = wb.create_sheet("Summary")
+```
+
+---
+
+## Cell
+Excel의 개별 셀에 값을 입력한다.
+
+```python
+ws["A1"] = "총 예산"
+```
+ 
+---
+
+## Cell Style
+
+셀에 글꼴, 배경색, 테두리, 정렬 등의 디자인을 적용할 수 있다.
+
+```python
+cell.font = Font(...)
+cell.fill = PatternFill(...)
+cell.border = Border(...)
+cell.alignment = Alignment(...)
+```
+
+---
+
+## Chart
+
+Excel 내부에 차트를 생성할 수 있다.
+
+WeddingMoneyManager에서는
+카테고리별 지출 분석과 월별 지출 추이 표시를 위해 사용하였다.
+
+```python
+from openpyxl.chart import BarChart, LineChart
+from openpyxl.chart import Reference
+```

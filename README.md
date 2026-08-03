@@ -4,17 +4,17 @@
 
 결혼 준비 과정에서 발생하는 **예식, 혼수, 가전·가구, 생활용품, 신혼여행** 등의 다양한 지출을 체계적으로 관리하기 위해 개발한 개인 프로젝트입니다.
 
-예산 설정부터 지출 내역 관리, 검색 및 필터링, Dashboard를 통한 예산 사용 현황 확인까지 실제 사용을 고려하여 구현했습니다.
+예산 설정부터 지출 내역 관리, 검색 및 필터링, Dashboard를 통한 예산 현황 확인, Excel Report 생성을 통한 지출 분석까지 실제 사용을 고려하여 구현했습니다.
 
 ---
 
 # 📌 프로젝트 소개
 
-결혼 준비는 짧은 기간 동안 많은 비용이 발생하는 만큼 체계적인 관리가 필요합니다.
+결혼 준비는 짧은 기간 동안 많은 비용이 발생하기 때문에 체계적인 관리가 필요합니다.
 
-WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 프로그램으로, 단순한 가계부를 넘어 **예산 관리와 지출 분석**을 함께 제공하는 데스크톱 애플리케이션입니다.
+WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 프로그램으로, 단순한 가계부를 넘어 **예산 관리와 지출 분석 기능을 제공하는 데스크톱 애플리케이션**입니다.
 
-이 프로젝트를 통해 Python GUI 프로그래밍(Tkinter), JSON 데이터 관리, 이벤트 처리, 모듈 분리, 데이터 시각화(Matplotlib)를 학습하고 적용했습니다.
+이 프로젝트를 통해 Python GUI 프로그래밍(Tkinter), JSON 데이터 관리, 이벤트 처리, 객체 지향 설계, 모듈 분리, 데이터 시각화, Excel 자동화를 학습하고 적용했습니다.
 
 ---
 
@@ -53,18 +53,25 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 
 ## 📊 Dashboard
 
-* [x] 총 예산
-* [x] 현재 지출
-* [x] 남은 금액
+* [x] 총 예산 표시
+* [x] 현재 지출 표시
+* [x] 남은 금액 표시
 * [x] 예산 사용률 ProgressBar
 * [x] 사용률에 따른 색상 변경
 
 ---
 
-## 📈 통계
+## 📈 Excel Report
 
-* [ ] 카테고리별 막대그래프 (UI 개선 예정)
-* [ ] 카테고리별 도넛 그래프 (UI 개선 예정)
+* [x] Excel 리포트 자동 생성
+* [x] Summary 대시보드 시트 생성
+* [x] Detail 지출 내역 시트 생성
+* [x] 예산 사용률 카드 표시
+* [x] 카테고리별 지출 분석
+* [x] 결제수단별 지출 분석
+* [x] 최근 지출 TOP 5 표시
+* [x] 카테고리별 BarChart 생성
+* [x] 월별 지출 LineChart 생성
 
 ---
 
@@ -75,8 +82,10 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 | Language        | Python 3           |
 | GUI             | Tkinter, ttk       |
 | Data            | JSON               |
+| Excel           | openpyxl           |
+| Chart           | openpyxl.chart, Matplotlib |
 | Visualization   | Matplotlib         |
-| Library         | tkcalendar         |
+| Calendar        | tkcalendar         |
 | Development     | Visual Studio Code |
 | Version Control | Git / GitHub       |
 
@@ -87,13 +96,21 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 ```text
 WeddingMoneyManager
 │
-├── main.py                # 메인 실행 파일
-├── expense_dialog.py      # 입력 / 수정 팝업
-├── money.json             # 데이터 저장 파일
-├── README.md              # 프로젝트 소개
-├── development_log.md     # 개발 일지
-├── study.md               # Python / Tkinter 학습 노트
-└── requirements.txt       # 패키지 목록
+├── main.py                    # 메인 실행 파일
+├── expense_dialog.py          # 지출 등록 / 수정 팝업
+├── excel_export.py            # Excel Report 생성 관리
+│
+├── excel
+│   ├── chart.py               # Excel 차트 생성
+│   ├── detail.py              # 상세 지출 내역 시트 생성
+│   ├── summary.py             # Summary 대시보드 생성
+│   └── styles.py              # Excel 스타일 관리
+│
+├── money.json                 # 데이터 저장 파일
+├── README.md                  # 프로젝트 소개
+├── development_log.md         # 개발 일지
+├── study.md                   # Python / Tkinter 학습 노트
+└── requirements.txt           # 패키지 목록
 ```
 
 ---
@@ -164,31 +181,32 @@ python main.py
 
 # 📷 화면
 
-> 추후 업데이트 예정
+추후 실행 화면 추가 예정
 
-* 메인 화면
-* 지출 등록 팝업
-* Dashboard
-* 검색 및 필터
-* 통계 화면
+* 메인 Dashboard
+* 지출 등록 / 수정 팝업
+* Excel Summary Report
+* 지출 상세 내역
 
 ---
 
 # 🗺 Roadmap
 
 * [ ] 검색 결과 건수 표시
-* [ ] CSV(Excel) 내보내기
+* [ ] CSV 내보내기
 * [ ] 차트 UI 개선
-* [ ] 월별 통계 기능
 * [ ] 데이터 백업 및 복원
+* [ ] 사용자 설정 기능 추가
 
 ---
 
 # 📦 Version History
 
-| Version | Description |
-|---------|-------------|
-| v0.5.0 | 첫 번째 공식 Release / Dashboard UI 개선 / 검색·필터 기능 추가 / 입력 팝업(ExpenseDialog) 분리 / 고유 ID 기반 데이터 관리 |
+| Version | Description                                                                          |
+| ------- | ------------------------------------------------------------------------------------ |
+| v0.5.0 | 첫 번째 공식 Release / Dashboard UI 개선 / 검색·필터 기능 추가 / ExpenseDialog 분리 / 고유 ID 기반 데이터 관리 |
+| v0.6.0 | Excel Report 기능 추가 / openpyxl 기반 Summary·Detail 시트 생성 / 지출 분석 Dashboard / 차트 기능 구현 |
+| v0.7.0 | ExpenseDialog UI 리뉴얼 / Excel Report 디자인 개선 / 프로젝트 구조 정리 / 문서 업데이트 |
 
 ---
 
@@ -197,7 +215,7 @@ python main.py
 프로젝트 개발 과정과 학습 내용은 아래 문서에 정리되어 있습니다.
 
 * **development_log.md** : 개발 일지
-* **study.md** : Python / Tkinter 학습 노트
+* **study.md** : Python / Tkinter / openpyxl 학습 노트
 
 ---
 
@@ -205,4 +223,6 @@ python main.py
 
 **Jiyoung Byeon**
 
-WeddingMoneyManager는 Python GUI 프로그래밍과 실제 생활 데이터를 활용한 프로젝트 경험을 쌓기 위해 개발한 개인 프로젝트입니다.
+WeddingMoneyManager는 결혼 준비 과정에서 발생하는 실제 지출 데이터를 관리하기 위해 개발한 개인 프로젝트입니다.
+
+단순한 기능 구현을 넘어 Python GUI 프로그래밍(Tkinter), JSON 데이터 관리, 이벤트 처리, 객체 지향 설계, 모듈 분리, 데이터 시각화(Matplotlib), Excel 자동화(openpyxl) 등 실제 애플리케이션 개발 과정에서 필요한 기술을 학습하고 적용했습니다.
