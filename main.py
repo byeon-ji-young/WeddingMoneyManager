@@ -20,6 +20,7 @@ plt.rcParams["axes.unicode_minus"] = False
 money_data = []
 selected_index = None
 budget = 30000000
+remain = 0
 price_reverse = False
 sort_reverse = {
     "date": False,
@@ -52,7 +53,7 @@ style.theme_use("clam")
 # 지출 항목 추가 (팝업 연동)
 def open_add_dialog():
     # 팝업 창 띄우기
-    dialog = ExpenseDialog(window, title="지출 내역 추가")
+    dialog = ExpenseDialog(window, title="지출 추가")
     # 사용자가 팝업에서 [저장]이나 [취소]를 누르고 창을 닫을 때까지 메인 코드 대기
     window.wait_window(dialog)
 
@@ -99,7 +100,7 @@ def open_edit_dialog():
         return
     
     # 팝업 창 띄우기
-    dialog = ExpenseDialog(window, title="지출 내역 수정", initial_data=selected_data)
+    dialog = ExpenseDialog(window, title="지출 수정", initial_data=selected_data)
     # 사용자가 팝업에서 [저장]이나 [취소]를 누르고 창을 닫을 때까지 메인 코드 대기
     window.wait_window(dialog)
 
@@ -203,11 +204,17 @@ def update_total():
     remain = budget - total
 
     budget_value.config(text=f"{budget:,}원")
-    used_value.config(text=f"{total:,}원\n({rate:.1f}%)")
+    # used_value.config(text=f"{total:,}원\n({rate:.1f}%)")
+    used_value.config(text=f"{total:,}원 ({rate:.1f}%)")
     remain_value.config(text=f"{remain:,}원")
 
     # Progressbar
     progress["value"] = min(rate, 100)
+
+    if remain < 0:
+        remain_value.config(fg="#E11D48")
+    else:
+        remain_value.config(fg="#16A34A")
 
     # 상태 표시
     if rate < 70:
@@ -221,7 +228,7 @@ def update_total():
     else:
         progress.configure(style="Red.Horizontal.TProgressbar")
         over = total - budget
-        progress_status.config(text=f"🚨 예산을 {over:,}원 초과했습니다.", fg="#DC2626")
+        progress_status.config(text=f"🚨 예산을 {over:,}원 초과했습니다.", fg="#E11D48")
 
     animate_progress(rate)
 
@@ -545,6 +552,7 @@ def excel_export():
 
     # messagebox.showinfo("완료", "엑셀 파일이 저장되었습니다.")
 
+
 # ==========================================
 # 4. 상단 타이틀 및 예산 설정 영역
 # ==========================================
@@ -623,8 +631,8 @@ dashboard_frame.columnconfigure(0, weight=1) # weight가 커지면 더 많은 �
 dashboard_frame.columnconfigure(1, weight=1)
 dashboard_frame.columnconfigure(2, weight=1)
 
-budget_card, budget_value = create_card(dashboard_frame, "💰 총 예산", f"{budget:,}원", "#2563EB")
-used_card, used_value = create_card(dashboard_frame, "💸 현재 지출", "0원", "#DC2626")
+budget_card, budget_value = create_card(dashboard_frame, "💰 총 예산", f"{budget:,}원", "#1F497D")
+used_card, used_value = create_card(dashboard_frame, "💸 현재 지출", "0원", "#1E40AF")
 remain_card, remain_value = create_card(dashboard_frame, "💵 남은 금액", f"{budget:,}원", "#16A34A")
 
 budget_card.grid(row=0, column=0, padx=(0, 5), sticky="ew") # sticky="w" : 왼쪽(west)에 붙임 / "e": 오른쪽(east)에 붙임 / "n": 위쪽(north)에 붙임 / "s": 아래쪽(sount)에 붙임 ex) "ex": 왼쪽과 오른쪽에 모두 붙어라
@@ -645,7 +653,7 @@ progress = ttk.Progressbar(
 progress.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(10, 0))
 style.configure("Green.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#22C55E") # troughcolor: 안채워진 부분 색 / background: 채워진 부분 색
 style.configure("Orange.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#F59E0B")
-style.configure("Red.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#EF4444")
+style.configure("Red.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#E11D48")
 
 progress_status = tk.Label(dashboard_frame, text="예산 사용률 0%", font=("맑은 고딕", 10), bg="#F4F6F9", fg="#64748B")
 progress_status.grid(row=2, column=0, columnspan=3, pady=(5, 10))
@@ -662,11 +670,35 @@ search_frame = tk.Frame(list_frame, bg="#F4F6F9")
 search_frame.pack(fill="x", pady=(0, 10))
 
 # 검색 창
-search_entry = tk.Entry(search_frame, font=("맑은 고딕", 10), relief="solid", bd=1, width=15)
+entry_style = {
+    "relief": "flat", # relief: 위젯의 테두리 모양 옵션. "solid": 실선, "flat": 테두리 없음 ...
+    "bd": 0,
+    "bg": "#FFFFFF",
+    "fg": "#1E293B",
+    "highlightbackground": "#CBD5E1",  # 비활성 시 테두리 색상
+    "highlightcolor": "#1F497D",  # 포커스(클릭) 시 테두리 색상
+    "highlightthickness": 1,  # 테두리 두께
+}
+search_entry = tk.Entry(search_frame, font=("맑은 고딕", 10), width=15, **entry_style)
 search_entry.pack(side="left", padx=(0, 10))
 search_entry.bind("<KeyRelease>", lambda e: search_money())
 
 # 분류 필터
+style.configure(
+    "TCombobox",
+    fieldbackground="#FFFFFF",  # 기본 입력창 배경 (흰색)
+    background="#F1F5F9", # 오른쪽 화살표 버튼 배경색
+    bordercolor="#CBD5E1", # 테두리 색상
+    arrowcolor="#475569", # 화살표 아이콘 색상
+    padding=4,
+) # style.configure(): 평상시 기본 모양
+style.map(
+    "TCombobox",
+    fieldbackground=[("readonly", "#FFFFFF"), ("focus", "#FFFFFF")],
+    selectbackground=[("readonly", "#FFFFFF"), ("focus", "#FFFFFF")],
+    selectforeground=[("readonly", "#1E293B"), ("focus", "#1E293B")],
+    bordercolor=[("focus", "#1F497D")],
+) # style.map(): 위젯의 상태별 변화
 tk.Label(search_frame, text="분류", font=("맑은 고딕", 9), bg="#F4F6F9", fg="#475569").pack(side="left", padx=(0, 4))
 category_filter = ttk.Combobox(
     search_frame,
@@ -732,7 +764,7 @@ del_btn = tk.Button(
     text="🗑 삭제",
     command=lambda: delete_money(),
     font=("맑은 고딕", 9, "bold"),
-    bg="#DC2626",
+    bg="#EF4444",
     fg="white",
     relief="flat",
     bd=0,
@@ -747,7 +779,7 @@ edit_btn = tk.Button(
     text="✏ 수정",
     command=lambda: open_edit_dialog(),
     font=("맑은 고딕", 9, "bold"),
-    bg="#2563EB",
+    bg="#64748B",
     fg="white",
     relief="flat",
     bd=0,
@@ -759,10 +791,10 @@ edit_btn.pack(side="right", padx=(4, 0))
 
 add_btn = tk.Button(
     search_frame,
-    text="➕ 내역 추가",
+    text="➕ 추가",
     command=lambda: open_add_dialog(),
     font=("맑은 고딕", 9, "bold"),
-    bg="#16A34A",
+    bg="#1F497D",
     fg="white",
     relief="flat",
     bd=0,
