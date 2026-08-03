@@ -465,6 +465,10 @@ def show_detail_state():
 def show_bar_chart():
     category_total = {}
 
+    if not money_data:
+        messagebox.showinfo("통계", "등록된 지출 내역이 없습니다.")
+        return
+
     for money in money_data:
         category = money["category"]
         price = money["price"]
@@ -474,24 +478,80 @@ def show_bar_chart():
         else:
             category_total[category] = price
 
+    if not category_total:
+        messagebox.showinfo("통계", "표시할 데이터가 없습니다.")
+        return
+    
     # matplotlib은 리스트 형태를 선호함
-    categories = list(category_total.keys()) # keys(): 기능 실행, keys: 기능 자체. ex)get()
-    prices = list(category_total.values())
+    # categories = list(category_total.keys()) # keys(): 기능 실행, keys: 기능 자체. ex)get()
+    # prices = list(category_total.values())
 
-    plt.figure(figsize=(8,5))
-    bars = plt.bar(categories, prices, color="#3B82F6") # 막대 그래프 생성. bar: 세로 / barh: 가로
+    # plt.figure(figsize=(8,5))
+    # bars = plt.bar(categories, prices, color="#3B82F6") # 막대 그래프 생성. bar: 세로 / barh: 가로
+    # for bar in bars:
+    #     height = bar.get_height()
+    #     plt.text(
+    #         bar.get_x() + bar.get_width()/2,
+    #         height,
+    #         f"{height/10000:.0f}만원",
+    #         ha="center",
+    #         va="bottom"
+    #     )
+    
+    # 금액이 작은 순서 -> 큰 순서로 정렬 (가로 막대 그래프는 아래에서 위로 그려짐)
+    sorted_items = sorted(category_total.items(), key=lambda x: x[1]) # x[1]: 정렬 기준은 두 번째 값으로 하라는 뜻(x[0]: 가전, x[1]:1000)
+    categories = [x[0] for x in sorted_items] # 카테고리만 뽑기
+    prices = [x[1] for x in sorted_items] # 가격만 뽑기
+
+    fig, ax = plt.subplots(figsize=(8, 5), facecolor="#F8FAFC") # fig(Figure): 전체 종이, ax(Axes): 실제 그래프가 그려지는 영역
+    ax.set_facecolor("#F8FAFC") # 그래프가 그려지는 부분 배경
+
+    # 가로 막대 그래프 생성 (barh)
+    bars = ax.barh(categories, prices, color="#3B82F6", height=0.55, zorder=3)
+
+    # 가장 큰 금액 강조 (맨 위 막대 색상 차별화)
+    if bars:
+        bars[-1].set_color("#1D4ED8") # 파이썬에서 -1은 마지막 요소를 의미함. 즉, 막대그래프의 마지막 막대 객체를 의미함
+
+    # 막대 옆 금액 라벨 표시
+    max_price = max(prices) if prices else 1
     for bar in bars:
-        height = bar.get_height()
-        plt.text(
-            bar.get_x() + bar.get_width()/2,
-            height,
-            f"{height/10000:.0f}만원",
-            ha="center",
-            va="bottom"
-        )
-    plt.title("📊 카테고리별 지출 현황")
-    plt.xlabel("카테고리")
-    plt.ylabel("금액")
+        width = bar.get_width()
+        if width > 0:
+            val_text = (
+                f"{width/10000:,.0f}만원"
+                if width >= 10000
+                else f"{width:,.0f}원"
+            )
+            ax.text(
+                width + (max_price * 0.015),
+                bar.get_y() + bar.get_height() / 2,
+                f"{val_text}",
+                va="center",
+                ha="left",
+                fontsize=9.5,
+                fontweight="bold",
+                color="#1E293B",
+            )
+
+    # 불필요한 테두리 및 눈금선 정리 (1e7 표기 원천 제거)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
+    ax.spines["left"].set_color("#CBD5E1")
+
+    ax.xaxis.set_visible(False)  # X축 수치 눈금 제거
+    ax.tick_params(axis="y", colors="#334155", labelsize=10)
+
+    plt.title(
+        "카테고리별 지출 현황",
+        fontsize=13,
+        fontweight="bold",
+        pad=15,
+        color="#0F172A",
+    )
+    # plt.xlabel("카테고리")
+    # plt.ylabel("금액")
     plt.tight_layout() # 여백 자동 맞춤
     plt.show() # 그래프 표시
 
@@ -516,31 +576,97 @@ def show_pie_chart():
         messagebox.showinfo("통계", "표시할 데이터가 없습니다.")
         return
     
-    categories = list(category_total.keys())
-    prices = list(category_total.values())
+    # categories = list(category_total.keys())
+    # prices = list(category_total.values())
 
-    max_index = prices.index(max(prices))
-    explode = [0] * len(prices)
-    explode[max_index] = 0.1
+    # max_index = prices.index(max(prices))
+    # explode = [0] * len(prices)
+    # explode[max_index] = 0.1
 
-    plt.figure(figsize=(6,6))
-    wedges, texts, autotexts = plt.pie(
+    # plt.figure(figsize=(6,6))
+    # wedges, texts, autotexts = plt.pie(
+    #     prices,
+    #     labels=None,
+    #     autopct=make_autopct(prices),
+    #     startangle=90, # 기본은 3시 방향부터 시작하는데 90도를 주면 12시 방향부터 시작함
+    #     wedgeprops={"width": 0.45}, # 도넛형 그래프
+    #     explode=explode, # 자동으로 살짝 튀어나오게
+    #     textprops={"fontsize": 9}
+    # ) # 원형 그래프 생성
+
+    # 금액이 큰 순서대로 정렬
+    sorted_items = sorted(category_total.items(), key=lambda x: x[1], reverse=True)
+    categories = [x[0] for x in sorted_items]
+    prices = [x[1] for x in sorted_items]
+
+    colors = [
+        "#2563EB",
+        "#3B82F6",
+        "#60A5FA",
+        "#93C5FD",
+        "#A855F7",
+        "#EC4899",
+        "#F43F5E",
+        "#10B981",
+        "#F59E0B",
+        "#64748B",
+    ]
+
+    fig, ax = plt.subplots(figsize=(7.5, 5.5), facecolor="#F8FAFC")
+
+    # 도넛 차트 생성
+    wedges, texts, autotexts = ax.pie( # wedges: 각 조각(부채꼴) ex.wedges[0]: 첫번째 원 조각, texts: 라벨 텍스트, autotexts: 원 안에 표시되는 숫자 텍스트
         prices,
-        labels=None,
+        labels=None,  # 원 조각 위 라벨 지우기 (우측 범례로 대체)
         autopct=make_autopct(prices),
         startangle=90, # 기본은 3시 방향부터 시작하는데 90도를 주면 12시 방향부터 시작함
-        wedgeprops={"width": 0.45}, # 도넛형 그래프
-        explode=explode, # 자동으로 살짝 튀어나오게
-        textprops={"fontsize": 9}
-    ) # 원형 그래프 생성
-    plt.legend(
-        wedges,
-        categories,
-        title="카테고리",
-        loc="center left",
-        bbox_to_anchor=(1, 0, 0.5, 1)
+        colors=colors[: len(prices)], # list[:]: 리스트 슬라이싱 형식(리스트[시작:끝])
+        pctdistance=0.75,  # 퍼센트 위치 조정. 퍼센트 글자가 위치하는 거리
+        wedgeprops={
+            "width": 0.42,
+            "edgecolor": "white",
+            "linewidth": 2,
+        },  # 도넛 모양과 테두리 설정
+        textprops={"fontsize": 8.5, "weight": "bold"}, # 텍스트 스타일 설정
     )
-    plt.title("💒 신혼 자금 사용 비율")
+
+    # 퍼센트 텍스트 색상 흰색으로 고정
+    for autotext in autotexts:
+        autotext.set_color("white")
+
+    # 우측 범례(Legend) 설정 (카테고리명 + 금액 깔끔하게 표시)
+    total_val = sum(prices)
+    legend_labels = [
+        f"{category} ({price/total_val*100:.1f}%)" for category, price in zip(categories, prices) # zip(): 두 리스트를 같은 위치끼리 묶는 역할
+    ]
+
+    plt.legend( # legend(): 범례 만드는 함수
+        wedges, # 색상 표시 객체
+        legend_labels, # 표시할 글자
+        # title="카테고리",
+        loc="center left", # 범례 기준 위치 정하기. 즉, center left는 범례 박스의 왼쪽 가운데를 기준점으로 삼겠다는 뜻
+        # bbox_to_anchor=(1, 0, 0.5, 1), # 범례 위치를 세밀하게 조정. bbox_to_anchor=(x 위치, y 위치, width, height)
+        bbox_to_anchor=(1, 0.5),
+        frameon=False, # 범례 테두리 제거
+    )
+    # loc은 '범례 박스의 어느 점을 기준점으로 삼을지' 결정하고, bbox_to_anchor는 '그 기준점을 어디에 놓을지' 결정한다
+    # (0,1)            (1,1)
+    #   +----------------+
+    #   |                |
+    #   |                |
+    #   |                |
+    #   |                |
+    #   +----------------+
+    # (0,0)            (1,0)
+    # 왼쪽 아래 = (0,0) / 오른쪽 아래 = (1,0) / 오른쪽 위 = (1,1). 즉, 나는 오른쪽 아래에 기준 영역을 만든다는 뜻
+
+    plt.title(
+        "신혼 자금 사용 비율",
+        fontsize=13,
+        fontweight="bold",
+        pad=15,
+        color="#0F172A",
+    )
     plt.axis("equal") # 원형으로 맞춤
     plt.tight_layout()
     plt.show()
@@ -551,10 +677,12 @@ def make_autopct(values): # 설정값(values)을 기억하는 함수를 만들�
         total = sum(values)
         price = int(total * percent / 100)
         
-        if percent < 5:
-            return f"{percent:.1f}%"
+        if percent < 4:
+            #return f"{percent:.1f}%"
+            return ""
         else:
-            return f"{percent:.1f}%\n({price:,}원)"
+            # return f"{percent:.1f}%\n({price:,}원)"
+            return f"{percent:.1f}%"
 
     return my_autopct
 
@@ -874,14 +1002,14 @@ bar_button = tk.Button(
     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
-# bar_button.pack(side="left", padx=3)
+bar_button.pack(side="left", padx=3)
 
 pie_button = tk.Button(
     stat_btn_frame, text="📊 카테고리 비율", command=lambda: show_pie_chart(),
     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
-# pie_button.pack(side="left", padx=3)
+pie_button.pack(side="left", padx=3)
 
 category_stats_button = tk.Button(
     stat_btn_frame, text="통계", command=lambda: show_category_state(),
