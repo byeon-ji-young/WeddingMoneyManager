@@ -296,10 +296,22 @@ def display_data():
     #     money_list.delete(row)
     money_list.delete(*money_list.get_children())
 
+    # Treeview 생성 직후 안내 라벨 하나 생성
+    no_data_label = tk.Label(
+        tree_container,
+        text="등록된 지출 내역이 없습니다.",
+        font=("맑은 고딕", 11),
+        bg="white",
+        fg="#94A3B8",
+    )
+
     # 데이터가 없으면 안내 메시지 표시
     if not money_data:
-        money_list.insert("", "end", values=("", "", "등록된 지출 내역이 없습니다.", "", "", ""))
+        # money_list.insert("", "end", values=("", "", "등록된 지출 내역이 없습니다.", "", "", ""))
+        no_data_label.place(relx=0.5, rely=0.4, anchor="center") # 표 한가운데 안내 문구 띄우기 (relx=0.5, rely=0.4 는 중앙 위치)
         return
+    else:
+        no_data_label.place_forget() # 데이터가 있으면 안내 문구 숨기기
 
     # 데이터가 있으면 정상 출력
     for money in money_data:
