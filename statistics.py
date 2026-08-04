@@ -3,7 +3,7 @@ from tkinter import messagebox
 
 import matplotlib.pyplot as plt # 그래프를 만들기 위한 matplotlib 라이브러리 불러오기 (pyplot: 그래프 그리는 기능)
 import matplotlib.font_manager as fm
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg # Matplotlib으로 그린 그래프(Figure)를 Tkinter 창(GUI) 안에 붙여넣을 수 있는 위젯(종이)으로 변환해 주는 다리(연결고리) 역할
 
 # Matplotlib 한글 폰트 설정
 plt.rcParams["font.family"] = "Malgun Gothic" # or plt.rc("font", family="Malgun Gothic")
@@ -38,8 +38,9 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         # 통계 요약 카드
         self.create_summary_cards()
 
-        btn_frame = tk.Frame(self, bg="#F8FAFC")
-        btn_frame.pack(pady=(0, 10))
+        # 버튼 프레임
+        self.btn_frame = tk.Frame(self, bg="#F8FAFC")
+        self.btn_frame.pack(pady=(0, 10))
 
         self.chart_frame = tk.Frame(self, bg="#F8FAFC")
         self.chart_frame.pack(
@@ -49,65 +50,64 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             pady=(0, 20)
         )
 
-        # 버튼 공통 스타일 지정
-        btn_kwargs = {
-            "font": ("맑은 고딕", 9, "bold"),
-            "bg": "#FFFFFF",
-            "fg": "#334155",
-            "activebackground": "#F1F5F9",
-            "activeforeground": "#0F172A",
-            "bd": 1,
-            "relief": "solid",
-            "cursor": "hand2",
-            "padx": 8,
-            "pady": 4
-        }
+        # 버튼 생성 및 딕셔너리에 저장
+        self.buttons = {}
 
-        category_btn = tk.Button(
-            btn_frame,
-            text="지출 비교",
-            command=self.show_category_bar_chart,
-            **btn_kwargs
-        )
-        category_btn.pack(side="left", padx=5)
+        btn_list = [
+            ("category_bar", "지출 비교", self.show_category_bar_chart),
+            ("category_pie", "지출 비율", self.show_category_pie_chart),
+            ("monthly_line", "월별 지출 추이", self.show_monthly_line_chart),
+            ("payment_bar", "결제수단 분석", self.show_payment_bar_chart),
+            ("top5", "지출 TOP 5", self.show_top5_expense),
+        ]
 
-        ratio_btn = tk.Button(
-            btn_frame,
-            text="카테고리 비율",
-            command=self.show_category_pie_chart,
-            **btn_kwargs
-        )
-        ratio_btn.pack(side="left", padx=5)
-
-        monthly_btn = tk.Button(
-            btn_frame,
-            text="월별 지출 추이",
-            command=self.show_monthly_line_chart,
-            **btn_kwargs
-        )
-        monthly_btn.pack(side="left", padx=5)
-
-        payment_btn = tk.Button(
-            btn_frame,
-            text="결제수단 분석",
-            command=self.show_payment_bar_chart,
-            **btn_kwargs
-        )
-        payment_btn.pack(side="left", padx=5)
-
-        top5_btn = tk.Button(
-            btn_frame,
-            text="지출 TOP 5",
-            command=self.show_top5_expense,
-            **btn_kwargs
-        )
-        top5_btn.pack(side="left", padx=5)
+        for key, text, command in btn_list:
+            btn = tk.Button(
+                self.btn_frame,
+                text=text,
+                command=lambda k=key, cmd=command: self.select_tab(k, cmd), # 'lambda k=key, cmd=command:' 이 형태로 현재값 고정. 이것을 lambda 기본값 캡쳐라고 함
+                font=("맑은 고딕", 9),
+                bg="#FFFFFF",
+                fg="#475569",
+                activebackground="#F1F5F9",
+                activeforeground="#0F172A",
+                bd=1,
+                relief="solid",
+                cursor="hand2",
+                padx=10,
+                pady=5
+            )
+            btn.pack(side="left", padx=4)
+            
+            self.buttons[key] = btn # 생성한 버튼을 딕셔너리에 저장
 
         # 기본 첫 화면으로 지출 비교 차트 표시
         self.show_category_bar_chart()
+
+    # 선택된 버튼의 디자인을 바꿔주는 함수
+    def select_tab(self, selected_key, command):
+        for key, btn in self.buttons.items():
+            if key == selected_key:
+                # 선택된 버튼: 파란색 배경 + 흰색 글씨 + 강조 효과
+                btn.config(
+                    bg="#2563EB",
+                    fg="#FFFFFF",
+                    font=("맑은 고딕", 9, "bold"),
+                    relief="flat"
+                )
+            else:
+                # 선택 안 된 버튼: 흰색 배경 + 연한 회색 글씨
+                btn.config(
+                    bg="#FFFFFF",
+                    fg="#475569",
+                    font=("맑은 고딕", 9),
+                    relief="solid"
+                )
         
+        command() # 해당 그래프 실행
+    
     # ----------------------------------------------------
-    # 통계 요약 카드 생성
+    # 통계 요약 카드 생성 (총 지출 / 주요 결제수단 / 최대 지출 / 등록 건수)
     # ----------------------------------------------------
     def create_summary_cards(self):
         card_frame = tk.Frame(self, bg="#F8FAFC")
@@ -184,13 +184,16 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         for widget in self.chart_frame.winfo_children(): # winfo_children(): 현재 Frame 안에 들어있는 위젯 목록을 가져와
             widget.destroy() # destroy(): 위젯 제거
 
+        # 1단계: Matplotlib로 만든 그래프(fig)와 넣을 Tkinter 영역(self.chart_frame)을 연결
         canvas = FigureCanvasTkAgg( # Matplotlib → Tkinter 연결. 즉, matplotlib Figure -> FigureCanvasTkAgg -> Tkinter Widget 이 구조
             fig, # 넣을 그래프
             master=self.chart_frame # 어디에 넣을지 지정
         )
 
+        # 2단계: Canvas에 그래프를 실제로 렌더링(그리기)
         canvas.draw() # 그래프 그리기
 
+        # 3단계: Tkinter가 인식할 수 있는 '위젯' 형태로 변환해서 화면에 배치 (.pack() 사용 가능!)
         canvas.get_tk_widget().pack( # et_tk_widget(): Tkinter 위젯으로 변환. 즉, FigureCanvasTkAgg -> Tkinter Widget로 변환해라
             fill="both", # both: 가로, 세로 모두 채움
             expand=True # 남는 공간을 가져감
@@ -293,13 +296,13 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         # tick: 눈금 표시. tick_params(): 눈금 색상,크기,방향,길이,표시여부 등 조절하는 함수
         ax.tick_params(axis="y", colors="#334155", labelsize=10) # axis="y": y축 눈금만 변경 / colors: 눈금글자, 눈금선 다 적용
     
-        plt.title(
-            "카테고리별 지출 현황",
-            fontsize=13,
-            fontweight="bold",
-            pad=15,
-            color="#0F172A",
-        )
+        # plt.title(
+        #     "카테고리별 지출 현황",
+        #     fontsize=13,
+        #     fontweight="bold",
+        #     pad=15,
+        #     color="#0F172A",
+        # )
         # plt.xlabel("카테고리")
         # plt.ylabel("금액")
         plt.tight_layout() # 여백 자동 맞춤
@@ -400,13 +403,13 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         # (0,0)            (1,0)
         # 왼쪽 아래 = (0,0) / 오른쪽 아래 = (1,0) / 오른쪽 위 = (1,1). 즉, 나는 오른쪽 아래에 기준 영역을 만든다는 뜻
     
-        plt.title(
-            "신혼 자금 사용 비율",
-            fontsize=13,
-            fontweight="bold",
-            pad=15,
-            color="#0F172A",
-        )
+        # plt.title(
+        #     "신혼 자금 사용 비율",
+        #     fontsize=13,
+        #     fontweight="bold",
+        #     pad=15,
+        #     color="#0F172A",
+        # )
         plt.axis("equal") # 원형으로 맞춤
         plt.tight_layout()
         # plt.show() # 같은 창 안에서 그래프 변경하려고 이거 주석하고 self.display_chart(fig)로 변경함. 새 창 안뜸
@@ -502,12 +505,12 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
                 bbox=dict(boxstyle="round,pad=0.3", facecolor="#FFFFFF", edgecolor="#E2E8F0", linewidth=0.8) # bbox: 텍스트 주변에 박스(배경 상자)를 그리는 옵션
             ) # ax.text(x좌표, y좌표, 출력할문자)
 
-        ax.set_title(
-            "월별 지출 추이",
-            fontsize=13,
-            fontweight="bold",
-            pad=15
-        )
+        # ax.set_title(
+        #     "월별 지출 추이",
+        #     fontsize=13,
+        #     fontweight="bold",
+        #     pad=15
+        # )
 
         # y축 범위에 여백 추가
         # ylim: y축의 최소값과 최대값 설정
@@ -624,13 +627,13 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         ax.xaxis.set_visible(False)  # x축 수치 눈금 제거
         ax.tick_params(axis="y", colors="#334155", labelsize=10)
 
-        plt.title(
-            "결제수단별 지출 현황",
-            fontsize=13,
-            fontweight="bold",
-            pad=15,
-            color="#0F172A",
-        )
+        # plt.title(
+        #     "결제수단별 지출 현황",
+        #     fontsize=13,
+        #     fontweight="bold",
+        #     pad=15,
+        #     color="#0F172A",
+        # )
         plt.tight_layout() # 여백 자동 맞춤
 
         self.display_chart(fig)
@@ -660,15 +663,15 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         ax.set_ylim(0, 1)
 
         # 제목 표시
-        ax.text(
-            0.03,
-            0.96,
-            "🏆 지출 TOP 5",
-            fontsize=13,
-            fontweight="bold",
-            color="#0F172A",
-            va="top"
-        )
+        # ax.text(
+        #     0.03,
+        #     0.96,
+        #     "🏆 지출 TOP 5",
+        #     fontsize=13,
+        #     fontweight="bold",
+        #     color="#0F172A",
+        #     va="top"
+        # )
 
         # 등수별 색상 및 메달 설정
         rank_styles = [
@@ -750,3 +753,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         fig.subplots_adjust(left=0.02, right=0.98, top=0.95, bottom=0.02)
 
         self.display_chart(fig)
+
+# plt는 Matplotlib의 상태 기반(state-based) 방식. 즉, 현재 선택되어 있는 그래프에 작업하라는 뜻. 현재 활성화된 마지막 그래프에 적용
+# plt.title(): 현재 활성화 된 그래프에 제목을 붙이는 방식 / ax.set_title(): 특정 Axes 객체에 직접 제목을 지정하는 방식
+# 간단한 그래프 하나 → plt.title()도 괜찮음. 지금처럼 Tkinter + 여러 통계 화면 + 카드형 UI → ax.set_title() 사용 추천
