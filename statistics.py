@@ -17,6 +17,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
 
         self.title("통계 분석")
         self.geometry("800x600")
+        self.configure(bg="#F8FAFC")
 
         self.money_data = money_data
 
@@ -27,85 +28,89 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         title = tk.Label(
             self,
             text="신혼 자금 통계",
-            font=("맑은 고딕", 16, "bold")
+            font=("맑은 고딕", 16, "bold"),
+            bg="#F8FAFC",
+            fg="#0F172A"
         )
 
-        title.pack(pady=20)
+        title.pack(pady=(15, 10))
 
         # 통계 요약 카드
         self.create_summary_cards()
 
-        btn_frame = tk.Frame(self)
-        btn_frame.pack()
+        btn_frame = tk.Frame(self, bg="#F8FAFC")
+        btn_frame.pack(pady=(0, 10))
 
-        self.chart_frame = tk.Frame(self)
+        self.chart_frame = tk.Frame(self, bg="#F8FAFC")
         self.chart_frame.pack(
             fill="both",
             expand=True,
             padx=20,
-            pady=20
+            pady=(0, 20)
         )
+
+        # 버튼 공통 스타일 지정
+        btn_kwargs = {
+            "font": ("맑은 고딕", 9, "bold"),
+            "bg": "#FFFFFF",
+            "fg": "#334155",
+            "activebackground": "#F1F5F9",
+            "activeforeground": "#0F172A",
+            "bd": 1,
+            "relief": "solid",
+            "cursor": "hand2",
+            "padx": 8,
+            "pady": 4
+        }
 
         category_btn = tk.Button(
             btn_frame,
             text="지출 비교",
-            command=self.show_category_bar_chart
+            command=self.show_category_bar_chart,
+            **btn_kwargs
         )
-
-        category_btn.pack(
-            side="left",
-            padx=10
-        )
+        category_btn.pack(side="left", padx=5)
 
         ratio_btn = tk.Button(
             btn_frame,
             text="카테고리 비율",
-            command=self.show_category_pie_chart
+            command=self.show_category_pie_chart,
+            **btn_kwargs
         )
-
-        ratio_btn.pack(
-            side="left",
-            padx=10
-        )
+        ratio_btn.pack(side="left", padx=5)
 
         monthly_btn = tk.Button(
             btn_frame,
             text="월별 지출 추이",
-            command=self.show_monthly_line_chart
+            command=self.show_monthly_line_chart,
+            **btn_kwargs
         )
-
-        monthly_btn.pack(
-            side="left",
-            padx=10
-        )
+        monthly_btn.pack(side="left", padx=5)
 
         payment_btn = tk.Button(
             btn_frame,
             text="결제수단 분석",
-            command=self.show_payment_bar_chart
+            command=self.show_payment_bar_chart,
+            **btn_kwargs
         )
-
-        payment_btn.pack(
-            side="left",
-            padx=10
-        )
+        payment_btn.pack(side="left", padx=5)
 
         top5_btn = tk.Button(
             btn_frame,
             text="지출 TOP 5",
-            command=self.show_top5_expense
+            command=self.show_top5_expense,
+            **btn_kwargs
         )
+        top5_btn.pack(side="left", padx=5)
 
-        top5_btn.pack(
-            side="left",
-            padx=10
-        )
-
+        # 기본 첫 화면으로 지출 비교 차트 표시
+        self.show_category_bar_chart()
+        
     # ----------------------------------------------------
     # 통계 요약 카드 생성
     # ----------------------------------------------------
     def create_summary_cards(self):
-        card_frame = tk.Frame(self)
+        card_frame = tk.Frame(self, bg="#F8FAFC")
         card_frame.pack(
             fill="x",
             padx=20,
@@ -120,10 +125,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         category_total = self.calculate_category_total()
 
         if category_total:
-            max_category = max(
-                category_total,
-                key=category_total.get
-            )
+            max_category = max(category_total, key=category_total.get) # key=category_total.get: 비교할 때는 키 자체가 아니라, 그 키의 값을 기준으로 비교해라
         else:
             max_category = "-"
 
@@ -139,8 +141,9 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             card = tk.Frame(
                 card_frame,
                 bg="#FFFFFF",
-                bd=1,
-                relief="solid",
+                highlightbackground="#E2E8F0",
+                highlightthickness=1,
+                relief="flat",
                 width=200,
                 height=80
             )
@@ -152,17 +155,16 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
                 padx=5
             )
 
+            card.pack_propagate(False) # Tkinter에서 부모 위젯(Frame 등)의 크기가 자식 위젯 때문에 자동으로 바뀌는 것을 막는 코드. 즉, 이 카드(card)는 내가 정한 크기를 유지하고, 안에 들어가는 내용물 크기에 맞춰 자동으로 커지지 마라는 뜻
+
             title_label = tk.Label(
                 card,
                 text=title,
-                font=("맑은 고딕", 10, "bold"),
+                font=("맑은 고딕", 9, "bold"),
                 bg="#FFFFFF",
                 fg="#64748B"
             )
-
-            title_label.pack(
-                pady=(10, 2)
-            )
+            title_label.pack(pady=(12, 2))
 
             value_label = tk.Label(
                 card,
@@ -171,7 +173,6 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
                 bg="#FFFFFF",
                 fg="#1E293B"
             )
-
             value_label.pack()
 
     # ----------------------------------------------------
@@ -467,22 +468,38 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
 
         fig, ax = plt.subplots(figsize=(7,5), facecolor="#F8FAFC") # fig(Figure): 전체 종이, ax(Axes): 실제 그래프가 그려지는 영역
         ax.set_facecolor("#F8FAFC")
+
+        ax.fill_between(months, prices, color="#3B82F6", alpha=0.12) # ax.fill_between(x축, y축): 선 그래프 아래쪽 영역을 색칠하는 함수 / alpha: 투명도
+
+        # 메인 라인 및 포인트 마커 스타일
         ax.plot(
             months,
             prices,
+            color="#2563EB",
             marker="o", # o: ● / s: ■ / ^: ▲ / x: ✕
-            linewidth=2
+            markersize=7,
+            markerfacecolor="#FFFFFF", # 마커 안쪽 색상
+            markeredgecolor="#2563EB",
+            markeredgewidth=2,
+            linewidth=2.5,
+            zorder=3 # zorder: 겹치는 요소의 앞뒤 순서. 숫자가 클수록 위에 그려짐
         ) # ax.plot(x축데이터, y축데이터): 선 그래프를 그리는 함수
 
         # 점 위 금액 표시
+        max_price = max(prices) if prices else 1
         for x, y in zip(months, prices):
+            val_text = f"{y/10000:,.0f}만원" if y >= 10000 else f"{y:,.0f}원" # ,: 천단위 쉼표 / .0f: 소수점 없이 출력
+
             ax.text(
                 x,
-                y,
-                f"{y/10000:,.0f}만원", # ,: 천단위 쉼표 / .0f: 소수점 없이 출력
+                y + (max_price * 0.05),
+                val_text,
                 ha="center", # Horizontal Alignment(가로정렬)
                 va="bottom", # Vertical Alignment(세로정렬)
-                fontsize=9
+                fontsize=9,
+                fontweight="bold",
+                color="#1E293B",
+                bbox=dict(boxstyle="round,pad=0.3", facecolor="#FFFFFF", edgecolor="#E2E8F0", linewidth=0.8) # bbox: 텍스트 주변에 박스(배경 상자)를 그리는 옵션
             ) # ax.text(x좌표, y좌표, 출력할문자)
 
         ax.set_title(
@@ -492,12 +509,23 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             pad=15
         )
 
+        # y축 범위에 여백 추가
+        # ylim: y축의 최소값과 최대값 설정
+        ax.set_ylim(0, max_price * 1.22) # y축(세로축)의 표시 범위를 직접 지정하는 코드. 즉, y축은 0부터 시작해서 최대값은 max_price의 122%까지만 표시하라는 뜻
+
         ax.spines["top"].set_visible(False) # spine: 그래프를 둘러싸고 있는 테두리 선
         ax.spines["right"].set_visible(False)
+        ax.spines["left"].set_visible(False)
+        ax.spines["bottom"].set_color("#CBD5E1")
 
-        ax.grid(axis="y", alpha=0.3) # grid(): 격자선(Grid) 그리는 함수 / axis="y": y축 방향으로만 격자선 그리기 / alpha: 투명도
+        # ax.yaxis.set_visible(False) # y축 수치 눈금 깔끔하게 숨김 (y축 전체 숨김)
+        ax.tick_params(axis="y", labelleft=False, left=False) # labelleft: 왼쪽 숫자 라벨, left: 왼쪽 tick
+        
+        ax.tick_params(axis="x", colors="#475569", labelsize=9.5) # tick_params(): 축 눈금(tick)의 스타일을 변경
+        
+        ax.grid(axis="y", color="#E2E8F0", linestyle="--", alpha=0.3) # grid(): 격자선(Grid) 그리는 함수 / axis="y": y축 방향으로만 격자선 그리기 / alpha: 투명도
 
-        plt.xticks(rotation=45) # x축 글자 45도 회전
+        plt.xticks(rotation=0) # x축 글자 회전 설정 (ex.rotation=45: 45도 회전, rotation=0: 회전 없음)
         plt.tight_layout() # tight_layout(): 그래프의 여백을 자동으로 조정하는 함수
 
         self.display_chart(fig)
@@ -541,6 +569,9 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         payments = [x[0] for x in sorted_items]
         prices = [x[1] for x in sorted_items]
 
+        palette = ["#34D399", "#10B981", "#059669", "#047857"]
+        bar_colors = [palette[i % len(palette)] for i in range(len(payments))]
+
         fig, ax = plt.subplots(
             figsize=(8,5),
             facecolor="#F8FAFC"
@@ -551,23 +582,27 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             payments, # y축
             prices, # x축(막대길이)
             color="#10B981",
-            height=0.55
+            height=0.5,
+            zorder=3
         ) # 막대 그래프 생성. bar: 세로 / barh: 가로
         # ax.bar(x, 막대높이 height)
         # ax.barh(y, 막대길이 width)
 
+        # 최대값 강조
         if bars:
             bars[-1].set_color("#059669") # 파이썬에서 -1은 마지막 요소를 의미함. 즉, 막대그래프의 마지막 막대 객체를 의미
 
         # 막대 옆 금액 라벨 표시
+        total_pay = sum(prices)
         max_price = max(prices) if prices else 1
         for bar in bars:
             width = bar.get_width() # 막대의 길이. 즉, 값(price)을 의미
             if width > 0:
+                percent = (width / total_pay) * 100
                 val_text = (
-                    f"{width/10000:,.0f}만원"
+                    f"{width/10000:,.0f}만원 ({percent:.1f}%)"
                     if width >= 10000
-                    else f"{width:,.0f}원"
+                    else f"{width:,.0f}원 ({percent:.1f}%)"
                 )
                 ax.text(
                     width + (max_price * 0.015),
@@ -584,10 +619,11 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         ax.spines["top"].set_visible(False) # spine: 그래프를 둘러싸고 있는 테두리 선
         ax.spines["right"].set_visible(False)
         ax.spines["bottom"].set_visible(False)
-        # ax.spines["left"].set_color("#CBD5E1")
+        ax.spines["left"].set_color("#CBD5E1")
     
-        ax.xaxis.set_visible(False)  # X축 수치 눈금 제거
-    
+        ax.xaxis.set_visible(False)  # x축 수치 눈금 제거
+        ax.tick_params(axis="y", colors="#334155", labelsize=10)
+
         plt.title(
             "결제수단별 지출 현황",
             fontsize=13,
@@ -607,6 +643,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             messagebox.showinfo("통계", "등록된 지출 내역이 없습니다.")
             return
 
+        # 금액이 큰 순서대로 정렬
         sorted_data = sorted(
             self.money_data,
             key=lambda x: x["price"],
@@ -615,40 +652,101 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
 
         top5 = sorted_data[:5]
 
-        fig, ax = plt.subplots(
-            figsize=(8,5),
-            facecolor="#F8FAFC"
-        )
+        fig, ax = plt.subplots(figsize=(8, 5), facecolor="#F8FAFC") # figsize=(가로, 세로) 인치 / facecolor: 배경색
 
+        # 축 및 눈금선 숨기기 & 좌표계(0~1) 명시적 고정
         ax.set_axis_off() # ax.set_axis_off()는 그래프의 축(axis)을 전부 숨기는 함수. 즉, 이 Axes(그래프 영역)의 축, 눈금, 테두리, 라벨을 모두 끄겠다는 뜻
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+
+        # 제목 표시
         ax.text(
-            0.02,
-            0.95,
+            0.03,
+            0.96,
             "🏆 지출 TOP 5",
-            fontsize=14,
+            fontsize=13,
             fontweight="bold",
-            color="#0F172A"
+            color="#0F172A",
+            va="top"
         )
 
-        y = 0.83 # 텍스트를 표시할 처음 y 위치
+        # 등수별 색상 및 메달 설정
+        rank_styles = [
+            {"badge": "1위", "color": "#F59E0B"}, # 1등: 골드
+            {"badge": "2위", "color": "#64748B"}, # 2등: 실버
+            {"badge": "3위", "color": "#B45309"}, # 3등: 브론즈
+            {"badge": "4위", "color": "#94A3B8"},
+            {"badge": "5위", "color": "#94A3B8"},
+        ]
+
+        y = 0.82 # 텍스트를 표시할 처음 y 위치 (0~1 기준)
         # ax.text(x좌표, y좌표, 내용)인데 앞에서 ax.set_axis_off() 이걸 했기 때문에 y위치를 지정하는 것. 보통 좌표는 0~1 범위로 사용(높은곳은 1, 낮은곳은 0)
-        for idx, money in enumerate(top5, start=1): # enumerate(): 순서 번호와 값을 같이 가져오는 함수
-            text = (
-                f"{idx}. {money['item']}\n"
-                f"   {money['date']} · {money['category']}\n"
-                f"   {money['price']:,}원"
-            )
+        y_spacing = 0.155  # 항목 간 간격
+
+        for idx, money in enumerate(top5, start=0): # enumerate(): 순서 번호와 값을 같이 가져오는 함수
+            # 1. 순위 배지
+            style = rank_styles[idx]
 
             ax.text(
                 0.03,
                 y,
-                text,
+                f"[{style['badge']}]",
                 fontsize=10.5,
+                fontweight="bold",
+                color=style["color"],
+                va="top", # Vertical Alignment(세로정렬)
+            ) # ax.text(x좌표, y좌표, 표시할문자)
+
+            # 2. 항목명 & 세부 정보 (날짜, 카테고리, 구매처)
+            shop_text = f" ({money['shop']})" if money.get("shop") else ""
+            item_text = f"{money['item']}{shop_text}"
+            sub_text = f"{money['date']}  |  {money['category']}"
+
+            ax.text(
+                0.12,
+                y,
+                item_text,
+                fontsize=10,
+                fontweight="bold",
+                color="#0F172A",
                 va="top",
-                color="#334155"
+            )
+            ax.text(
+                0.12,
+                y - 0.05,
+                sub_text,
+                fontsize=8,
+                color="#64748B",
+                va="top",
             )
 
-            y -= 0.18
+            # 3. 금액
+            price_text = f"{money['price']:,}원"
 
-        plt.tight_layout()
+            ax.text(
+                0.95,
+                y - 0.01,
+                price_text,
+                fontsize=10.5,
+                fontweight="bold",
+                color="#1E293B",
+                ha="right",
+                va="top",
+            )
+
+            # 4. 카드 하단 구분선
+            if idx < len(top5) - 1:
+                ax.plot(
+                    [0.03, 0.95],
+                    [y - 0.11, y - 0.11],
+                    color="#E2E8F0",
+                    linewidth=1,
+                    linestyle="-",
+                ) # plot(): 선 그래프를 그리는 함수. ax.plot(x좌표 리스트, y좌표 리스트)
+
+            y -= y_spacing  # 다음 항목 위치로 이동
+
+        # tight_layout 대신 수동 패딩 지정 (텍스트 잘림 방지)
+        fig.subplots_adjust(left=0.02, right=0.98, top=0.95, bottom=0.02)
+
         self.display_chart(fig)
