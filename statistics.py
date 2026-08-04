@@ -20,6 +20,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         self.configure(bg="#F8FAFC")
 
         self.money_data = money_data
+        self.current_key = "category_bar"
 
         self.create_widgets()
 
@@ -27,32 +28,25 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
     def create_widgets(self):
         title = tk.Label(
             self,
-            text="신혼 자금 통계",
-            font=("맑은 고딕", 16, "bold"),
+            text="결혼 비용 통계",
+            font=("맑은 고딕", 13, "bold"),
             bg="#F8FAFC",
             fg="#0F172A"
         )
-
-        title.pack(pady=(15, 10))
+        title.pack(side="top", pady=(15, 10))
 
         # 통계 요약 카드
         self.create_summary_cards()
 
         # 버튼 프레임
         self.btn_frame = tk.Frame(self, bg="#F8FAFC")
-        self.btn_frame.pack(pady=(0, 10))
+        self.btn_frame.pack(side="top", fill="x", padx=20, pady=(10, 10))
 
         self.chart_frame = tk.Frame(self, bg="#F8FAFC")
-        self.chart_frame.pack(
-            fill="both",
-            expand=True,
-            padx=20,
-            pady=(0, 20)
-        )
+        self.chart_frame.pack(side="top", fill="both", expand=True, padx=20, pady=(0, 15))
 
         # 버튼 생성 및 딕셔너리에 저장
         self.buttons = {}
-
         btn_list = [
             ("category_bar", "지출 비교", self.show_category_bar_chart),
             ("category_pie", "지출 비율", self.show_category_pie_chart),
@@ -71,29 +65,46 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
                 fg="#475569",
                 activebackground="#F1F5F9",
                 activeforeground="#0F172A",
-                bd=1,
-                relief="solid",
+                bd=0,
+                relief="flat",
+                highlightbackground="#CBD5E1",
+                highlightthickness=1,
                 cursor="hand2",
-                padx=10,
+                padx=14,
                 pady=5
             )
             btn.pack(side="left", padx=4)
-            
+
+            # 호버 효과
+            # btn.bind("<Enter>", lambda e, b=btn, k=key: self.on_btn_hover(b, k, True))
+            # btn.bind("<Leave>", lambda e, b=btn, k=key: self.on_btn_hover(b, k, False))
+
             self.buttons[key] = btn # 생성한 버튼을 딕셔너리에 저장
 
         # 기본 첫 화면으로 지출 비교 차트 표시
-        self.show_category_bar_chart()
+        self.select_tab("category_bar", self.show_category_bar_chart)
 
+    # 마우스 호버
+    def on_btn_hover(self, btn, key, is_hover):
+        # 현재 선택되어 있는 탭이 아닐 때만 호버 효과 적용
+        if getattr(self, "current_key", "") != key: # getattr(객체, "속성이름", 기본값). 즉, self 안에 current_key가 있으면 가져오고, 없으면 빈 문자열("")을 반환하라는 뜻
+            if is_hover:
+                btn.config(bg="#F1F5F9", fg="#0F172A", highlightbackground="#94A3B8")
+            else:
+                btn.config(bg="#FFFFFF", fg="#475569", highlightbackground="#CBD5E1")
+                
     # 선택된 버튼의 디자인을 바꿔주는 함수
     def select_tab(self, selected_key, command):
+        self.current_key = selected_key
+
         for key, btn in self.buttons.items():
             if key == selected_key:
                 # 선택된 버튼: 파란색 배경 + 흰색 글씨 + 강조 효과
                 btn.config(
-                    bg="#2563EB",
+                    bg="#1E293B",
                     fg="#FFFFFF",
                     font=("맑은 고딕", 9, "bold"),
-                    relief="flat"
+                    highlightbackground="#1E293B",
                 )
             else:
                 # 선택 안 된 버튼: 흰색 배경 + 연한 회색 글씨
@@ -101,7 +112,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
                     bg="#FFFFFF",
                     fg="#475569",
                     font=("맑은 고딕", 9),
-                    relief="solid"
+                    highlightbackground="#CBD5E1",
                 )
         
         command() # 해당 그래프 실행
@@ -111,72 +122,84 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
     # ----------------------------------------------------
     def create_summary_cards(self):
         card_frame = tk.Frame(self, bg="#F8FAFC")
-        card_frame.pack(
-            fill="x",
-            padx=20,
-            pady=(0, 15)
-        )
+        card_frame.pack(side="top", fill="x", padx=15, pady=(0, 5))
 
-        total_price = sum(
-            money["price"]
-            for money in self.money_data
-        )
-
-        category_total = self.calculate_category_total()
-
-        if category_total:
-            max_category = max(category_total, key=category_total.get) # key=category_total.get: 비교할 때는 키 자체가 아니라, 그 키의 값을 기준으로 비교해라
-        else:
-            max_category = "-"
-
+        total_price = sum(money["price"] for money in self.money_data)
         count = len(self.money_data)
 
-        cards = [
-            ("총 지출", f"{total_price:,}원"),
-            ("최대 지출", max_category),
-            ("등록 건수", f"{count}건"),
+        # 1. 주요 결제수단 및 비율 계산
+        payment_total = {}
+        for money in self.money_data:
+            pay_method = money.get("payment", money.get("pay_method", "기타")) # 딕셔너리.get(키, 기본값). payment 확인 -> 있으면 반환 없으면 기본값 실행 -> pay_method 확인 -> 있으면 반환 없으면 기타 반환
+            
+            payment_total[pay_method] = (
+                payment_total.get(pay_method, 0) + money["price"]
+            )
+
+        if payment_total and total_price > 0:
+            top_pay = max(payment_total, key=payment_total.get) # key=payment_total.get: 비교할 때는 키 자체가 아니라, 그 키의 값을 기준으로 비교해라
+            top_pay_pct = (payment_total[top_pay] / total_price) * 100
+            pay_text = f"{top_pay} ({top_pay_pct:.1f}%)"
+        else:
+            pay_text = "-"
+
+        # 2. 카테고리별 최대 지출 분야 및 금액 계산
+        category_total = self.calculate_category_total()
+        if category_total:
+            max_cat = max(category_total, key=category_total.get) # key=category_total.get: 비교할 때는 키 자체가 아니라, 그 키의 값을 기준으로 비교해라
+            max_val = category_total[max_cat]
+            if max_val >= 10000:
+                max_text = f"{max_cat} ({max_val/10000:,.0f}만원)"
+            else:
+                max_text = f"{max_cat} ({max_val:,}원)"
+        else:
+            max_text = "-"
+
+        
+        # 카드 데이터 구성 (타이틀, 값, 포인트 컬러)
+        cards_data = [
+            ("총 지출", f"{total_price:,}원", "#2563EB"),
+            ("주요 결제수단", pay_text, "#10B981"),
+            ("최대 지출", max_text, "#8B5CF6"),
+            ("등록 건수", f"{count}건", "#F59E0B"),
         ]
 
-        for title, value in cards:
+        for title, value, color in cards_data:
             card = tk.Frame(
                 card_frame,
                 bg="#FFFFFF",
+                bd=1,
+                relief="flat",
                 highlightbackground="#E2E8F0",
                 highlightthickness=1,
-                relief="flat",
-                width=200,
-                height=80
             )
+            card.pack(side="left", expand=True, fill="x", padx=4)
 
-            card.pack(
-                side="left",
-                expand=True,
-                fill="both",
-                padx=5
-            )
+            # 상단 컬러 포인트 바
+            top_bar = tk.Frame(card, bg=color, height=3)
+            top_bar.pack(fill="x", side="top")
 
-            card.pack_propagate(False) # Tkinter에서 부모 위젯(Frame 등)의 크기가 자식 위젯 때문에 자동으로 바뀌는 것을 막는 코드. 즉, 이 카드(card)는 내가 정한 크기를 유지하고, 안에 들어가는 내용물 크기에 맞춰 자동으로 커지지 마라는 뜻
+            # card.pack_propagate(False) # Tkinter에서 부모 위젯(Frame 등)의 크기가 자식 위젯 때문에 자동으로 바뀌는 것을 막는 코드. 즉, 이 카드(card)는 내가 정한 크기를 유지하고, 안에 들어가는 내용물 크기에 맞춰 자동으로 커지지 마라는 뜻
 
             title_label = tk.Label(
                 card,
                 text=title,
-                font=("맑은 고딕", 9, "bold"),
+                font=("맑은 고딕", 8, "bold"),
                 bg="#FFFFFF",
                 fg="#64748B"
             )
-            title_label.pack(pady=(12, 2))
+            title_label.pack(pady=(7, 2))
 
             value_label = tk.Label(
                 card,
                 text=value,
-                font=("맑은 고딕", 14, "bold"),
+                font=("맑은 고딕", 11, "bold"),
                 bg="#FFFFFF",
-                fg="#1E293B"
-            )
-            value_label.pack()
+                fg="#0F172A"
+            ).pack(pady=(0, 7))
 
     # ----------------------------------------------------
-    # 그래프 표사
+    # 그래프 표시
     # ----------------------------------------------------
     # Matplotlib로 만든 그래프(fig)를 Tkinter 창 안의 특정 영역(chart_frame)에 표시하는 함수
     def display_chart(self, fig): # fig: matplotlib에서 만든 그래프 전체
@@ -391,6 +414,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             # bbox_to_anchor=(1, 0, 0.5, 1), # 범례 위치를 세밀하게 조정. bbox_to_anchor=(x 위치, y 위치, width, height)
             bbox_to_anchor=(1, 0.5),
             frameon=False, # 범례 테두리 제거
+            labelcolor="#334155"
         )
         # loc은 '범례 박스의 어느 점을 기준점으로 삼을지' 결정하고, bbox_to_anchor는 '그 기준점을 어디에 놓을지' 결정한다
         # (0,1)            (1,1)
@@ -501,8 +525,8 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
                 va="bottom", # Vertical Alignment(세로정렬)
                 fontsize=9,
                 fontweight="bold",
-                color="#1E293B",
-                bbox=dict(boxstyle="round,pad=0.3", facecolor="#FFFFFF", edgecolor="#E2E8F0", linewidth=0.8) # bbox: 텍스트 주변에 박스(배경 상자)를 그리는 옵션
+                color="#334155",
+                bbox=dict(boxstyle="round,pad=0.3", facecolor="#FFFFFF", edgecolor="#CBD5E1", linewidth=0.8) # bbox: 텍스트 주변에 박스(배경 상자)를 그리는 옵션
             ) # ax.text(x좌표, y좌표, 출력할문자)
 
         # ax.set_title(
@@ -572,8 +596,8 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         payments = [x[0] for x in sorted_items]
         prices = [x[1] for x in sorted_items]
 
-        palette = ["#34D399", "#10B981", "#059669", "#047857"]
-        bar_colors = [palette[i % len(palette)] for i in range(len(payments))]
+        # palette = ["#34D399", "#10B981", "#059669", "#047857"]
+        # bar_colors = [palette[i % len(palette)] for i in range(len(payments))]
 
         fig, ax = plt.subplots(
             figsize=(8,5),
@@ -584,7 +608,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         bars = ax.barh(
             payments, # y축
             prices, # x축(막대길이)
-            color="#10B981",
+            color="#3B82F6",
             height=0.5,
             zorder=3
         ) # 막대 그래프 생성. bar: 세로 / barh: 가로
@@ -593,7 +617,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
 
         # 최대값 강조
         if bars:
-            bars[-1].set_color("#059669") # 파이썬에서 -1은 마지막 요소를 의미함. 즉, 막대그래프의 마지막 막대 객체를 의미
+            bars[-1].set_color("#1D4ED8") # 파이썬에서 -1은 마지막 요소를 의미함. 즉, 막대그래프의 마지막 막대 객체를 의미
 
         # 막대 옆 금액 라벨 표시
         total_pay = sum(prices)
@@ -675,16 +699,16 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
 
         # 등수별 색상 및 메달 설정
         rank_styles = [
-            {"badge": "1위", "color": "#F59E0B"}, # 1등: 골드
-            {"badge": "2위", "color": "#64748B"}, # 2등: 실버
-            {"badge": "3위", "color": "#B45309"}, # 3등: 브론즈
+            {"badge": "1위", "color": "#F59E0B"},
+            {"badge": "2위", "color": "#64748B"},
+            {"badge": "3위", "color": "#B45309"},
             {"badge": "4위", "color": "#94A3B8"},
             {"badge": "5위", "color": "#94A3B8"},
         ]
 
-        y = 0.82 # 텍스트를 표시할 처음 y 위치 (0~1 기준)
+        y = 0.90 # 텍스트를 표시할 처음 y 위치 (0~1 기준)
         # ax.text(x좌표, y좌표, 내용)인데 앞에서 ax.set_axis_off() 이걸 했기 때문에 y위치를 지정하는 것. 보통 좌표는 0~1 범위로 사용(높은곳은 1, 낮은곳은 0)
-        y_spacing = 0.155  # 항목 간 간격
+        y_spacing = 0.18  # 항목 간 간격
 
         for idx, money in enumerate(top5, start=0): # enumerate(): 순서 번호와 값을 같이 가져오는 함수
             # 1. 순위 배지
@@ -716,7 +740,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             )
             ax.text(
                 0.12,
-                y - 0.05,
+                y - 0.06,
                 sub_text,
                 fontsize=8,
                 color="#64748B",
@@ -741,7 +765,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             if idx < len(top5) - 1:
                 ax.plot(
                     [0.03, 0.95],
-                    [y - 0.11, y - 0.11],
+                    [y - 0.13, y - 0.13],
                     color="#E2E8F0",
                     linewidth=1,
                     linestyle="-",
