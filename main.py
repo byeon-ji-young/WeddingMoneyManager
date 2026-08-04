@@ -3,16 +3,10 @@ from tkinter import messagebox, ttk # tkinter 안에 있는 messagebox, ttk 기�
 
 import json
 
-import matplotlib.pyplot as plt # 그래프를 만들기 위한 matplotlib 라이브러리 불러오기 (pyplot: 그래프 그리는 기능)
-import matplotlib.font_manager as fm
-
 # [★팝업 창 분리] 팝업 창 모듈 불러오기
 from expense_dialog import ExpenseDialog
 from excel_exporter import excel_export_file
-
-# Matplotlib 한글 폰트 설정
-plt.rcParams["font.family"] = "Malgun Gothic" # or plt.rc("font", family="Malgun Gothic")
-plt.rcParams["axes.unicode_minus"] = False
+from statistics import StatisticsWindow
 
 # ==========================================
 # 1. 전역 변수 및 데이터 설정
@@ -214,16 +208,16 @@ def update_total():
     if remain < 0:
         remain_value.config(fg="#E11D48")
     else:
-        remain_value.config(fg="#16A34A")
+        remain_value.config(fg="#0F766E")
 
     # 상태 표시
     if rate < 70:
         progress.configure(style="Green.Horizontal.TProgressbar")
-        progress_status.config(text=f"✅ 예산의 {rate:.1f}%를 사용했습니다.", fg="#16A34A")
+        progress_status.config(text=f"✅ 예산의 {rate:.1f}%를 사용했습니다.", fg="#0F766E")
 
     elif rate < 100:
         progress.configure(style="Orange.Horizontal.TProgressbar")
-        progress_status.config(text=f"⚠ 예산의 {rate:.1f}%를 사용했습니다.", fg="#F59E0B")
+        progress_status.config(text=f"⚠ 예산의 {rate:.1f}%를 사용했습니다.", fg="#EA580C")
 
     else:
         progress.configure(style="Red.Horizontal.TProgressbar")
@@ -461,231 +455,6 @@ def show_detail_state():
 
     messagebox.showinfo("상세 통계", result)
 
-# Matplotlib - 카테고리별 막대 차트
-def show_bar_chart():
-    category_total = {}
-
-    if not money_data:
-        messagebox.showinfo("통계", "등록된 지출 내역이 없습니다.")
-        return
-
-    for money in money_data:
-        category = money["category"]
-        price = money["price"]
-
-        if category in category_total:
-            category_total[category] += price
-        else:
-            category_total[category] = price
-
-    if not category_total:
-        messagebox.showinfo("통계", "표시할 데이터가 없습니다.")
-        return
-    
-    # matplotlib은 리스트 형태를 선호함
-    # categories = list(category_total.keys()) # keys(): 기능 실행, keys: 기능 자체. ex)get()
-    # prices = list(category_total.values())
-
-    # plt.figure(figsize=(8,5))
-    # bars = plt.bar(categories, prices, color="#3B82F6") # 막대 그래프 생성. bar: 세로 / barh: 가로
-    # for bar in bars:
-    #     height = bar.get_height()
-    #     plt.text(
-    #         bar.get_x() + bar.get_width()/2,
-    #         height,
-    #         f"{height/10000:.0f}만원",
-    #         ha="center",
-    #         va="bottom"
-    #     )
-    
-    # 금액이 작은 순서 -> 큰 순서로 정렬 (가로 막대 그래프는 아래에서 위로 그려짐)
-    sorted_items = sorted(category_total.items(), key=lambda x: x[1]) # x[1]: 정렬 기준은 두 번째 값으로 하라는 뜻(x[0]: 가전, x[1]:1000)
-    categories = [x[0] for x in sorted_items] # 카테고리만 뽑기
-    prices = [x[1] for x in sorted_items] # 가격만 뽑기
-
-    fig, ax = plt.subplots(figsize=(8, 5), facecolor="#F8FAFC") # fig(Figure): 전체 종이, ax(Axes): 실제 그래프가 그려지는 영역
-    ax.set_facecolor("#F8FAFC") # 그래프가 그려지는 부분 배경
-
-    # 가로 막대 그래프 생성 (barh)
-    bars = ax.barh(categories, prices, color="#3B82F6", height=0.55, zorder=3)
-
-    # 가장 큰 금액 강조 (맨 위 막대 색상 차별화)
-    if bars:
-        bars[-1].set_color("#1D4ED8") # 파이썬에서 -1은 마지막 요소를 의미함. 즉, 막대그래프의 마지막 막대 객체를 의미함
-
-    # 막대 옆 금액 라벨 표시
-    max_price = max(prices) if prices else 1
-    for bar in bars:
-        width = bar.get_width()
-        if width > 0:
-            val_text = (
-                f"{width/10000:,.0f}만원"
-                if width >= 10000
-                else f"{width:,.0f}원"
-            )
-            ax.text(
-                width + (max_price * 0.015),
-                bar.get_y() + bar.get_height() / 2,
-                f"{val_text}",
-                va="center",
-                ha="left",
-                fontsize=9.5,
-                fontweight="bold",
-                color="#1E293B",
-            )
-
-    # 불필요한 테두리 및 눈금선 정리 (1e7 표기 원천 제거)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.spines["bottom"].set_visible(False)
-    ax.spines["left"].set_color("#CBD5E1")
-
-    ax.xaxis.set_visible(False)  # X축 수치 눈금 제거
-    ax.tick_params(axis="y", colors="#334155", labelsize=10)
-
-    plt.title(
-        "카테고리별 지출 현황",
-        fontsize=13,
-        fontweight="bold",
-        pad=15,
-        color="#0F172A",
-    )
-    # plt.xlabel("카테고리")
-    # plt.ylabel("금액")
-    plt.tight_layout() # 여백 자동 맞춤
-    plt.show() # 그래프 표시
-
-# Matplotlib - 파이 차트 (도넛 모양 및 제일 큰 조각 강조)
-def show_pie_chart():
-    category_total = {}
-
-    if not money_data:
-        messagebox.showinfo("통계", "등록된 지출 내역이 없습니다.")
-        return
-
-    for money in money_data:
-        category = money["category"]
-        price = money["price"]
-
-        if category in category_total:
-            category_total[category] += price
-        else:
-            category_total[category] = price
-
-    if not category_total:
-        messagebox.showinfo("통계", "표시할 데이터가 없습니다.")
-        return
-    
-    # categories = list(category_total.keys())
-    # prices = list(category_total.values())
-
-    # max_index = prices.index(max(prices))
-    # explode = [0] * len(prices)
-    # explode[max_index] = 0.1
-
-    # plt.figure(figsize=(6,6))
-    # wedges, texts, autotexts = plt.pie(
-    #     prices,
-    #     labels=None,
-    #     autopct=make_autopct(prices),
-    #     startangle=90, # 기본은 3시 방향부터 시작하는데 90도를 주면 12시 방향부터 시작함
-    #     wedgeprops={"width": 0.45}, # 도넛형 그래프
-    #     explode=explode, # 자동으로 살짝 튀어나오게
-    #     textprops={"fontsize": 9}
-    # ) # 원형 그래프 생성
-
-    # 금액이 큰 순서대로 정렬
-    sorted_items = sorted(category_total.items(), key=lambda x: x[1], reverse=True)
-    categories = [x[0] for x in sorted_items]
-    prices = [x[1] for x in sorted_items]
-
-    colors = [
-        "#2563EB",
-        "#3B82F6",
-        "#60A5FA",
-        "#93C5FD",
-        "#A855F7",
-        "#EC4899",
-        "#F43F5E",
-        "#10B981",
-        "#F59E0B",
-        "#64748B",
-    ]
-
-    fig, ax = plt.subplots(figsize=(7.5, 5.5), facecolor="#F8FAFC")
-
-    # 도넛 차트 생성
-    wedges, texts, autotexts = ax.pie( # wedges: 각 조각(부채꼴) ex.wedges[0]: 첫번째 원 조각, texts: 라벨 텍스트, autotexts: 원 안에 표시되는 숫자 텍스트
-        prices,
-        labels=None,  # 원 조각 위 라벨 지우기 (우측 범례로 대체)
-        autopct=make_autopct(prices),
-        startangle=90, # 기본은 3시 방향부터 시작하는데 90도를 주면 12시 방향부터 시작함
-        colors=colors[: len(prices)], # list[:]: 리스트 슬라이싱 형식(리스트[시작:끝])
-        pctdistance=0.75,  # 퍼센트 위치 조정. 퍼센트 글자가 위치하는 거리
-        wedgeprops={
-            "width": 0.42,
-            "edgecolor": "white",
-            "linewidth": 2,
-        },  # 도넛 모양과 테두리 설정
-        textprops={"fontsize": 8.5, "weight": "bold"}, # 텍스트 스타일 설정
-    )
-
-    # 퍼센트 텍스트 색상 흰색으로 고정
-    for autotext in autotexts:
-        autotext.set_color("white")
-
-    # 우측 범례(Legend) 설정 (카테고리명 + 금액 깔끔하게 표시)
-    total_val = sum(prices)
-    legend_labels = [
-        f"{category} ({price/total_val*100:.1f}%)" for category, price in zip(categories, prices) # zip(): 두 리스트를 같은 위치끼리 묶는 역할
-    ]
-
-    plt.legend( # legend(): 범례 만드는 함수
-        wedges, # 색상 표시 객체
-        legend_labels, # 표시할 글자
-        # title="카테고리",
-        loc="center left", # 범례 기준 위치 정하기. 즉, center left는 범례 박스의 왼쪽 가운데를 기준점으로 삼겠다는 뜻
-        # bbox_to_anchor=(1, 0, 0.5, 1), # 범례 위치를 세밀하게 조정. bbox_to_anchor=(x 위치, y 위치, width, height)
-        bbox_to_anchor=(1, 0.5),
-        frameon=False, # 범례 테두리 제거
-    )
-    # loc은 '범례 박스의 어느 점을 기준점으로 삼을지' 결정하고, bbox_to_anchor는 '그 기준점을 어디에 놓을지' 결정한다
-    # (0,1)            (1,1)
-    #   +----------------+
-    #   |                |
-    #   |                |
-    #   |                |
-    #   |                |
-    #   +----------------+
-    # (0,0)            (1,0)
-    # 왼쪽 아래 = (0,0) / 오른쪽 아래 = (1,0) / 오른쪽 위 = (1,1). 즉, 나는 오른쪽 아래에 기준 영역을 만든다는 뜻
-
-    plt.title(
-        "신혼 자금 사용 비율",
-        fontsize=13,
-        fontweight="bold",
-        pad=15,
-        color="#0F172A",
-    )
-    plt.axis("equal") # 원형으로 맞춤
-    plt.tight_layout()
-    plt.show()
-
-# 파이 차트 수치 라벨 가독성 처리
-def make_autopct(values): # 설정값(values)을 기억하는 함수를 만들어서 반환하는 역할 (함수를 만들어서 반환하는 함수: 클로저(closure))
-    def my_autopct(percent): # percent는 matplotlib가 자동으로 넣어주는 값. matplotlib이 사용할 함수
-        total = sum(values)
-        price = int(total * percent / 100)
-        
-        if percent < 4:
-            #return f"{percent:.1f}%"
-            return ""
-        else:
-            # return f"{percent:.1f}%\n({price:,}원)"
-            return f"{percent:.1f}%"
-
-    return my_autopct
-
 # 엑셀 생성
 def excel_export():
     excel_export_file(money_data, budget)
@@ -773,7 +542,7 @@ dashboard_frame.columnconfigure(2, weight=1)
 
 budget_card, budget_value = create_card(dashboard_frame, "💰 총 예산", f"{budget:,}원", "#1F497D")
 used_card, used_value = create_card(dashboard_frame, "💸 현재 지출", "0원", "#1E40AF")
-remain_card, remain_value = create_card(dashboard_frame, "💵 남은 금액", f"{budget:,}원", "#16A34A")
+remain_card, remain_value = create_card(dashboard_frame, "💵 남은 금액", f"{budget:,}원", "#0F766E")
 
 budget_card.grid(row=0, column=0, padx=(0, 5), sticky="ew") # sticky="w" : 왼쪽(west)에 붙임 / "e": 오른쪽(east)에 붙임 / "n": 위쪽(north)에 붙임 / "s": 아래쪽(sount)에 붙임 ex) "ex": 왼쪽과 오른쪽에 모두 붙어라
 used_card.grid(row=0, column=1, padx=5, sticky="ew")
@@ -792,7 +561,7 @@ progress = ttk.Progressbar(
 )
 progress.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(10, 0))
 style.configure("Green.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#22C55E") # troughcolor: 안채워진 부분 색 / background: 채워진 부분 색
-style.configure("Orange.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#F59E0B")
+style.configure("Orange.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#EA580C")
 style.configure("Red.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#E11D48")
 
 progress_status = tk.Label(dashboard_frame, text="예산 사용률 0%", font=("맑은 고딕", 10), bg="#F4F6F9", fg="#64748B")
@@ -997,22 +766,15 @@ total_label.pack(side="left")
 stat_btn_frame = tk.Frame(footer_frame, bg="#F4F6F9")
 stat_btn_frame.pack(side="right")
 
-bar_button = tk.Button(
-    stat_btn_frame, text="📈 지출 비교", command=lambda: show_bar_chart(),
+stats_btn = tk.Button(
+    stat_btn_frame, text="📈 통계", command=lambda: StatisticsWindow(window, money_data),
     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
-bar_button.pack(side="left", padx=3)
-
-pie_button = tk.Button(
-    stat_btn_frame, text="📊 카테고리 비율", command=lambda: show_pie_chart(),
-    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
-    activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
-)
-pie_button.pack(side="left", padx=3)
+stats_btn.pack(side="left", padx=3)
 
 category_stats_button = tk.Button(
-    stat_btn_frame, text="통계", command=lambda: show_category_state(),
+    stat_btn_frame, text="항목 통계", command=lambda: show_category_state(),
     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
@@ -1031,7 +793,7 @@ detail_stats_button = tk.Button(
 # detail_stats_button.pack(side="left", padx=3)
 excel_button = tk.Button(
     stat_btn_frame, text="📄 Excel 저장", command=excel_export, # command=excel_export: lambda를 쓸 필요가 없는 이유는 매개변수를 전달하지 않는 함수이기 때문
-    font=("맑은 고딕", 9, "bold"), bg="#16A34A", fg="white", 
+    font=("맑은 고딕", 9, "bold"), bg="#059669", fg="white", 
     relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
 )
 excel_button.pack(side="left", padx=3)

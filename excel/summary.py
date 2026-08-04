@@ -110,7 +110,7 @@ def create_summary_sheet(worksheet, money_data, budget):
     max_payment = max(payment_data.values()) if payment_data else 0
 
     # 월별 지출
-    monthly_data = defaultdict(int)
+    monthly_data = defaultdict(int) # defaultdict(int): 없는 키를 조회하면 기본값을 0으로 만들어라
     for money in money_data:
         month = money["date"][:7] # YYYY-MM 추출
         monthly_data[month] += money["price"]
