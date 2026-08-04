@@ -8,6 +8,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg # Matplotlib으�
 # Matplotlib 한글 폰트 설정
 plt.rcParams["font.family"] = "Malgun Gothic" # or plt.rc("font", family="Malgun Gothic")
 plt.rcParams["axes.unicode_minus"] = False
+plt.rcParams["text.antialiased"] = True # # 텍스트 렌더링 품질 향상 (또렷하게 변경)
 
 # StatisticsWindow는 tk.Toplevel을 기반으로 만든 새로운 클래스
 class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의미. tk.Toplevel은 새로운 별도 창. 즉, Tkinter의 새 창 기능을 물려받아서 새로운 창을 만드는 클래스
@@ -47,6 +48,8 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
 
         # 버튼 생성 및 딕셔너리에 저장
         self.buttons = {}
+        self.button_lines = {} # 밑줄(하단 프레임) 보관용
+
         btn_list = [
             ("category_bar", "지출 비교", self.show_category_bar_chart),
             ("category_pie", "지출 비율", self.show_category_pie_chart),
@@ -56,31 +59,38 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         ]
 
         for key, text, command in btn_list:
+            # 버튼과 밑줄을 함께 담을 컨테이너 프레임
+            wrapper = tk.Frame(self.btn_frame, bg="#F8FAFC")
+            wrapper.pack(side="left", padx=8)
+
             btn = tk.Button(
-                self.btn_frame,
+                wrapper,
                 text=text,
-                command=lambda k=key, cmd=command: self.select_tab(k, cmd), # 'lambda k=key, cmd=command:' 이 형태로 현재값 고정. 이것을 lambda 기본값 캡쳐라고 함
+                command=lambda k=key, cmd=command: self.select_tab(k, cmd),
                 font=("맑은 고딕", 9),
-                bg="#FFFFFF",
-                fg="#475569",
-                activebackground="#F1F5F9",
+                bg="#F8FAFC",
+                fg="#64748B",
+                activebackground="#F8FAFC",
                 activeforeground="#0F172A",
                 bd=0,
                 relief="flat",
-                highlightbackground="#CBD5E1",
-                highlightthickness=1,
                 cursor="hand2",
-                padx=14,
-                pady=5
+                padx=4,
+                pady=4,
             )
-            btn.pack(side="left", padx=4)
+            btn.pack(side="top")
+
+            # 하단 밑줄용 인디케이터 바(기본은 투명/배경색과 동일)
+            line = tk.Frame(wrapper, bg="#F8FAFC", height=3)
+            line.pack(side="top", fill="x", pady=(2, 0))
 
             # 호버 효과
-            # btn.bind("<Enter>", lambda e, b=btn, k=key: self.on_btn_hover(b, k, True))
-            # btn.bind("<Leave>", lambda e, b=btn, k=key: self.on_btn_hover(b, k, False))
+            btn.bind("<Enter>", lambda e, b=btn, k=key: self.on_btn_hover(b, k, True))
+            btn.bind("<Leave>", lambda e, b=btn, k=key: self.on_btn_hover(b, k, False))
 
             self.buttons[key] = btn # 생성한 버튼을 딕셔너리에 저장
-
+            self.button_lines[key] = line
+            
         # 기본 첫 화면으로 지출 비교 차트 표시
         self.select_tab("category_bar", self.show_category_bar_chart)
 
@@ -89,31 +99,29 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
         # 현재 선택되어 있는 탭이 아닐 때만 호버 효과 적용
         if getattr(self, "current_key", "") != key: # getattr(객체, "속성이름", 기본값). 즉, self 안에 current_key가 있으면 가져오고, 없으면 빈 문자열("")을 반환하라는 뜻
             if is_hover:
-                btn.config(bg="#F1F5F9", fg="#0F172A", highlightbackground="#94A3B8")
+                btn.config(fg="#0F172A")
             else:
-                btn.config(bg="#FFFFFF", fg="#475569", highlightbackground="#CBD5E1")
+                btn.config(fg="#64748B")
                 
     # 선택된 버튼의 디자인을 바꿔주는 함수
     def select_tab(self, selected_key, command):
         self.current_key = selected_key
 
         for key, btn in self.buttons.items():
+            line = self.button_lines[key]
+
             if key == selected_key:
-                # 선택된 버튼: 파란색 배경 + 흰색 글씨 + 강조 효과
                 btn.config(
-                    bg="#1E293B",
-                    fg="#FFFFFF",
-                    font=("맑은 고딕", 9, "bold"),
-                    highlightbackground="#1E293B",
+                    fg="#1F497D",
+                    font=("맑은 고딕", 9, "bold")
                 )
+                line.config(bg="#1F497D")
             else:
-                # 선택 안 된 버튼: 흰색 배경 + 연한 회색 글씨
                 btn.config(
-                    bg="#FFFFFF",
-                    fg="#475569",
-                    font=("맑은 고딕", 9),
-                    highlightbackground="#CBD5E1",
+                    fg="#64748B",
+                    font=("맑은 고딕", 9)
                 )
+                line.config(bg="#F8FAFC")
         
         command() # 해당 그래프 실행
     
@@ -706,9 +714,9 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             {"badge": "5위", "color": "#94A3B8"},
         ]
 
-        y = 0.90 # 텍스트를 표시할 처음 y 위치 (0~1 기준)
+        y = 0.95 # 텍스트를 표시할 처음 y 위치 (0~1 기준)
         # ax.text(x좌표, y좌표, 내용)인데 앞에서 ax.set_axis_off() 이걸 했기 때문에 y위치를 지정하는 것. 보통 좌표는 0~1 범위로 사용(높은곳은 1, 낮은곳은 0)
-        y_spacing = 0.18  # 항목 간 간격
+        y_spacing = 0.2  # 항목 간 간격
 
         for idx, money in enumerate(top5, start=0): # enumerate(): 순서 번호와 값을 같이 가져오는 함수
             # 1. 순위 배지
@@ -740,7 +748,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             )
             ax.text(
                 0.12,
-                y - 0.06,
+                y - 0.08,
                 sub_text,
                 fontsize=8,
                 color="#64748B",
@@ -752,7 +760,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
 
             ax.text(
                 0.95,
-                y - 0.01,
+                y - 0.03,
                 price_text,
                 fontsize=10.5,
                 fontweight="bold",
@@ -765,7 +773,7 @@ class StatisticsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의�
             if idx < len(top5) - 1:
                 ax.plot(
                     [0.03, 0.95],
-                    [y - 0.13, y - 0.13],
+                    [y - 0.15, y - 0.15],
                     color="#E2E8F0",
                     linewidth=1,
                     linestyle="-",
