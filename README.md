@@ -53,11 +53,15 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 
 ## 📊 Dashboard
 
-* [x] 총 예산 표시
-* [x] 현재 지출 표시
-* [x] 남은 금액 표시
+* [x] 총 예산 Card 표시
+* [x] 현재 지출 Card 표시
+* [x] 남은 금액 Card 표시
 * [x] 예산 사용률 ProgressBar
-* [x] 사용률에 따른 색상 변경
+* [x] 예산 사용률 상태 표시
+* [x] 최근 지출 TOP 5 표시
+* [x] 카테고리별 지출 분석
+* [x] 결제수단별 지출 분석
+* [x] Matplotlib 기반 데이터 시각화
 
 ---
 
@@ -72,6 +76,18 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 * [x] 최근 지출 TOP 5 표시
 * [x] 카테고리별 BarChart 생성
 * [x] 월별 지출 LineChart 생성
+
+---
+
+### In Progress
+- [ ] SQLite 데이터베이스 적용
+
+--- 
+
+### Planned
+- [ ] 데이터 백업 기능
+- [ ] 검색 기능 개선
+- [ ] 배포 버전 제작
 
 ---
 
@@ -99,6 +115,7 @@ WeddingMoneyManager
 ├── main.py                    # 메인 실행 파일
 ├── expense_dialog.py          # 지출 등록 / 수정 팝업
 ├── excel_export.py            # Excel Report 생성 관리
+├── statistics.py              # 통계 팝업
 │
 ├── excel
 │   ├── chart.py               # Excel 차트 생성
@@ -192,9 +209,17 @@ python main.py
 
 # 🗺 Roadmap
 
+## v0.9.0 SQLite Migration
+
+* [ ] SQLite 데이터베이스 적용
+* [ ] JSON 저장 방식 제거
+* [ ] DB 기반 CRUD 구조 변경
+* [ ] 데이터 접근 계층 분리
+
+## Future
+
 * [ ] 검색 결과 건수 표시
 * [ ] CSV 내보내기
-* [ ] 차트 UI 개선
 * [ ] 데이터 백업 및 복원
 * [ ] 사용자 설정 기능 추가
 
@@ -206,7 +231,8 @@ python main.py
 | ------- | ------------------------------------------------------------------------------------ |
 | v0.5.0 | 첫 번째 공식 Release / Dashboard UI 개선 / 검색·필터 기능 추가 / ExpenseDialog 분리 / 고유 ID 기반 데이터 관리 |
 | v0.6.0 | Excel Report 기능 추가 / openpyxl 기반 Summary·Detail 시트 생성 / 지출 분석 Dashboard / 차트 기능 구현 |
-| v0.7.0 | ExpenseDialog UI 리뉴얼 / Excel Report 디자인 개선 / 프로젝트 구조 정리 / 문서 업데이트 |
+| v0.7.0 | Dashboard UI 완성 / Card UI 적용 / 예산·지출·잔액 표시 / ExpenseDialog UI 개선 / 프로젝트 구조 정리 |
+| v0.8.0 | 통계창 완성 / 최근 지출 TOP5 추가 / 버튼 및 레이아웃 개선 / 그래프 디자인 마무리 |
 
 ---
 

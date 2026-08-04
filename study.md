@@ -874,3 +874,352 @@ WeddingMoneyManager에서는
 from openpyxl.chart import BarChart, LineChart
 from openpyxl.chart import Reference
 ```
+
+---
+
+# 16. ttk Style & UI 디자인
+
+WeddingMoneyManager의 화면 개선 과정에서
+기본 Tkinter 위젯만 사용하는 방식에서 벗어나
+ttk.Style을 활용하여 UI 스타일을 관리하였다.
+
+기존 문제:
+- 위젯마다 개별 옵션 지정 필요
+- 디자인 통일 어려움
+- 코드 중복 증가
+
+개선:
+- ttk.Style 기반 공통 스타일 관리
+- 입력 위젯 디자인 통일
+- 버튼 및 Combobox 스타일 개선
+
+---
+
+## ttk.Style()
+
+ttk 위젯의 기본 스타일을 변경한다.
+
+```python
+style = ttk.Style()
+
+style.configure(
+    "TButton",
+    padding=5
+)
+```
+
+---
+
+## Theme 변경
+
+Tkinter 기본 디자인 대신
+ttk Theme을 적용할 수 있다.
+
+```python
+style.theme_use("clam")
+```
+
+사용 가능한 Theme:
+
+- clam
+- alt
+- default
+- classic
+
+---
+
+## LabelFrame
+
+관련된 입력 요소를 그룹으로 묶는다.
+
+```python
+ttk.LabelFrame(
+    parent,
+    text="기본 정보"
+)
+```
+
+WeddingMoneyManager에서는 입력 영역을 분리하기 위해 사용하였다.
+
+구성:
+
+### 기본 정보
+
+- 날짜
+- 카테고리
+- 항목
+
+### 결제 정보
+
+- 구매처
+- 금액
+- 결제수단
+
+---
+
+# 17. Dashboard UI 설계
+
+기존 Treeview 중심 화면에서
+사용자가 중요한 정보를 빠르게 확인할 수 있도록
+Dashboard 형태의 UI로 개선하였다.
+
+주요 구성:
+
+- 예산 Card
+- 총 지출 Card
+- 잔액 Card
+- 예산 사용률 표시
+- 지출 분석 Chart
+- 최근 지출 TOP 5
+
+
+## Card UI
+
+Tkinter에는 기본 Card 위젯이 없기 때문에
+Frame과 Label을 조합하여 직접 구현하였다.
+
+구조:
+
+```text
+Frame
+ ├── Label (제목)
+ └── Label (값)
+```
+
+예시:
+
+```python
+card = tk.Frame(parent)
+
+title = tk.Label(card)
+value = tk.Label(card)
+```
+
+---
+
+# 18. Matplotlib + Tkinter 연동
+
+Matplotlib 그래프를
+Tkinter 화면 내부에 표시하기 위해
+FigureCanvasTkAgg를 사용하였다.
+
+```python
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+```
+
+사용 흐름:
+
+## 1. Figure 생성
+
+```python
+fig = plt.figure()
+```
+
+---
+
+## 2. 그래프 생성
+
+```python
+plt.bar()
+```
+
+또는
+
+```python
+plt.pie()
+```
+
+---
+
+## 3. Tkinter Canvas 변환
+
+```python
+canvas = FigureCanvasTkAgg(
+    fig,
+    parent
+)
+```
+
+---
+
+## 4. 화면 표시
+
+```python
+canvas.draw()
+```
+
+---
+
+## Matplotlib pyplot 방식과 객체 지향 방식 비교
+
+Matplotlib에서는 그래프를 생성하는 방법이 크게 두 가지가 있다.
+
+- pyplot 방식 (`plt`)
+- 객체 지향 방식 (`fig`, `ax`)
+
+초기에는 간단한 그래프 생성을 위해 pyplot 방식을 사용할 수 있지만,
+Tkinter와 같이 여러 화면에서 그래프를 관리하는 경우
+객체 지향 방식이 더 적합하다.
+
+---
+
+## plt 방식 vs ax 방식
+
+| 구분 | pyplot 방식 | 객체 지향 방식 |
+|---|---|---|
+| 방식 | pyplot 방식 | 객체 지향 방식 |
+| 대상 | 현재 활성 그래프 | 지정한 ax 객체 |
+| 단일 그래프 | 가능 | 가능 |
+| 여러 그래프 | 관리 불편 | 적합 |
+| Tkinter 같은 UI | 비추천 | 추천 |
+| 코드 관리 | 낮음 | 높음 |
+
+---
+
+## 함수 비교
+
+| pyplot 방식 | 객체 지향 방식 |
+|---|---|
+| `plt.title()` | `ax.set_title()` |
+| `plt.xlabel()` | `ax.set_xlabel()` |
+| `plt.ylabel()` | `ax.set_ylabel()` |
+| `plt.xlim()` | `ax.set_xlim()` |
+| `plt.ylim()` | `ax.set_ylim()` |
+| `plt.grid()` | `ax.grid()` |
+
+---
+
+## pyplot 방식 예시
+
+```python
+plt.title("카테고리별 지출")
+plt.xlabel("카테고리")
+plt.ylabel("금액")
+
+plt.bar(category, price)
+```
+
+현재 활성화된 그래프에 직접 적용하는 방식이다.
+
+---
+
+## 객체 지향 방식 예시
+
+```python
+fig, ax = plt.subplots()
+
+ax.set_title("카테고리별 지출")
+ax.set_xlabel("카테고리")
+ax.set_ylabel("금액")
+
+ax.bar(category, price)
+```
+
+생성한 `ax` 객체를 통해
+원하는 그래프를 명확하게 제어할 수 있다.
+
+---
+
+## 프로젝트 적용
+
+WeddingMoneyManager에서는
+
+- Tkinter 내부 그래프 표시
+- Dashboard 여러 통계 화면
+- Excel Report와 동일한 분석 구조 유지
+
+등을 고려하여 객체 지향 방식 사용을 권장한다.
+
+간단한 그래프 하나:
+
+```python
+plt.title()
+```
+
+사용 가능
+
+하지만 현재 프로젝트처럼:
+
+- Tkinter GUI
+- 여러 통계 화면
+- Dashboard Card UI
+- 여러 Chart 관리
+
+구조에서는:
+
+```python
+ax.set_title()
+```
+
+방식을 사용하는 것이 적합하다.
+
+
+---
+
+# 19. 데이터 구조 개선
+
+초기에는 Treeview Index를 기준으로
+데이터를 관리하였다.
+
+문제점:
+
+- 데이터 삭제 시 Index 변경
+- 수정 대상 식별 어려움
+- 데이터 관리 불안정
+
+
+개선:
+
+각 데이터에 고유 ID를 추가하였다.
+
+```json
+{
+  "id": 1,
+  "item": "냉장고",
+  "price": 2500000
+}
+```
+
+장점:
+
+- 수정 시 정확한 데이터 접근 가능
+- 삭제 시 Index 의존 제거
+- 데이터베이스 구조로 변경하기 쉬움
+
+---
+
+# 20. SQLite Migration 준비
+
+현재 데이터 저장 방식:
+
+```text
+JSON
+ ↓
+money.json
+```
+
+문제점:
+
+- 데이터 증가 시 검색 성능 저하
+- 조건 검색 제한
+- 데이터 관계 관리 어려움
+
+
+향후 변경:
+
+```text
+SQLite Database
+        ↓
+ Python sqlite3
+        ↓
+ CRUD 기능
+```
+
+학습 예정:
+
+- Database 구조 설계
+- Table 생성
+- SQL Query 작성
+- sqlite3 연동
+- 기존 CRUD 로직 변경
+- 데이터 접근 코드 분리
