@@ -190,3 +190,37 @@
 #### Release
 - Release **v0.8.0 생성**
 - 통계 화면 및 Dashboard UI 개선 완료
+
+---
+
+## 📅 2026-08-06
+
+### SQLite 저장 방식 적용
+
+#### Added
+- SQLite 데이터베이스 저장 방식 적용
+- expenses 테이블 CRUD 기능 구현
+- settings 테이블 추가
+- 예산(Budget) 설정 DB 저장 기능 추가
+- JSON → SQLite 데이터 마이그레이션 스크립트 추가 (`migrate_json_to_sqlite.py`)
+- 데이터베이스 초기 생성 기능 추가
+
+#### Changed
+- 기존 JSON 저장 방식에서 SQLite 저장 방식으로 변경
+- 지출 추가/수정/삭제 로직을 SQLite 기반으로 변경
+- 프로그램 시작 시 DB에서 데이터 및 예산 자동 로드
+- 예산 변경 시 settings 테이블에 즉시 저장하도록 변경
+
+#### Refactored
+- 데이터 접근 로직을 `database.py`로 분리
+- UI와 데이터 처리 로직 분리
+- CRUD 함수 구조 개선
+- 프로그램 구조 정리 및 코드 가독성 향상
+
+#### Backup
+- JSON 기반 이전 버전 백업
+- 기존 app.py / main.py 백업 파일 정리
+
+#### Release
+- Release **v0.9.0 생성**
+- SQLite 기반 데이터 저장 방식 적용 완료

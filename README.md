@@ -6,6 +6,11 @@
 
 예산 설정부터 지출 내역 관리, 검색 및 필터링, Dashboard를 통한 예산 현황 확인, Excel Report 생성을 통한 지출 분석까지 실제 사용을 고려하여 구현했습니다.
 
+![Python](https://img.shields.io/badge/Python-3.13-blue)
+![Tkinter](https://img.shields.io/badge/GUI-Tkinter-green)
+![SQLite](https://img.shields.io/badge/Database-SQLite-003B57)
+![License](https://img.shields.io/badge/License-MIT-orange)
+
 ---
 
 # 📌 프로젝트 소개
@@ -14,7 +19,7 @@
 
 WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 프로그램으로, 단순한 가계부를 넘어 **예산 관리와 지출 분석 기능을 제공하는 데스크톱 애플리케이션**입니다.
 
-이 프로젝트를 통해 Python GUI 프로그래밍(Tkinter), JSON 데이터 관리, 이벤트 처리, 객체 지향 설계, 모듈 분리, 데이터 시각화, Excel 자동화를 학습하고 적용했습니다.
+이 프로젝트를 통해 Python GUI 프로그래밍(Tkinter), SQLite 데이터베이스, 이벤트 처리, 객체 지향 설계, 모듈 분리, 데이터 시각화(Matplotlib), Excel 자동화(openpyxl)를 학습하고 적용했습니다.
 
 ---
 
@@ -26,7 +31,7 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 * [x] 지출 내역 등록
 * [x] 지출 내역 수정
 * [x] 지출 내역 삭제
-* [x] JSON 자동 저장 및 불러오기
+* [x] SQLite 데이터베이스 기반 데이터 관리
 
 ---
 
@@ -77,17 +82,12 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 * [x] 카테고리별 BarChart 생성
 * [x] 월별 지출 LineChart 생성
 
----
-
-### In Progress
-- [ ] SQLite 데이터베이스 적용
-
 --- 
 
 ### Planned
-- [ ] 데이터 백업 기능
+- [ ] 데이터 백업 및 복원
 - [ ] 검색 기능 개선
-- [ ] 배포 버전 제작
+- [ ] 실행 파일(.exe) 배포
 
 ---
 
@@ -97,7 +97,7 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 | --------------- | ------------------ |
 | Language        | Python 3           |
 | GUI             | Tkinter, ttk       |
-| Data            | JSON               |
+| Database        | SQLite  (sqlite3)  |
 | Excel           | openpyxl           |
 | Chart           | openpyxl.chart, Matplotlib |
 | Visualization   | Matplotlib         |
@@ -112,22 +112,29 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 ```text
 WeddingMoneyManager
 │
-├── main.py                    # 메인 실행 파일
-├── expense_dialog.py          # 지출 등록 / 수정 팝업
-├── excel_export.py            # Excel Report 생성 관리
-├── statistics.py              # 통계 팝업
+├── main.py
+├── database.py
+├── expense_dialog.py
+├── statistics.py
+├── excel_exporter.py
+├── migrate_json_to_sqlite.py
+├── init.sql
 │
-├── excel
-│   ├── chart.py               # Excel 차트 생성
-│   ├── detail.py              # 상세 지출 내역 시트 생성
-│   ├── summary.py             # Summary 대시보드 생성
-│   └── styles.py              # Excel 스타일 관리
+├── excel/
+│   ├── chart.py
+│   ├── detail.py
+│   ├── summary.py
+│   └── style.py
 │
-├── money.json                 # 데이터 저장 파일
-├── README.md                  # 프로젝트 소개
-├── development_log.md         # 개발 일지
-├── study.md                   # Python / Tkinter 학습 노트
-└── requirements.txt           # 패키지 목록
+├── backup/
+│   ├── app.py
+│   ├── main_backup.py
+│   └── money_backup.json
+│
+├── README.md
+├── development_log.md
+├── study.md
+└── requirements.txt
 ```
 
 ---
@@ -137,14 +144,14 @@ WeddingMoneyManager
 ## 1. 저장소 Clone
 
 ```bash
-git clone https://github.com/username/WeddingMoneyManager.git
+git clone https://github.com/byeon-ji-young/WeddingMoneyManager.git
 cd WeddingMoneyManager
 ```
 
 ## 2. 가상환경 생성
 
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
 
 ## 3. 가상환경 활성화
@@ -152,13 +159,13 @@ python -m venv venv
 ### Windows (PowerShell)
 
 ```bash
-.\venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 ```
 
 ### Windows (CMD)
 
 ```bash
-.\venv\Scripts\activate.bat
+.\.venv\Scripts\activate.bat
 ```
 
 ## 4. 패키지 설치
@@ -175,23 +182,46 @@ python main.py
 
 ---
 
-# 💾 데이터 구조
+# 💾 Database Schema
 
-```json
-{
-  "budget": 30000000,
-  "money_data": [
-    {
-      "id": 1,
-      "date": "2026-07-28",
-      "category": "가전",
-      "item": "냉장고",
-      "shop": "삼성스토어",
-      "price": 2500000,
-      "payment": "신용카드"
-    }
-  ]
-}
+### expenses
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | INTEGER | 지출 ID (PK) |
+| date | TEXT | 지출 날짜 |
+| category | TEXT | 분류 |
+| item | TEXT | 항목 |
+| shop | TEXT | 구매처 |
+| price | INTEGER | 금액 |
+| payment | TEXT | 결제수단 |
+
+```sql
+CREATE TABLE expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    category TEXT NOT NULL,
+    item TEXT NOT NULL,
+    shop TEXT,
+    price INTEGER NOT NULL,
+    payment TEXT
+);
+```
+
+---
+
+### settings
+
+| Column | Type | Description |
+|--------|------|-------------|
+| key | TEXT | 설정 이름 |
+| value | TEXT | 설정 값 (예: budget) |
+
+```sql
+CREATE TABLE settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);
 ```
 
 ---
@@ -209,19 +239,18 @@ python main.py
 
 # 🗺 Roadmap
 
-## v0.9.0 SQLite Migration
+## v1.0.0
 
-* [ ] SQLite 데이터베이스 적용
-* [ ] JSON 저장 방식 제거
-* [ ] DB 기반 CRUD 구조 변경
-* [ ] 데이터 접근 계층 분리
+- [ ] 검색 결과 건수 표시
+- [ ] CSV 내보내기
+- [ ] 데이터 백업 및 복원
+- [ ] 실행 파일(.exe) 배포
 
 ## Future
 
-* [ ] 검색 결과 건수 표시
-* [ ] CSV 내보내기
-* [ ] 데이터 백업 및 복원
-* [ ] 사용자 설정 기능 추가
+- [ ] Flutter 모바일 앱 개발
+- [ ] 클라우드 데이터 동기화
+- [ ] 사용자 계정 기능
 
 ---
 
@@ -233,6 +262,7 @@ python main.py
 | v0.6.0 | Excel Report 기능 추가 / openpyxl 기반 Summary·Detail 시트 생성 / 지출 분석 Dashboard / 차트 기능 구현 |
 | v0.7.0 | Dashboard UI 완성 / Card UI 적용 / 예산·지출·잔액 표시 / ExpenseDialog UI 개선 / 프로젝트 구조 정리 |
 | v0.8.0 | 통계창 완성 / 최근 지출 TOP5 추가 / 버튼 및 레이아웃 개선 / 그래프 디자인 마무리 |
+| v0.9.0 | SQLite 데이터베이스 적용 / JSON → SQLite 마이그레이션 / database.py 분리 / settings 테이블 추가 / DB 기반 CRUD 구현 |
 
 ---
 
@@ -251,4 +281,4 @@ python main.py
 
 WeddingMoneyManager는 결혼 준비 과정에서 발생하는 실제 지출 데이터를 관리하기 위해 개발한 개인 프로젝트입니다.
 
-단순한 기능 구현을 넘어 Python GUI 프로그래밍(Tkinter), JSON 데이터 관리, 이벤트 처리, 객체 지향 설계, 모듈 분리, 데이터 시각화(Matplotlib), Excel 자동화(openpyxl) 등 실제 애플리케이션 개발 과정에서 필요한 기술을 학습하고 적용했습니다.
+단순한 기능 구현을 넘어 Python GUI 프로그래밍(Tkinter), SQLite 데이터베이스 설계 및 CRUD 구현, 이벤트 처리, 객체 지향 설계, 모듈 분리, 데이터 시각화(Matplotlib), Excel 자동화(openpyxl) 등 실제 애플리케이션 개발 과정에서 필요한 기술을 학습하고 적용했습니다.

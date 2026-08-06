@@ -1188,38 +1188,281 @@ ax.set_title()
 
 ---
 
-# 20. SQLite Migration 준비
+# 20. SQLite Migration
 
-현재 데이터 저장 방식:
+기존에는 JSON 파일(`money.json`)을 이용하여 데이터를 저장하였다.
+
+변경 전:
 
 ```text
 JSON
  ↓
 money.json
+ ↓
+Python json 모듈
 ```
 
 문제점:
 
-- 데이터 증가 시 검색 성능 저하
-- 조건 검색 제한
-- 데이터 관계 관리 어려움
+* 데이터가 증가할수록 검색 및 관리가 어려움
+* 조건 검색 및 정렬 기능 구현에 한계
+* 데이터 구조 변경 시 전체 파일 수정 필요
+* 데이터 접근 코드와 저장 방식이 강하게 연결됨
 
+개선:
 
-향후 변경:
+SQLite 데이터베이스를 적용하여 데이터 저장 구조를 변경하였다.
+
+변경 후:
 
 ```text
 SQLite Database
         ↓
- Python sqlite3
+   sqlite3 모듈
         ↓
- CRUD 기능
+ database.py
+        ↓
+   main.py
 ```
 
-학습 예정:
+개선 효과:
 
-- Database 구조 설계
-- Table 생성
-- SQL Query 작성
-- sqlite3 연동
-- 기존 CRUD 로직 변경
-- 데이터 접근 코드 분리
+* SQL 기반 데이터 조회 가능
+* 데이터 CRUD 구조 명확화
+* 저장 데이터 관리 안정성 향상
+* 향후 Flutter 앱 연동을 고려한 구조 마련
+
+---
+
+# 21. SQLite Database 기초
+
+SQLite는 별도의 데이터베이스 서버 없이
+하나의 파일로 동작하는 관계형 데이터베이스이다.
+
+WeddingMoneyManager에서는:
+
+```text
+wedding.db
+```
+
+파일을 생성하여 데이터를 저장한다.
+
+## sqlite3 연결
+
+Python 기본 라이브러리인 sqlite3를 사용한다.
+
+```python
+import sqlite3
+
+conn = sqlite3.connect("wedding.db")
+cursor = conn.cursor()
+```
+
+## Table 생성
+
+데이터를 저장하기 위해 Table을 생성한다.
+
+```sql
+CREATE TABLE expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    category TEXT NOT NULL,
+    item TEXT NOT NULL,
+    shop TEXT,
+    price INTEGER NOT NULL,
+    payment TEXT
+);
+```
+
+## Database 구조
+
+### expenses
+
+지출 내역 저장
+
+| Column   | Type    | Description |
+| -------- | ------- | ----------- |
+| id       | INTEGER | 고유 ID       |
+| date     | TEXT    | 지출 날짜       |
+| category | TEXT    | 분류          |
+| item     | TEXT    | 항목          |
+| shop     | TEXT    | 구매처         |
+| price    | INTEGER | 금액          |
+| payment  | TEXT    | 결제수단        |
+
+### settings
+
+프로그램 설정값 저장
+
+| Column | Type | Description |
+| ------ | ---- | ----------- |
+| key    | TEXT | 설정 이름       |
+| value  | TEXT | 설정 값        |
+
+---
+
+# 22. CRUD (Create Read Update Delete)
+
+데이터베이스 기본 동작은 CRUD 구조로 관리한다.
+
+## Create
+
+데이터 추가
+
+```sql
+INSERT INTO expenses
+(date, category, item, price)
+VALUES (?, ?, ?, ?)
+```
+
+## Read
+
+데이터 조회
+
+```sql
+SELECT *
+FROM expenses
+```
+
+## Update
+
+데이터 수정
+
+```sql
+UPDATE expenses
+SET price = ?
+WHERE id = ?
+```
+
+## Delete
+
+데이터 삭제
+
+```sql
+DELETE FROM expenses
+WHERE id = ?
+```
+
+Python 코드에서는 SQL Query를 직접 main.py에서 관리하지 않고,
+`database.py`에서 담당하도록 분리하였다.
+
+---
+
+# 23. Data Access Layer 분리
+
+기존 구조:
+
+```text
+main.py
+ |
+ ├── 데이터 처리
+ ├── JSON 저장
+ ├── JSON 불러오기
+ └── 화면 처리
+```
+
+문제점:
+
+* UI 코드와 데이터 저장 코드가 섞임
+* 저장 방식 변경 시 수정 범위 증가
+
+개선 구조:
+
+```text
+main.py
+ |
+ └── database.py
+          |
+          └── SQLite
+```
+
+역할 분리:
+
+## main.py
+
+* 화면 구성
+* 사용자 입력 처리
+* 화면 갱신
+
+## database.py
+
+* 데이터 추가
+* 데이터 조회
+* 데이터 수정
+* 데이터 삭제
+* 데이터베이스 연결 관리
+
+장점:
+
+* 유지보수 쉬움
+* 테스트 용이
+* 향후 다른 저장 방식으로 변경 가능
+* Flutter 앱 API 서버 구조로 확장하기 쉬움
+
+---
+
+# 24. JSON → SQLite 데이터 Migration
+
+기존 JSON 데이터를 SQLite 데이터베이스로 이전하기 위해
+Migration 스크립트를 작성하였다.
+
+구조:
+
+```text
+money_backup.json
+
+        ↓
+
+migrate_json_to_sqlite.py
+
+        ↓
+
+wedding.db
+```
+
+Migration 과정:
+
+1. JSON 파일 읽기
+
+```python
+json.load()
+```
+
+2. 기존 데이터 확인
+
+3. SQLite Insert 실행
+
+```sql
+INSERT INTO expenses (...)
+VALUES (...)
+```
+
+4. 데이터 저장
+
+Migration을 별도의 파일로 분리하여
+기존 데이터 보존과 테스트가 가능하도록 구성하였다.
+
+---
+
+# 25. 프로젝트 구조 개선
+
+SQLite 적용 이후 프로젝트 구조:
+
+```text
+main.py
+ |
+ ├── UI 처리
+
+database.py
+ |
+ ├── SQLite 연결
+ ├── CRUD 처리
+
+migrate_json_to_sqlite.py
+ |
+ └── 기존 JSON 데이터 이전
+```
+
+저장 방식과 화면 로직을 분리하면서
+프로젝트가 단순한 GUI 프로그램에서
+확장 가능한 애플리케이션 구조로 개선되었다.
