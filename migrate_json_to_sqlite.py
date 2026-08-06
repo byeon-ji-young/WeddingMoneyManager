@@ -1,11 +1,15 @@
 import json
 import database
 
+from pathlib import Path
+
+backup_file = Path("backup") / "money_backup.json"
+
 def migrate():
     # ==========================================
     # JSON 데이터 읽기
     # ==========================================
-    with open("money_backup.json", "r", encoding="utf-8") as file:
+    with backup_file.open("r", encoding="utf-8") as file:
         data = json.load(file)
 
     # 기존 데이터 가져오기
