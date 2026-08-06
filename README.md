@@ -171,7 +171,7 @@ python -m venv .venv
 ## 4. 패키지 설치
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ## 5. 프로그램 실행
