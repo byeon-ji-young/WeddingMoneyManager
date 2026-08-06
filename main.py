@@ -663,11 +663,32 @@ no_data_label = tk.Label(
 footer_frame = tk.Frame(window, bg="#F4F6F9")
 footer_frame.pack(fill="x", padx=30, pady=(5, 20))
 
-total_label = tk.Label(footer_frame, text="총 지출 : 0원", font=("맑은 고딕", 11, "bold"), bg="#F4F6F9", fg="#1E293B")
-total_label.pack(side="left")
-# side: 위젯을 어느 방향으로 배치할지 (side는 pack()에서만 사용하는 옵션)
-# anchor: 배치된 공간 안에서 위젯(또는 내용)을 어느 쪽에 붙일지
+# ------------------------------------------
+# [하단 좌측] 총 지출 표시 & 백업/복원 버튼
+# ------------------------------------------
+db_btn_frame = tk.Frame(footer_frame, bg="#F4F6F9")
+db_btn_frame.pack(side="left")
 
+backup_button = tk.Button(
+    db_btn_frame, text="💾 백업", command=backup_database,
+    font=("맑은 고딕", 9, "bold"), bg="#E2E8F0", fg="#475569", 
+    relief="flat", bd=0, cursor="hand2", padx=8, pady=3 
+)
+backup_button.pack(side="left", padx=2)
+
+restore_button  = tk.Button(
+    db_btn_frame, text="🔄 복원", command=lambda: restore_database(window),
+    font=("맑은 고딕", 9, "bold"), bg="#E2E8F0", fg="#475569", 
+    relief="flat", bd=0, cursor="hand2", padx=8, pady=3
+)
+restore_button .pack(side="left", padx=2)
+
+total_label = tk.Label(db_btn_frame, text="총 지출 : 0원", font=("맑은 고딕", 11, "bold"), bg="#F4F6F9", fg="#1E293B")
+# total_label.pack(side="left", padx=(0, 15))
+
+# ------------------------------------------
+# [하단 우측] 통계 & 내보내기 버튼 (주요 기능)
+# ------------------------------------------
 stat_btn_frame = tk.Frame(footer_frame, bg="#F4F6F9")
 stat_btn_frame.pack(side="right")
 
@@ -692,19 +713,8 @@ csv_button = tk.Button(
 )
 csv_button.pack(side="left", padx=3)
 
-backup_button = tk.Button(
-    stat_btn_frame, text="💾 백업", command=backup_database,
-    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", 
-    relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
-)
-backup_button.pack(side="left", padx=3)
-
-restore_button  = tk.Button(
-    stat_btn_frame, text="🔄 복원", command=lambda: restore_database(window),
-    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", 
-    relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
-)
-restore_button .pack(side="left", padx=3)
+# side: 위젯을 어느 방향으로 배치할지 (side는 pack()에서만 사용하는 옵션)
+# anchor: 배치된 공간 안에서 위젯(또는 내용)을 어느 쪽에 붙일지
 
 # command=func 가장 기본. 버튼을 누르면 test() 실행
 # command=func() 사용하면 안됨. 프로그램 실행하자마자 함수가 실행
