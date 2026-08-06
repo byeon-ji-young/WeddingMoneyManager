@@ -4,6 +4,7 @@ from tkinter import messagebox, ttk # tkinter 안에 있는 messagebox, ttk 기�
 # [★팝업 창 분리] 팝업 창 모듈 불러오기
 from expense_dialog import ExpenseDialog
 from excel_exporter import excel_export_file
+from csv_export import csv_export_file
 from statistics import StatisticsWindow
 
 import database
@@ -678,10 +679,17 @@ stats_btn.pack(side="left", padx=3)
 
 excel_button = tk.Button(
     stat_btn_frame, text="📄 Excel 저장", command=excel_export, # command=excel_export: lambda를 쓸 필요가 없는 이유는 매개변수를 전달하지 않는 함수이기 때문
-    font=("맑은 고딕", 9, "bold"), bg="#059669", fg="white", 
+    font=("맑은 고딕", 9, "bold"), bg="#0D9488", fg="white", 
     relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
 )
 excel_button.pack(side="left", padx=3)
+
+csv_button = tk.Button(
+    stat_btn_frame, text="📄 CSV 저장", command=csv_export_file, # command=csv_export: lambda를 쓸 필요가 없는 이유는 매개변수를 전달하지 않는 함수이기 때문
+    font=("맑은 고딕", 9, "bold"), bg="#4D7C0F", fg="white", 
+    relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
+)
+csv_button.pack(side="left", padx=3)
 
 # command=func 가장 기본. 버튼을 누르면 test() 실행
 # command=func() 사용하면 안됨. 프로그램 실행하자마자 함수가 실행
