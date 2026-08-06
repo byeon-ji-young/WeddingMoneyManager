@@ -6,6 +6,7 @@ from expense_dialog import ExpenseDialog
 from excel_exporter import excel_export_file
 from csv_export import csv_export_file
 from statistics import StatisticsWindow
+from database_backup import backup_database, restore_database
 
 import database
 
@@ -690,6 +691,20 @@ csv_button = tk.Button(
     relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
 )
 csv_button.pack(side="left", padx=3)
+
+backup_button = tk.Button(
+    stat_btn_frame, text="💾 백업", command=backup_database,
+    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", 
+    relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
+)
+backup_button.pack(side="left", padx=3)
+
+restore_button  = tk.Button(
+    stat_btn_frame, text="🔄 복원", command=lambda: restore_database(window),
+    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", 
+    relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
+)
+restore_button .pack(side="left", padx=3)
 
 # command=func 가장 기본. 버튼을 누르면 test() 실행
 # command=func() 사용하면 안됨. 프로그램 실행하자마자 함수가 실행

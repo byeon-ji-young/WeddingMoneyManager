@@ -145,7 +145,6 @@ WeddingMoneyManager
 
 ```bash
 git clone https://github.com/byeon-ji-young/WeddingMoneyManager.git
-cd WeddingMoneyManager
 ```
 
 ## 2. 가상환경 생성
@@ -171,6 +170,8 @@ python -m venv .venv
 ## 4. 패키지 설치
 
 ```bash
+cd WeddingMoneyManager
+
 python -m pip install -r requirements.txt
 ```
 
