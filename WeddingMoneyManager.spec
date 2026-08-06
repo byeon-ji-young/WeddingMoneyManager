@@ -23,6 +23,7 @@ exe = EXE(
     a.datas,
     [],
     name='WeddingMoneyManager',
+    icon='icon.ico',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
