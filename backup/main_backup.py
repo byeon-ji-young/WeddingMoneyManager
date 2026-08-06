@@ -1,17 +1,31 @@
+# ==========================================
+# [2026-08-06]
+# WeddingMoneyManager - JSON Storage Version
+# Backup Source Code
+#
+# SQLite 전환 이전 버전
+# 기존 money.json 파일 기반 데이터 저장 방식 사용
+# 
+# Status: Deprecated (현재 사용 안 함)
+# 
+# Current version:
+# 현재 운영 버전은 main.py + database.py (SQLite 적용)
+# ==========================================
+
 import tkinter as tk # GUI를 만들기 위한 tkinter 라이브러리 불러오기
 from tkinter import messagebox, ttk # tkinter 안에 있는 messagebox, ttk 기능 가져와줘
+
+import json
 
 # [★팝업 창 분리] 팝업 창 모듈 불러오기
 from expense_dialog import ExpenseDialog
 from excel_exporter import excel_export_file
 from statistics import StatisticsWindow
 
-import database
-
 # ==========================================
 # 1. 전역 변수 및 데이터 설정
 # ==========================================
-money_data = [] # 화면 표시용 캐시
+money_data = []
 selected_index = None
 budget = 30000000
 remain = 0
@@ -25,6 +39,7 @@ sort_reverse = {
     "payment": False
 }
 progress_value = 0
+
 
 # ==========================================
 # 2. 메인 윈도우(창) 생성
@@ -52,27 +67,28 @@ def open_add_dialog():
 
     # 팝업이 닫힌 후, 저장된 결과값이 있으면 리스트에 추가
     if dialog.result:
-        # SQLite 추가
-        new_id = database.add_expense(dialog.result)
+        # 새로운 ID 생성
+        if money_data:
+            new_id = max(money["id"] for money in money_data) + 1
+        else:
+            new_id = 1
 
-        # DB에서 다시 불러오기
-        global money_data
-        money_data = database.get_all_expenses()
-
-        # 화면 갱신
+        dialog.result["id"] = new_id
+        
+        money_data.append(dialog.result)
+        save_data()
         display_data()
         update_total()
 
         # 추가한 항목 자동 선택
-        # new_id = money_data[-1]["id"]
-        money_list.selection_set(new_id ) # 해당 행 선택
-        money_list.focus(new_id ) # Treeview 내부 커서 이동
-        money_list.see(new_id ) # 해당 행이 안 보이면 자동 스크롤
+        new_index = len(money_data)
+
+        money_list.selection_set(new_index) # 해당 행 선택
+        money_list.focus(new_index) # Treeview 내부 커서 이동
+        money_list.see(new_index) # 해당 행이 안 보이면 자동 스크롤
 
 # 선택 항목 수정 (팝업 연동)
 def open_edit_dialog():
-    global money_data # 새로운 리스트를 대입하는 거라 global 필요
-
     selected = money_list.selection()
 
     if not selected:
@@ -98,13 +114,10 @@ def open_edit_dialog():
 
     # 팝업이 닫힌 후, 저장된 결과값이 있으면 리스트에 추가
     if dialog.result:
-        # SQLite 수정
-        database.update_expense(selected_id, dialog.result)
+        # update: 딕셔너리(dictionary)의 메서드(method)
+        selected_data.update(dialog.result) # update()는 기존 값은 유지하면서 같은 key만 수정(dialog.result에 id는 없으니까 id 제외하고 다 수정됨)
 
-        # DB에서 다시 불러오기
-        money_data = database.get_all_expenses()
-
-        # 화면 갱신
+        save_data()
         display_data()
         update_total()
 
@@ -116,30 +129,48 @@ def open_edit_dialog():
 
 # 선택 항목 삭제
 def delete_money():
-    global money_data # 새로운 리스트를 대입하는 거라 global 필요
-
     selected = money_list.selection()
 
     if not selected:
         messagebox.showwarning("삭제 오류", "삭제할 항목을 선택하세요.")
         return
     
-    result = messagebox.askyesno("삭제 확인", "정말 삭제하시겠습니까?")
+    if selected:
+        result = messagebox.askyesno("삭제 확인", "정말 삭제하시겠습니까?")
 
-    if not result:
-        return
+        if not result:
+            return
 
-    selected_id = int(selected[0]) # 선택한 Treeview 행 iid
+        selected_id = int(selected[0]) # 선택한 Treeview 행 iid
+        selected_data = None
 
-    # SQLite 삭제
-    database.delete_expense(selected_id)
+        for money in money_data:
+            if money["id"] == selected_id:
+                selected_data = money
+                break
 
-    # DB 다시 불러오기
-    money_data = database.get_all_expenses()
+        if selected_data is None:
+            messagebox.showwarning("오류", "삭제할 데이터를 찾을 수 없습니다.")
+            return
 
-    # 화면 갱신
-    display_data()
-    update_total()
+        # remove: 리스트(list)의 메서드
+        money_data.remove(selected_data) # 실제 데이터 삭제. remove는 인덱스가 아니라 삭제할 값을 받음
+
+        # 리스트(list) 메서드
+        # append() : 맨 뒤에 추가
+        # extend() : 여러 개 한꺼번에 추가
+        # insert() : 원하는 위치에 추가
+        # remove() : 값으로 삭제
+        # pop()    : 인덱스로 삭제
+        # clear()  : 전체 삭제
+        # sort()   : 정렬
+        # reverse(): 순서 뒤집기
+        # count()  : 특정 값 개수
+        # index()  : 특정 값의 위치 찾기
+
+        save_data()
+        display_data() # 삭제 후 인덱스 재배치
+        update_total()
 
 # 예산 프로그래스 바 애니메이션
 def animate_progress(target):
@@ -209,12 +240,62 @@ def update_total():
 
     animate_progress(rate)
 
+# 데이터 저장 (JSON)
+def save_data():
+    # with: 열고 → 사용하고 → 자동 정리
+    with open("money.json", "w", encoding="utf-8") as file: # open(): money.json 파일을 쓰기 모드로 열어줘 (w:새로 쓰기, r:읽기, a:이어 쓰기), as file: 열린 파일을 file이라는 이름으로 사용
+        json.dump( # json.dump(): Python 데이터를 JSON 파일로 저장
+            {
+                "budget": budget,
+                "money_data": money_data
+            },
+            file,
+            ensure_ascii=False, # 한글을 그대로 저장(true로 하면 유니코드로 변화돼서 저장됨)
+            indent=4 # 들여쓰기 간격
+        )
+
+    # with open("money_backup.json", "w", encoding="utf-8") as file:
+    #     json.dump(
+    #         {
+    #             "budget": budget,
+    #             "money_data": money_data
+    #         },
+    #         file,
+    #         ensure_ascii=False,
+    #         indent=4
+    #     )
+
 # 데이터 불러오기
 def load_data():
     global money_data, budget # 함수 밖에 있는 변수를 사용
 
-    money_data = database.get_all_expenses()
-    budget = int(database.get_setting("budget") or 0) # settings 테이블에 budget 값이 없으면 기본값 0 사용
+    try:
+        with open("money.json", "r", encoding="utf-8") as file:
+            data = json.load(file) # json.load(): JSON 파일을 Python 데이터로 읽음
+
+            if isinstance(data, list): # isinstance(변수, 자료형): 이 변수가 이 자료형이 맞는지 확인 ex)isinstance(money_data, dict): money_data가 딕셔너리 타입인지 확인
+                money_data = data
+                budget = 30000000
+            else:
+                # 새로운 money.json은 딕서녀리 형식으로 저장되어 있음(budget이 추가 됐기 때문)
+                budget = data.get("budget", 30000000) # data에 budget이 있으면 사용, 없으면 30000000 사용
+                money_data = data.get("money_data", []) # get()을 사용하는 이유: key가 없는 경우 data["key"]: keyError 발생. data.get("key"): None 반환
+
+                # ID가 없거나 중복이면 다시 생성
+                used_ids = set() # 빈 집합(set) 생성
+                new_id = 1
+
+                for money in money_data:
+                    if "id" not in money or money["id"] in used_ids:
+                        while new_id in used_ids:
+                            new_id += 1
+
+                        money["id"] = new_id
+
+                    used_ids.add(money["id"])
+
+    except FileNotFoundError:
+        money_data = []
 
 # 목록 새로고침
 def display_data():
@@ -309,8 +390,7 @@ def update_budget():
         messagebox.showwarning("입력 오류", "예산은 숫자로 입력하세요.")
         return
 
-    database.update_setting("budget", str(budget))
-
+    save_data() 
     update_total()
 
 # 예산 입력 초기화
@@ -327,22 +407,74 @@ def sort_column(column):
 
     display_data()
 
+def show_category_state():
+    category_total = {}
+
+    for money in money_data:
+        category = money["category"]
+        price = money["price"]
+
+        if category in category_total:
+            category_total[category] += price
+        else:
+            category_total[category] = price
+
+    result = ""
+    for category, total_price in category_total.items():
+        result += f"{category} : {total_price:,}원\n"
+
+    messagebox.showinfo("카테고리별 통계", result)
+
+def show_month_state():
+    month_total = {}
+
+    for money in money_data:
+        date = money["date"]
+        month = date[:7] # 앞 7글자 자르기
+        price = money["price"]
+
+        if month in month_total:
+            month_total[month] += price
+        else:
+            month_total[month] = price
+
+    result = ""
+    for month, total_price in month_total.items():
+        result += f"{month} : {total_price:,}원\n"
+
+    messagebox.showinfo("월별 통계", result)
+
+def show_detail_state():
+    month_category_total = {}
+
+    for money in money_data:
+        date = money["date"]
+        month = date[:7]
+        category = money["category"]
+        price = money["price"]
+
+        if month not in month_category_total:
+            month_category_total[month] = {}
+
+        if category in month_category_total[month]:
+            month_category_total[month][category] += price
+        else:
+            month_category_total[month][category] = price
+
+    result = ""
+    for month, categories in month_category_total.items():
+        result += f"\n[{month}]\n"
+        for category, total_price in categories.items():
+            result += f"{category} : {total_price:,}원\n"
+
+    messagebox.showinfo("상세 통계", result)
+
 # 엑셀 생성
 def excel_export():
     excel_export_file(money_data, budget)
 
     # messagebox.showinfo("완료", "엑셀 파일이 저장되었습니다.")
 
-# 통계 팝업 생성
-def open_statistics():
-    if not money_data:
-        messagebox.showwarning(
-            "데이터 없음",
-            "지출 데이터가 없습니다."
-        )
-        return
-
-    StatisticsWindow(window, money_data)
 
 # ==========================================
 # 4. 상단 타이틀 및 예산 설정 영역
@@ -649,12 +781,30 @@ stat_btn_frame = tk.Frame(footer_frame, bg="#F4F6F9")
 stat_btn_frame.pack(side="right")
 
 stats_btn = tk.Button(
-    stat_btn_frame, text="📈 통계", command=open_statistics,
+    stat_btn_frame, text="📈 통계", command=lambda: StatisticsWindow(window, money_data),
     font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
 stats_btn.pack(side="left", padx=3)
 
+category_stats_button = tk.Button(
+    stat_btn_frame, text="항목 통계", command=lambda: show_category_state(),
+    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+    activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
+)
+# category_stats_button.pack(side="left", padx=3)
+month_stats_button = tk.Button(
+    stat_btn_frame, text="월별 통계", command=lambda: show_month_state(),
+    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+    activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
+)
+# month_stats_button.pack(side="left", padx=3)
+detail_stats_button = tk.Button(
+    stat_btn_frame, text="상세 통계", command=lambda: show_detail_state(),
+    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+    activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
+)
+# detail_stats_button.pack(side="left", padx=3)
 excel_button = tk.Button(
     stat_btn_frame, text="📄 Excel 저장", command=excel_export, # command=excel_export: lambda를 쓸 필요가 없는 이유는 매개변수를 전달하지 않는 함수이기 때문
     font=("맑은 고딕", 9, "bold"), bg="#059669", fg="white", 
@@ -668,12 +818,7 @@ excel_button.pack(side="left", padx=3)
 # bind(..., lambda e: func()) 이벤트용. 
 
 # ==========================================
-# 9. SQLlite 설정
-# ==========================================
-database.create_database()
-
-# ==========================================
-# 10. 프로그램 시작 실행
+# 9. 프로그램 시작 실행
 # ==========================================
 load_data()
 display_data()

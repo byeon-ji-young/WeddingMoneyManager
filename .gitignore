@@ -1,5 +1,17 @@
-.venv/
-.vscode/
+# Python
 __pycache__/
 *.pyc
+
+# Virtual Environment
+.venv/
+.vscode/
+
+# json
 money.json
+
+# SQLite
+*.db
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
