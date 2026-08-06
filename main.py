@@ -5,7 +5,7 @@ from tkinter import messagebox, ttk # tkinter 안에 있는 messagebox, ttk 기�
 from expense_dialog import ExpenseDialog
 from excel_export import excel_export_file
 from csv_export import csv_export_file
-from statistics import StatisticsWindow
+from statistics_window import StatisticsWindow
 from database_backup import backup_database, restore_database
 
 import database

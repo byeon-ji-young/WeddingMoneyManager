@@ -1,15 +1,23 @@
 import sqlite3
+import sys
+from pathlib import Path
 
 # ==========================================
 # DB 설정
 # ==========================================
-DB_NAME = "wedding.db"
+# 실행 파일(.exe)이면 exe가 있는 폴더를 기준으로 사용하고, 파이썬 파일(.py)이면 현재 파일이 있는 폴더를 기준으로 사용
+if getattr(sys, 'frozen', False): # getattr(): 객체의 속성을 가져오는 함수. getattr(객체, "속성명", 기본값) / sys.frozen 이 속성은 PyInstaller 같은 프로그램으로 exe를 만들었을 때만 생성
+    BASE_DIR = Path(sys.executable).parent # sys.executable: 현재 실행 중인 실행 파일의 경로
+else:
+    BASE_DIR = Path(__file__).resolve().parent # __file__: 현재 파이썬 파일 /  resolve(): 절대 경로 변환
+    
+DB_PATH = BASE_DIR / "wedding.db"
 
 # ==========================================
 # 연결
 # ==========================================
 def get_connection():
-    return sqlite3.connect(DB_NAME)
+    return sqlite3.connect(DB_PATH)
 
 # ==========================================
 # 초기 생성

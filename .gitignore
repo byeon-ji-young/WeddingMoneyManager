@@ -11,7 +11,11 @@ money.json
 
 # SQLite
 *.db
-*.db
 *.db-wal
 *.db-shm
 *.db-journal
+
+# etc
+build/
+dist/
+# *.spec
