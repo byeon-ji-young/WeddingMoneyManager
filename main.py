@@ -223,15 +223,6 @@ def display_data():
     #     money_list.delete(row)
     money_list.delete(*money_list.get_children())
 
-    # Treeview 생성 직후 안내 라벨 하나 생성
-    no_data_label = tk.Label(
-        tree_container,
-        text="등록된 지출 내역이 없습니다.",
-        font=("맑은 고딕", 11),
-        bg="white",
-        fg="#94A3B8",
-    )
-
     # 데이터가 없으면 안내 메시지 표시
     if not money_data:
         # money_list.insert("", "end", values=("", "", "등록된 지출 내역이 없습니다.", "", "", ""))
@@ -244,9 +235,14 @@ def display_data():
     for money in money_data:
         money_list.insert("", "end", iid=money['id'], values=(money['date'], money['category'], money['item'], money.get("shop", ""), f"{money['price']:,}원", money.get("payment", "")))
 
+    search_count_label.config(text=f"총 {len(money_data)}건")
+
 # 검색 및 필터링 기능
 def search_money():
     keyword = search_entry.get().strip() # strip: 앞 뒤 공백 제거
+    if keyword == "🔍 검색어 입력...":
+        keyword = ""
+
     category = category_filter.get()
     payment = payment_filter.get()
 
@@ -264,33 +260,25 @@ def search_money():
 
     money_list.delete(*money_list.get_children()) # *는 unpacking(언패킹)
 
-    result_count = 0
-
-    for money in money_data: # for money, index in enumerate(money_data) /  for money in money_data: index를 사용할거면 enumerate 사용
-        if keyword:
-            if keyword not in money["item"] and keyword not in money.get("shop", ""):
-                continue # continue: 다음 데이터 검사하러 가
-
-        if category:
-            if money["category"] != category:
-                continue
-
-        if payment:
-            if money.get("payment", "") != payment:
-                continue
-
+    results = database.get_expenses(keyword, category, payment)
+    
+    for money in results:
         money_list.insert("", "end", iid=money["id"], values=(money["date"], money["category"], money["item"], money.get("shop", ""), f"{money['price']:,}원", money.get("payment", "")))
 
-        result_count += 1
-
     # 검색 결과 없음
-    if result_count == 0:
-        money_list.insert("", "end", values=("", "", "검색 결과가 없습니다.", "", "", ""))
+    if len(results) == 0:
+        no_data_label.place(relx=0.5, rely=0.4, anchor="center") # 표 한가운데 안내 문구 띄우기 (relx=0.5, rely=0.4 는 중앙 위치)
+    else:
+        no_data_label.place_forget() # 데이터가 있으면 안내 문구 숨기기
+
+    search_count_label.config(text=f"총 {len(results)}건")
 
 # 검색 조건 초기화
 def reset_search():
      # 검색어 초기화
     search_entry.delete(0, tk.END)
+    search_entry.insert(0, "🔍 검색어 입력...")
+    search_entry.config(fg="#94A3B8")
 
     # 필터 초기화
     category_filter.set("전체")
@@ -451,16 +439,22 @@ progress_status.grid(row=2, column=0, columnspan=3, pady=(5, 10))
 
 
 # ==========================================
-# 6. 검색 및 필터 영역 (Search)
+# 6. 검색 및 필터 영역 (Search & Actions)
 # ==========================================
 list_frame = tk.Frame(window, bg="#F4F6F9")
 list_frame.pack(fill="both", expand=True, padx=30, pady=10) # expand는 부모 창에 남는 공간을 위젯이 가져갈지 결정. true면 남는 공간이 있을 경우 이 위젯에게 배분함
 
 # 검색 바 (Search Bar)
 search_frame = tk.Frame(list_frame, bg="#F4F6F9")
-search_frame.pack(fill="x", pady=(0, 10))
+search_frame.pack(fill="x", pady=(0, 12))
 
-# 검색 창
+# ------------------------------------------
+# [좌측] 검색어 입력, 필터, 초기화
+# ------------------------------------------
+left_search_frame = tk.Frame(search_frame, bg="#F4F6F9")
+left_search_frame.pack(side="left")
+
+# 검색 창 및 필터링 스타일
 entry_style = {
     "relief": "flat", # relief: 위젯의 테두리 모양 옵션. "solid": 실선, "flat": 테두리 없음 ...
     "bd": 0,
@@ -470,11 +464,6 @@ entry_style = {
     "highlightcolor": "#1F497D",  # 포커스(클릭) 시 테두리 색상
     "highlightthickness": 1,  # 테두리 두께
 }
-search_entry = tk.Entry(search_frame, font=("맑은 고딕", 10), width=15, **entry_style)
-search_entry.pack(side="left", padx=(0, 10))
-search_entry.bind("<KeyRelease>", lambda e: search_money())
-
-# 분류 필터
 style.configure(
     "TCombobox",
     fieldbackground="#FFFFFF",  # 기본 입력창 배경 (흰색)
@@ -490,53 +479,71 @@ style.map(
     selectforeground=[("readonly", "#1E293B"), ("focus", "#1E293B")],
     bordercolor=[("focus", "#1F497D")],
 ) # style.map(): 위젯의 상태별 변화
-tk.Label(search_frame, text="분류", font=("맑은 고딕", 9), bg="#F4F6F9", fg="#475569").pack(side="left", padx=(0, 4))
+
+# 1. 검색 결과 건수
+search_count_label = tk.Label(
+    left_search_frame,
+    text="총 0건",
+    font=("맑은 고딕", 9, "bold"),
+    bg="#F4F6F9",
+    fg="#64748B",
+    width=8,
+    anchor="w" # 상자 안에서 텍스트 왼쪽 정렬
+)
+search_count_label.pack(side="left", padx=(0, 8))
+
+# 2. 검색 입력창 (Placeholder 적용)
+search_entry = tk.Entry(left_search_frame, font=("맑은 고딕", 9), width=16, **entry_style)
+search_entry.pack(side="left", padx=(0, 8), ipady=3)
+
+# Placeholder 기능 (검색어 입력 힌트)
+def on_search_focus_in(e):
+    if search_entry.get() == "🔍 검색어 입력...":
+        search_entry.delete(0, tk.END)
+        search_entry.config(fg="#1E293B") # fg: 글자(텍스트) 색상
+
+def on_search_focus_out(e):
+    if not search_entry.get().strip():
+        search_entry.insert(0, "🔍 검색어 입력...")
+        search_entry.config(fg="#94A3B8")
+
+search_entry.insert(0, "🔍 검색어 입력...")
+search_entry.config(fg="#94A3B8")
+search_entry.bind("<FocusIn>", on_search_focus_in)
+search_entry.bind("<FocusOut>", on_search_focus_out)
+search_entry.bind("<KeyRelease>", lambda e: search_money())
+
+# 3. 분류 필터
+tk.Label(left_search_frame, text="분류", font=("맑은 고딕", 9), bg="#F4F6F9", fg="#475569").pack(side="left", padx=(4, 4))
 category_filter = ttk.Combobox(
-    search_frame,
+    left_search_frame,
     values=["전체", "예식장", "스드메", "스냅영상", "맞춤정장", "예물", "신혼여행", "가전", "가구", "생활용품", "기타"],
     width=8,
     state="readonly"
 )
 category_filter.current(0)
-category_filter.pack(side="left", padx=(0, 10))
+category_filter.pack(side="left", padx=(0, 8))
 category_filter.bind("<<ComboboxSelected>>", lambda e: search_money())
 
-# 결제수단 필터
-tk.Label(search_frame, text="결제수단", font=("맑은 고딕", 9), bg="#F4F6F9", fg="#475569").pack(side="left", padx=(0, 4))
+# 4. 결제수단 필터
+tk.Label(left_search_frame, text="결제수단", font=("맑은 고딕", 9), bg="#F4F6F9", fg="#475569").pack(side="left", padx=(0, 4))
 payment_filter = ttk.Combobox(
-    search_frame,
+    left_search_frame,
     values=["전체", "신용카드", "체크카드", "현금", "계좌이체"],
     width=8,
     state="readonly"
 )
 payment_filter.current(0)
-payment_filter.pack(side="left", padx=(0, 10))
+payment_filter.pack(side="left", padx=(0, 8))
 payment_filter.bind("<<ComboboxSelected>>", lambda e: search_money())
 
 # "<KeyRelease>" → 일반 이벤트 (기본 이벤트)
 # "<<ComboboxSelected>>" → 가상 이벤트 (Virtual Event)
 
-# 검색 버튼
-# search_button = tk.Button(
-#     filter_frame, 
-#     text="🔍 검색", 
-#     command=lambda: search_money(),
-#     font=("맑은 고딕", 9, "bold"), 
-#     bg="#475569", 
-#     fg="white", 
-#     activeforeground="white", # active 상태일 때 글자색 (active 상태란 마우스 오버 or 마우스 클릭)
-#     activebackground="#334155", # active 상태일 때 배경색
-#     relief="flat", 
-#     bd=0, 
-#     cursor="hand2", 
-#     width=8
-# )
-# search_button.pack(side="right")
-
-# 초기화 버튼
+# 5. 초기화 버튼
 reset_button = tk.Button(
     search_frame,
-    text="↻ 초기화",
+    text="↻",
     command=lambda: reset_search(),
     font=("맑은 고딕", 9, "bold"),
     bg="#94A3B8",
@@ -549,9 +556,15 @@ reset_button = tk.Button(
 )
 reset_button.pack(side="left")
 
+# ------------------------------------------
+# [우측] 관리 버튼들 (추가 / 수정 / 삭제)
+# ------------------------------------------
+right_action_frame = tk.Frame(search_frame, bg="#F4F6F9")
+right_action_frame.pack(side="right")
+
 # 우측 관리 버튼들 (추가 / 수정 / 삭제)
 del_btn = tk.Button(
-    search_frame,
+    right_action_frame,
     text="🗑 삭제",
     command=lambda: delete_money(),
     font=("맑은 고딕", 9, "bold"),
@@ -566,7 +579,7 @@ del_btn = tk.Button(
 del_btn.pack(side="right", padx=(4, 0))
 
 edit_btn = tk.Button(
-    search_frame,
+    right_action_frame,
     text="✏ 수정",
     command=lambda: open_edit_dialog(),
     font=("맑은 고딕", 9, "bold"),
@@ -581,7 +594,7 @@ edit_btn = tk.Button(
 edit_btn.pack(side="right", padx=(4, 0))
 
 add_btn = tk.Button(
-    search_frame,
+    right_action_frame,
     text="➕ 추가",
     command=lambda: open_add_dialog(),
     font=("맑은 고딕", 9, "bold"),
@@ -590,7 +603,7 @@ add_btn = tk.Button(
     relief="flat",
     bd=0,
     cursor="hand2",
-    padx=12,
+    padx=10,
     pady=3,
 )
 add_btn.pack(side="right", padx=(4, 0))
@@ -633,6 +646,14 @@ money_list.bind("<Double-1>", lambda e: open_edit_dialog()) # 더블클릭 연�
 money_list.pack(side="left", fill="both", expand=True)
 scrollbar.pack(side="right", fill="y")
 
+# Treeview 생성 직후 안내 라벨 하나 생성
+no_data_label = tk.Label(
+    tree_container,
+    text="등록된 지출 내역이 없습니다.",
+    font=("맑은 고딕", 11),
+    bg="white",
+    fg="#94A3B8",
+)
 
 # ==========================================
 # 8. 하단 요약 및 통계 그래프 영역 (Footer)

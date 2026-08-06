@@ -130,6 +130,71 @@ def get_all_expenses():
     finally:
         conn.close()
 
+# SEARCH
+def get_expenses(keyword="", category="", payment=""):
+    conn = get_connection()
+
+    try:
+        cursor = conn.cursor()
+
+        query = """
+            SELECT
+                id,
+                date,
+                category,
+                item,
+                shop,
+                price,
+                payment
+            FROM expenses
+            WHERE 1=1
+        """
+
+        params = []
+
+        if keyword:
+            query += """
+                AND (
+                    item LIKE ?
+                    OR shop LIKE ?
+                )
+            """
+            keyword_value = f"%{keyword}%"
+            params.extend([keyword_value, keyword_value])
+
+        if category:
+            query += """
+                AND category = ?
+            """
+            params.append(category)
+
+        if payment:
+            query += """
+                AND payment = ?
+            """
+            params.append(payment)
+
+        cursor.execute(query, params)
+
+        rows = cursor.fetchall()
+
+        expenses = []
+
+        for row in rows:
+            expenses.append({
+                "id": row[0],
+                "date": row[1],
+                "category": row[2],
+                "item": row[3],
+                "shop": row[4],
+                "price": row[5],
+                "payment": row[6]
+            })
+
+        return expenses
+
+    finally:
+        conn.close()
 
 # UPDATE
 def update_expense(expense_id, expense):
