@@ -10,10 +10,13 @@ __pycache__/
 money.json
 
 # SQLite
-# *.db
+*.db
 *.db-wal
 *.db-shm
 *.db-journal
+
+# 초기 배포용 DB는 Git 관리
+!resources/wedding.db
 
 # etc
 build/
