@@ -19,7 +19,7 @@ import json
 
 # [★팝업 창 분리] 팝업 창 모듈 불러오기
 from expense_dialog import ExpenseDialog
-from excel_exporter import excel_export_file
+from excel_export import excel_export_file
 from statistics import StatisticsWindow
 
 # ==========================================
