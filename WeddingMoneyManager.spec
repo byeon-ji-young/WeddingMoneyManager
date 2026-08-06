@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('wedding.db', '.')], # ('wedding.db', '.'): 1번째 → 원본 파일 위치 / 2번째 → exe 내부에서 저장될 폴더
+    datas=[('resources/wedding.db', '.')], # ('wedding.db', '.'): 1번째 → 원본 파일 위치 / 2번째 → exe 내부에서 저장될 폴더
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

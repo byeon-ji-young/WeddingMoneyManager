@@ -10,7 +10,7 @@ __pycache__/
 money.json
 
 # SQLite
-*.db
+# *.db
 *.db-wal
 *.db-shm
 *.db-journal
