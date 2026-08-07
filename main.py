@@ -2,9 +2,9 @@ import tkinter as tk # GUI를 만들기 위한 tkinter 라이브러리 불러오
 from tkinter import messagebox, ttk # tkinter 안에 있는 messagebox, ttk 기능 가져와줘
 
 # [★팝업 창 분리] 팝업 창 모듈 불러오기
-from expense_dialog import ExpenseDialog
+from ui.expense_dialog import ExpenseDialog
 from excel_export import excel_export_file
-from statistics_window import StatisticsWindow
+from ui.statistics_window import StatisticsWindow
 from utils.csv_export import csv_export_file
 from utils.database_backup import backup_database, restore_database
 
