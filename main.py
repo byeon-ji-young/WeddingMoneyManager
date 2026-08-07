@@ -2,11 +2,14 @@ import tkinter as tk # GUI를 만들기 위한 tkinter 라이브러리 불러오
 from tkinter import messagebox, ttk # tkinter 안에 있는 messagebox, ttk 기능 가져와줘
 
 # [★팝업 창 분리] 팝업 창 모듈 불러오기
-from ui.expense_dialog import ExpenseDialog
 from excel.excel_export import excel_export_file
-from ui.statistics_window import StatisticsWindow
+
 from utils.csv_export import csv_export_file
 from utils.database_backup import backup_database, restore_database
+
+from ui.expense_dialog import ExpenseDialog
+from ui.statistics_window import StatisticsWindow
+from ui.category_window import CategoryWindow
 
 import database
 
@@ -333,6 +336,10 @@ def open_statistics():
         return
 
     StatisticsWindow(window, money_data)
+
+# 카테고리 팝업 생성
+def open_category_window():
+    CategoryWindow(window)
 
 # ==========================================
 # 4. 상단 타이틀 및 예산 설정 영역
@@ -712,6 +719,17 @@ csv_button = tk.Button(
     relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
 )
 csv_button.pack(side="left", padx=3)
+
+category_button = tk.Button(
+    stat_btn_frame,
+    text="카테고리 관리",
+    command=open_category_window
+)
+
+category_button.pack(
+    side="left",
+    padx=5
+)
 
 # side: 위젯을 어느 방향으로 배치할지 (side는 pack()에서만 사용하는 옵션)
 # anchor: 배치된 공간 안에서 위젯(또는 내용)을 어느 쪽에 붙일지

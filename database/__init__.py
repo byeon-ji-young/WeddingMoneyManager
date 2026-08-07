@@ -17,6 +17,15 @@ from .settings import (
     update_setting
 )
 
+from .category import (
+    get_category_list,
+    get_all_categories,
+    add_category,
+    update_category,
+    is_category_used,
+    delete_category
+)
+
 # database 패키지에서 자주 사용하는 기능을 외부에 노출
 # 그래서 main.py에서는:
 #

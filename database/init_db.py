@@ -1,6 +1,7 @@
 import shutil
 import sys
 from pathlib import Path
+import sqlite3
 
 from .connection import get_connection, DB_PATH
 
@@ -51,6 +52,9 @@ def create_database():
     try:
         cursor = conn.cursor() # Python -> cursor -> SQLite. (cursor는 데이터베이스와 대화하는 객체)
 
+        # --------------------------------------
+        # expenses 테이블
+        # --------------------------------------
         # cursor.execute(): SQL 명령을 실행하는 함수
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS expenses (
@@ -66,6 +70,9 @@ def create_database():
         # """...""", '''...''' : 여러 줄 문자열에 사용 (SQL, 긴 문장, 설명 등에 적합)
         # "...", '...' : 일반적인 문자열에 주로 사용
         
+        # --------------------------------------
+        # settings 테이블
+        # --------------------------------------
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS settings (
                 key TEXT PRIMARY KEY,
@@ -78,9 +85,29 @@ def create_database():
             VALUES ('budget', '60000000')
         """)
 
+        # --------------------------------------
+        # categories 테이블
+        # --------------------------------------
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL
+            )
+        """)
+
+        default_categories = ["예식장", "스드메", "스냅영상", "맞춤정장", "예물", "신혼여행", "가전", "가구", "생활용품", "기타"]
+
+        for category in default_categories:
+            cursor.execute("""
+                INSERT OR IGNORE INTO categories(name)
+                VALUES (?)
+            """, (category,))
+        # execute()는 두 번째 인자로 여러 값을 가진 튜플 형태를 작성해야 됨. (category,) 이렇게 작성한 이유는 값이 하나 들어있는 튜플 형태를 만들기 위함
+
         conn.commit()
 
-    except Exception as e:
+    # except Exception as e:
+    except sqlite3.Error as e:
         print(f"DB Error : {e}")
     
     finally:
