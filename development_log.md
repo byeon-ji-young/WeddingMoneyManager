@@ -224,3 +224,55 @@
 #### Release
 - Release **v0.9.0 생성**
 - SQLite 기반 데이터 저장 방식 적용 완료
+
+---
+
+### SQLite 데이터 관리 기능 개선
+
+#### Added
+- CSV Export 기능 추가
+- SQLite Database Backup 기능 추가
+- SQLite Database Restore 기능 추가
+- 복원 전 기존 데이터 자동 백업 처리
+- 검색 결과 건수 표시 기능 추가
+
+#### Improvement
+- 데이터 관리 안정성 개선
+- 사용자 데이터 보호 기능 강화
+- 버튼 UI 및 레이아웃 개선
+
+#### Refactoring
+- 데이터 관리 기능 구조 정리
+- Backup / Restore 기능 모듈 분리
+
+---
+
+## 📅 2026-08-07
+
+### Windows 실행 파일 배포 환경 개선
+
+#### Added
+- PyInstaller 기반 exe 빌드 환경 구성
+- `WeddingMoneyManager.spec` 파일 추가 및 빌드 설정 관리
+- exe 아이콘 적용
+- 배포용 초기 SQLite DB 리소스 추가
+
+#### Changed
+- exe 실행 환경에서 SQLite DB 경로 처리 방식 개선
+- PyInstaller 내부 리소스(`_internal/wedding.db`)를 초기 DB 템플릿으로 사용
+- 최초 실행 시 초기 DB를 사용자 영역 DB로 복사하는 구조 적용
+- 기존 데이터 유지가 가능하도록 DB 초기화 로직 개선
+
+#### Resource
+- 초기 배포용 DB를 `resources/wedding.db`로 분리
+- Git에서 관리되는 템플릿 DB와 실행 후 생성되는 사용자 DB 구분
+- `.gitignore` 예외 설정을 통해 템플릿 DB 관리
+
+#### Build
+- PyInstaller `onedir` 방식 적용
+- spec 파일 기반 빌드 방식으로 변경
+- 빌드 결과물 구조 정리
+
+#### Release
+- Release **v1.0.0 준비**
+- Windows exe 배포 환경 구성 완료

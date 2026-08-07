@@ -1,6 +1,7 @@
-# 📚 Python & Tkinter Study Note
+# 📚 Python Desktop Application Development Log
 
-> WeddingMoneyManager 프로젝트를 만들면서 학습한 Python, Tkinter 문법 및 개념 정리
+> WeddingMoneyManager는 결혼 준비 비용 관리를 위해 제작한 Python 기반 Desktop Application이다.
+> 초기 JSON 저장 방식에서 SQLite Database 구조로 개선하고, Tkinter GUI, Excel 자동화 Report, Windows 실행 파일 배포까지 전체 개발 과정을 기록한다.
 
 ---
 
@@ -162,8 +163,7 @@ return total
 
 익명 함수(이름이 없는 함수)를 만드는 문법이다.
 
-주로 Tkinter에서 버튼 클릭이나 이벤트 처리 시
-함수의 실행을 나중으로 미루거나 인자를 전달할 때 사용한다.
+주로 Tkinter에서 버튼 클릭이나 이벤트 처리 시 함수의 실행을 나중으로 미루거나 인자를 전달할 때 사용한다.
 
 ```python
 lambda x: x + 1
@@ -796,18 +796,42 @@ isinstance()
 
 ---
 
-# 14. 프로젝트에서 자주 사용하는 함수
+## Figure와 Axes 구조
 
-- display_data() → Treeview 화면 갱신
-- update_total() → 총 지출/예산 계산
-- save_data() → JSON 저장
-- load_data() → JSON 불러오기
-- search_money() → 검색 기능
-- sort_column() → 컬럼 정렬
+Matplotlib은 Figure와 Axes 객체로 구성된다.
+
+Figure:
+- 전체 그래프 영역
+
+Axes:
+- 실제 그래프가 그려지는 영역
+
+
+구조:
+
+Figure
+ └── Axes
+      ├── Title
+      ├── Axis
+      └── Plot
+
+
+Tkinter와 같이 여러 그래프를 관리하는 환경에서는 Axes 객체를 직접 제어하는 방식이 적합하다.
+
+---
+
+# 14. WeddingMoneyManager 주요 구현 함수
+
+- display_data() → Treeview 데이터 화면 출력
+- update_total() → 예산 및 지출 현황 계산
+- search_money() → 검색 및 필터 기능 처리
+- sort_column() → Treeview 컬럼 정렬
 - animate_progress() → ProgressBar 애니메이션
-- update_budget() → 예산 변경
+- update_budget() → 예산 설정 변경
+- database.py CRUD 함수 → SQLite 데이터 관리
+- export_excel() → Excel Report 생성
 
-※ 자세한 구현 내용은 main.py의 각 함수 주석 참고
+※ 실제 구현 내용은 프로젝트 소스 코드(main.py, database.py) 참고
 
 ---
 
@@ -879,9 +903,7 @@ from openpyxl.chart import Reference
 
 # 16. ttk Style & UI 디자인
 
-WeddingMoneyManager의 화면 개선 과정에서
-기본 Tkinter 위젯만 사용하는 방식에서 벗어나
-ttk.Style을 활용하여 UI 스타일을 관리하였다.
+WeddingMoneyManager의 화면 개선 과정에서 기본 Tkinter 위젯만 사용하는 방식에서 벗어나 ttk.Style을 활용하여 UI 스타일을 관리하였다.
 
 기존 문제:
 - 위젯마다 개별 옵션 지정 필요
@@ -912,8 +934,7 @@ style.configure(
 
 ## Theme 변경
 
-Tkinter 기본 디자인 대신
-ttk Theme을 적용할 수 있다.
+Tkinter 기본 디자인 대신 ttk Theme을 적용할 수 있다.
 
 ```python
 style.theme_use("clam")
@@ -959,9 +980,7 @@ WeddingMoneyManager에서는 입력 영역을 분리하기 위해 사용하였�
 
 # 17. Dashboard UI 설계
 
-기존 Treeview 중심 화면에서
-사용자가 중요한 정보를 빠르게 확인할 수 있도록
-Dashboard 형태의 UI로 개선하였다.
+기존 Treeview 중심 화면에서 사용자가 중요한 정보를 빠르게 확인할 수 있도록 Dashboard 형태의 UI로 개선하였다.
 
 주요 구성:
 
@@ -975,8 +994,7 @@ Dashboard 형태의 UI로 개선하였다.
 
 ## Card UI
 
-Tkinter에는 기본 Card 위젯이 없기 때문에
-Frame과 Label을 조합하여 직접 구현하였다.
+Tkinter에는 기본 Card 위젯이 없기 때문에 Frame과 Label을 조합하여 직접 구현하였다.
 
 구조:
 
@@ -999,9 +1017,7 @@ value = tk.Label(card)
 
 # 18. Matplotlib + Tkinter 연동
 
-Matplotlib 그래프를
-Tkinter 화면 내부에 표시하기 위해
-FigureCanvasTkAgg를 사용하였다.
+Matplotlib 그래프를 Tkinter 화면 내부에 표시하기 위해 FigureCanvasTkAgg를 사용하였다.
 
 ```python
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -1057,9 +1073,7 @@ Matplotlib에서는 그래프를 생성하는 방법이 크게 두 가지가 있
 - pyplot 방식 (`plt`)
 - 객체 지향 방식 (`fig`, `ax`)
 
-초기에는 간단한 그래프 생성을 위해 pyplot 방식을 사용할 수 있지만,
-Tkinter와 같이 여러 화면에서 그래프를 관리하는 경우
-객체 지향 방식이 더 적합하다.
+초기에는 간단한 그래프 생성을 위해 pyplot 방식을 사용할 수 있지만, Tkinter와 같이 여러 화면에서 그래프를 관리하는 경우 객체 지향 방식이 더 적합하다.
 
 ---
 
@@ -1071,7 +1085,7 @@ Tkinter와 같이 여러 화면에서 그래프를 관리하는 경우
 | 대상 | 현재 활성 그래프 | 지정한 ax 객체 |
 | 단일 그래프 | 가능 | 가능 |
 | 여러 그래프 | 관리 불편 | 적합 |
-| Tkinter 같은 UI | 비추천 | 추천 |
+| Tkinter 같은 UI | 관리 어려움 | 적합 |
 | 코드 관리 | 낮음 | 높음 |
 
 ---
@@ -1158,8 +1172,7 @@ ax.set_title()
 
 # 19. 데이터 구조 개선
 
-초기에는 Treeview Index를 기준으로
-데이터를 관리하였다.
+초기 버전에서는 List Index를 기준으로 데이터를 관리하였다.
 
 문제점:
 
@@ -1190,7 +1203,7 @@ ax.set_title()
 
 # 20. SQLite Migration
 
-기존에는 JSON 파일(`money.json`)을 이용하여 데이터를 저장하였다.
+초기 버전에서는 JSON 파일(`money.json`)을 이용하여 데이터를 저장하였다.
 
 변경 전:
 
@@ -1230,22 +1243,21 @@ SQLite Database
 * SQL 기반 데이터 조회 가능
 * 데이터 CRUD 구조 명확화
 * 저장 데이터 관리 안정성 향상
-* 향후 Flutter 앱 연동을 고려한 구조 마련
+* 향후 모바일 앱 또는 API 서버 구조로 확장 가능한 기반 마련
 
 ---
 
 # 21. SQLite Database 기초
 
-SQLite는 별도의 데이터베이스 서버 없이
-하나의 파일로 동작하는 관계형 데이터베이스이다.
+SQLite는 별도의 데이터베이스 서버 없이 하나의 파일로 동작하는 관계형 데이터베이스이다.
 
-WeddingMoneyManager에서는:
+WeddingMoneyManager에서는 SQLite 데이터베이스 파일인:
 
 ```text
 wedding.db
 ```
 
-파일을 생성하여 데이터를 저장한다.
+를 이용하여 지출 데이터와 설정 데이터를 관리한다.
 
 ## sqlite3 연결
 
@@ -1256,6 +1268,8 @@ import sqlite3
 
 conn = sqlite3.connect("wedding.db")
 cursor = conn.cursor()
+
+conn.commit()
 ```
 
 ## Table 생성
@@ -1314,6 +1328,9 @@ INSERT INTO expenses
 (date, category, item, price)
 VALUES (?, ?, ?, ?)
 ```
+### Parameter Binding
+
+SQL Query에 값을 직접 문자열로 넣지 않고 ? Placeholder를 사용한다.
 
 ## Read
 
@@ -1343,8 +1360,7 @@ DELETE FROM expenses
 WHERE id = ?
 ```
 
-Python 코드에서는 SQL Query를 직접 main.py에서 관리하지 않고,
-`database.py`에서 담당하도록 분리하였다.
+Python 코드에서는 SQL Query를 직접 main.py에서 관리하지 않고, `database.py`에서 담당하도록 분리하였다.
 
 ---
 
@@ -1397,14 +1413,13 @@ main.py
 * 유지보수 쉬움
 * 테스트 용이
 * 향후 다른 저장 방식으로 변경 가능
-* Flutter 앱 API 서버 구조로 확장하기 쉬움
+* 향후 API 서버 구조로 확장하기 쉬운 형태로 개선
 
 ---
 
 # 24. JSON → SQLite 데이터 Migration
 
-기존 JSON 데이터를 SQLite 데이터베이스로 이전하기 위해
-Migration 스크립트를 작성하였다.
+기존 JSON 데이터를 SQLite 데이터베이스로 이전하기 위해 Migration 스크립트를 작성하였다.
 
 구조:
 
@@ -1439,30 +1454,201 @@ VALUES (...)
 
 4. 데이터 저장
 
-Migration을 별도의 파일로 분리하여
-기존 데이터 보존과 테스트가 가능하도록 구성하였다.
+Migration을 별도의 파일로 분리하여 기존 데이터 보존과 테스트가 가능하도록 구성하였다.
 
 ---
 
 # 25. 프로젝트 구조 개선
 
-SQLite 적용 이후 프로젝트 구조:
+SQLite 적용 및 기능 확장 이후 WeddingMoneyManager 프로젝트는 기능별 역할을 분리하는 구조로 개선하였다.
+
 
 ```text
-main.py
- |
- ├── UI 처리
-
-database.py
- |
- ├── SQLite 연결
- ├── CRUD 처리
-
-migrate_json_to_sqlite.py
- |
- └── 기존 JSON 데이터 이전
+WeddingMoneyManager
+│
+├── main.py
+│   └── 프로그램 실행 및 메인 UI 관리
+│
+├── database.py
+│   └── SQLite 연결 및 CRUD 처리
+│
+├── database_backup.py
+│   └── Database 백업 관련 기능
+│
+├── expense_dialog.py
+│   └── 지출 추가/수정 입력 Dialog
+│
+├── statistics_window.py
+│   └── 통계 화면 및 분석 기능
+│
+├── excel_export.py
+│   └── Excel Report 생성 기능
+│
+├── csv_export.py
+│   └── CSV 데이터 내보내기 기능
+│
+├── migrate_json_to_sqlite.py
+│   └── 기존 JSON 데이터 SQLite Migration 처리
+│
+├── sql/
+│   └── init.sql
+│       └── Database Table 생성 SQL 관리
+│
+├── excel/
+│   ├── chart.py
+│   │   └── Excel Chart 생성
+│   │
+│   ├── detail.py
+│   │   └── 상세 지출 내역 Sheet 생성
+│   │
+│   ├── summary.py
+│   │   └── Dashboard Summary Sheet 생성
+│   │
+│   └── style.py
+│       └── Excel Style 관리
+│
+├── backup/
+│   ├── app.py
+│   ├── main_backup.py
+│   └── money_backup.json
+│       └── 개발 과정 중 이전 버전 및 데이터 보관
+│
+├── resources/
+│   └── wedding.db
+│       └── 배포용 초기 Database Template
+│
+├── images/
+│   └── README 및 문서 작성용 이미지
+│
+├── icon.ico
+│   └── Application Icon
+│
+├── WeddingMoneyManager.spec
+│   └── PyInstaller Build 설정
+│
+├── requirements.txt
+│   └── Python Package Dependency 관리
+│
+├── README.md
+├── development_log.md
+└── study.md
 ```
 
-저장 방식과 화면 로직을 분리하면서
-프로젝트가 단순한 GUI 프로그램에서
-확장 가능한 애플리케이션 구조로 개선되었다.
+저장 방식과 화면 로직을 분리하면서 프로젝트가 단순한 GUI 프로그램에서 확장 가능한 애플리케이션 구조로 개선되었다.
+
+---
+
+# 26. Build & Deployment
+
+PyInstaller를 이용하여 Python 실행 환경이 없는 Windows 사용자도 사용할 수 있도록 실행 파일 배포 환경을 구성하였다.
+
+WeddingMoneyManager는 단순히 Python 코드를 실행하는 방식에서 벗어나,
+사용자가 Python 설치 없이 실행할 수 있는 Windows Desktop Application 형태로 배포하는 것을 목표로 하였다.
+
+---
+
+## PyInstaller 설치
+
+Python 프로젝트를 실행 파일로 변환하기 위해 PyInstaller를 설치한다.
+
+```bash
+python -m pip install pyinstaller
+```
+---
+
+## Build
+
+main.py를 기준으로 실행 파일을 생성한다.
+
+```bash
+pyinstaller --onedir --windowed --name WeddingMoneyManager main.py
+```
+| 옵션         | 설명                       |
+| ---------- | ------------------------ |
+| --onedir   | 필요한 라이브러리와 파일을 폴더 형태로 생성 |
+| --windowed | 콘솔 창 없이 GUI 프로그램 실행      |
+| --name     | 생성되는 실행 파일 이름 지정         |
+
+---
+
+## spec 기반 Build
+```bash
+pyinstaller WeddingMoneyManager.spec
+```
+
+또는 기존 Build 결과물을 삭제하고 다시 생성:
+```bash
+pyinstaller --clean WeddingMoneyManager.spec
+```
+
+## WeddingMoneyManager.spec 역할
+.spec 파일은 PyInstaller Build 설정 파일이다. 실행 파일 생성 과정에서 필요한 설정을 관리한다.
+- 실행 파일 이름
+- 아이콘 설정
+- hidden import 설정
+- 포함할 데이터 파일
+- 추가 리소스 설정
+
+## 프로젝트 Build 구조
+```text
+WeddingMoneyManager
+│
+├── main.py
+│
+├── resources
+│   └── wedding.db
+│
+├── icon.ico
+│
+└── WeddingMoneyManager.spec
+```
+
+## Build 과정
+```text
+Python Source Code
+        ↓
+WeddingMoneyManager.spec
+        ↓
+PyInstaller Build
+        ↓
+WeddingMoneyManager.exe
+```
+
+## 주요 설정
+- hidden import 관리
+- icon 설정
+- 데이터 파일 포함
+- 배포 환경 테스트
+
+## 배포 결과
+Build 완료 후 생성된 실행 파일은 Python 환경이 없는 Windows에서도 실행 가능하다.
+
+```text
+WeddingMoneyManager
+│
+├── WeddingMoneyManager.exe
+├── resources
+│   └── wedding.db
+└── 기타 실행 파일 및 라이브러리
+```
+이를 통해 Python 개발 환경이 없는 Windows 사용자도 WeddingMoneyManager를 별도의 Python 설치 없이 실행할 수 있도록 배포 환경을 구성하였다.
+
+---
+
+# 27. Project Summary
+
+WeddingMoneyManager는 단순한 GUI 프로그램 제작을 넘어, 실제 사용 가능한 데스크톱 애플리케이션 구조를 목표로 개발하였다.
+
+단순 기능 구현을 넘어 데이터 저장 구조 개선, UI/데이터 계층 분리, 자동화 리포트 생성, 배포 환경 구축까지 실제 서비스 개발 과정과 유사한 흐름으로 프로젝트를 발전시켰다.
+
+적용 기술:
+
+| 영역 | 적용 기술 |
+|---|---|
+| GUI | Tkinter, ttk |
+| Database | SQLite, CRUD |
+| Architecture | Data Access Layer 분리 |
+| Visualization | Matplotlib |
+| Excel Automation | openpyxl |
+| Deployment | PyInstaller |
+| Version Control | Git / GitHub |

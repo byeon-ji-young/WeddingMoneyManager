@@ -2,6 +2,14 @@
 
 > **Python Tkinter를 이용해 개발한 신혼 자금 관리 데스크톱 애플리케이션**
 
+## 📦 Download
+
+Windows 환경에서는 PyInstaller로 빌드된 실행 파일(`WeddingMoneyManager.exe`)을 통해 사용할 수 있습니다.
+
+> Release 페이지에서 최신 버전을 다운로드할 수 있습니다.
+
+--- 
+
 결혼 준비 과정에서 발생하는 **예식, 혼수, 가전·가구, 생활용품, 신혼여행** 등의 다양한 지출을 체계적으로 관리하기 위해 개발한 개인 프로젝트입니다.
 
 예산 설정부터 지출 내역 관리, 검색 및 필터링, Dashboard를 통한 예산 현황 확인, Excel Report 생성을 통한 지출 분석까지 실제 사용을 고려하여 구현했습니다.
@@ -19,7 +27,7 @@
 
 WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 프로그램으로, 단순한 가계부를 넘어 **예산 관리와 지출 분석 기능을 제공하는 데스크톱 애플리케이션**입니다.
 
-이 프로젝트를 통해 Python GUI 프로그래밍(Tkinter), SQLite 데이터베이스, 이벤트 처리, 객체 지향 설계, 모듈 분리, 데이터 시각화(Matplotlib), Excel 자동화(openpyxl)를 학습하고 적용했습니다.
+이 프로젝트를 통해 Python GUI 프로그래밍(Tkinter), SQLite 데이터베이스, 이벤트 처리, 객체 지향 설계, 모듈 분리, 데이터 시각화(Matplotlib), Excel 자동화(openpyxl), Windows 실행 파일 배포(PyInstaller)를 학습하고 적용했습니다.
 
 ---
 
@@ -82,13 +90,6 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 * [x] 카테고리별 BarChart 생성
 * [x] 월별 지출 LineChart 생성
 
---- 
-
-### Planned
-- [ ] 데이터 백업 및 복원
-- [ ] 검색 기능 개선
-- [ ] 실행 파일(.exe) 배포
-
 ---
 
 # 🛠 기술 스택
@@ -104,6 +105,7 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 | Calendar        | tkcalendar         |
 | Development     | Visual Studio Code |
 | Version Control | Git / GitHub       |
+| Build           | PyInstaller        |
 
 ---
 
@@ -114,11 +116,15 @@ WeddingMoneyManager
 │
 ├── main.py
 ├── database.py
+├── database_backup.py
 ├── expense_dialog.py
-├── statistics.py
-├── excel_exporter.py
+├── statistics_window.py
+├── excel_export.py
+├── csv_export.py
 ├── migrate_json_to_sqlite.py
-├── init.sql
+│
+├── sql/
+│   ├── init.sql
 │
 ├── excel/
 │   ├── chart.py
@@ -131,11 +137,26 @@ WeddingMoneyManager
 │   ├── main_backup.py
 │   └── money_backup.json
 │
+├── images/
+│   ├── main.png
+│   ├── expense_dialog.png
+│   ├── excel_export_1.png
+│   ├── excel_export_2.png
+│   ├── statistics_1.png
+│   └── statistics_2.png
+│
+├── resources
+│   └── wedding.db            # 배포용 초기 템플릿 DB
+│
+├── icon.ico
+├── WeddingMoneyManager.spec
+│
 ├── README.md
 ├── development_log.md
 ├── study.md
 └── requirements.txt
 ```
+`resources/wedding.db`는 배포용 초기 템플릿 DB이며, 실행 후 생성되는 사용자 데이터 DB는 별도로 관리됩니다.
 
 ---
 
@@ -180,6 +201,32 @@ python -m pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+---
+
+## Windows 실행 파일
+
+Windows 환경에서는 빌드된 실행 파일을 통해 프로그램을 사용할 수 있습니다.
+
+```text
+dist/
+└── WeddingMoneyManager/
+    ├── WeddingMoneyManager.exe
+    └── _internal/
+        └── wedding.db (초기 템플릿 DB)
+```
+실행 시 포함된 초기 DB(`_internal/wedding.db`)는 초기 데이터 구조 제공용으로 사용됩니다.
+
+이후 프로그램에서 생성되는 데이터는 사용자 DB에서 관리되어, 프로그램 업데이트 및 재배포 시 기존 데이터를 유지할 수 있습니다.
+
+## Build (Developer)
+
+PyInstaller spec 파일을 이용하여 Windows 실행 파일을 생성합니다.
+
+```bash
+pyinstaller WeddingMoneyManager.spec
+```
+
 
 ---
 
@@ -229,29 +276,57 @@ CREATE TABLE settings (
 
 # 📷 화면
 
-추후 실행 화면 추가 예정
+## 메인 Dashboard
 
-* 메인 Dashboard
-* 지출 등록 / 수정 팝업
-* Excel Summary Report
-* 지출 상세 내역
+<!-- ![메인 Dashboard](images/main.png) -->
+<p align="center">
+  <img src="images/main.png" width="500">
+</p>
+
+---
+
+## 지출 등록 / 수정
+
+<!-- ![지출 등록](images/expense_dialog.png) -->
+<p align="center">
+  <img src="images/expense_dialog.png" width="200">
+</p>
+
+---
+
+## Excel Report
+
+<!-- ### Summary Dashboard
+
+![Excel Summary](images/excel_export_1.png)
+
+### Detail Sheet
+
+![Excel Detail](images/excel_export_2.png) -->
+
+<p align="center">
+  <img src="images/excel_export_1.png" width="500">
+  <img src="images/excel_export_2.png" width="500">
+</p>
+
+---
+
+## 통계 화면
+
+<!-- ![통계](images/statistics.png) -->
+<p align="center">
+  <img src="images/statistics_1.png" width="500">
+  <img src="images/statistics_2.png" width="500">
+</p>
 
 ---
 
 # 🗺 Roadmap
 
-## v1.0.0
-
-- [ ] 검색 결과 건수 표시
-- [ ] CSV 내보내기
-- [ ] 데이터 백업 및 복원
-- [ ] 실행 파일(.exe) 배포
-
-## Future
+## Future Improvements
 
 - [ ] Flutter 모바일 앱 개발
 - [ ] 클라우드 데이터 동기화
-- [ ] 사용자 계정 기능
 
 ---
 
@@ -264,6 +339,7 @@ CREATE TABLE settings (
 | v0.7.0 | Dashboard UI 완성 / Card UI 적용 / 예산·지출·잔액 표시 / ExpenseDialog UI 개선 / 프로젝트 구조 정리 |
 | v0.8.0 | 통계창 완성 / 최근 지출 TOP5 추가 / 버튼 및 레이아웃 개선 / 그래프 디자인 마무리 |
 | v0.9.0 | SQLite 데이터베이스 적용 / JSON → SQLite 마이그레이션 / database.py 분리 / settings 테이블 추가 / DB 기반 CRUD 구현 |
+| v1.0.0 | CSV Export / Database Backup & Restore / SQLite 데이터 관리 개선 / PyInstaller exe 배포 환경 구축 / 초기 DB 리소스 관리 / 사용자 DB 분리 / 배포 환경 안정화 |
 
 ---
 
@@ -282,4 +358,4 @@ CREATE TABLE settings (
 
 WeddingMoneyManager는 결혼 준비 과정에서 발생하는 실제 지출 데이터를 관리하기 위해 개발한 개인 프로젝트입니다.
 
-단순한 기능 구현을 넘어 Python GUI 프로그래밍(Tkinter), SQLite 데이터베이스 설계 및 CRUD 구현, 이벤트 처리, 객체 지향 설계, 모듈 분리, 데이터 시각화(Matplotlib), Excel 자동화(openpyxl) 등 실제 애플리케이션 개발 과정에서 필요한 기술을 학습하고 적용했습니다.
+단순한 기능 구현을 넘어 Python GUI 프로그래밍(Tkinter), SQLite 데이터베이스 설계 및 CRUD 구현, 이벤트 처리, 객체 지향 설계, 모듈 분리, 데이터 시각화(Matplotlib), Excel 자동화(openpyxl), Windows 실행 파일 배포(PyInstaller) 등 실제 애플리케이션 개발 과정에서 필요한 기술을 학습하고 적용했습니다.
