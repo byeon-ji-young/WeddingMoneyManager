@@ -1,16 +1,13 @@
 from .connection import get_connection
 
-
 # ==========================================
 # settings table
 # ==========================================
-
 
 # ==========================================
 # READ
 # ==========================================
 def get_setting(key):
-
     conn = get_connection()
 
     try:
@@ -32,13 +29,10 @@ def get_setting(key):
     finally:
         conn.close()
 
-
-
 # ==========================================
 # CREATE / UPDATE
 # ==========================================
 def update_setting(key, value):
-
     conn = get_connection()
 
     try:
