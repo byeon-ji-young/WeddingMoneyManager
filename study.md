@@ -828,8 +828,8 @@ Tkinter와 같이 여러 그래프를 관리하는 환경에서는 Axes 객체�
 - sort_column() → Treeview 컬럼 정렬
 - animate_progress() → ProgressBar 애니메이션
 - update_budget() → 예산 설정 변경
-- database.py CRUD 함수 → SQLite 데이터 관리
 - export_excel() → Excel Report 생성
+- database/ → SQLite 데이터 관리
 
 ※ 실제 구현 내용은 프로젝트 소스 코드(main.py, database.py) 참고
 
@@ -1313,6 +1313,15 @@ CREATE TABLE expenses (
 | key    | TEXT | 설정 이름       |
 | value  | TEXT | 설정 값        |
 
+### categories
+
+카테고리 저장
+
+| Column | Type    | Description |
+| ------ | ------- | ----------- |
+| id     | INTEGER | 고유 ID      |
+| name   | TEXT    | 카테고리명    |
+
 ---
 
 # 22. CRUD (Create Read Update Delete)
@@ -1462,77 +1471,61 @@ Migration을 별도의 파일로 분리하여 기존 데이터 보존과 테스�
 
 SQLite 적용 및 기능 확장 이후 WeddingMoneyManager 프로젝트는 기능별 역할을 분리하는 구조로 개선하였다.
 
+### 프로젝트 구조 설명
 
-```text
-WeddingMoneyManager
-│
-├── main.py
-│   └── 프로그램 실행 및 메인 UI 관리
-│
-├── database.py
-│   └── SQLite 연결 및 CRUD 처리
-│
-├── database_backup.py
-│   └── Database 백업 관련 기능
-│
-├── expense_dialog.py
-│   └── 지출 추가/수정 입력 Dialog
-│
-├── statistics_window.py
-│   └── 통계 화면 및 분석 기능
-│
-├── excel_export.py
-│   └── Excel Report 생성 기능
-│
-├── csv_export.py
-│   └── CSV 데이터 내보내기 기능
-│
-├── migrate_json_to_sqlite.py
-│   └── 기존 JSON 데이터 SQLite Migration 처리
-│
-├── sql/
-│   └── init.sql
-│       └── Database Table 생성 SQL 관리
-│
-├── excel/
-│   ├── chart.py
-│   │   └── Excel Chart 생성
-│   │
-│   ├── detail.py
-│   │   └── 상세 지출 내역 Sheet 생성
-│   │
-│   ├── summary.py
-│   │   └── Dashboard Summary Sheet 생성
-│   │
-│   └── style.py
-│       └── Excel Style 관리
-│
-├── backup/
-│   ├── app.py
-│   ├── main_backup.py
-│   └── money_backup.json
-│       └── 개발 과정 중 이전 버전 및 데이터 보관
-│
-├── resources/
-│   └── wedding.db
-│       └── 배포용 초기 Database Template
-│
-├── images/
-│   └── README 및 문서 작성용 이미지
-│
-├── icon.ico
-│   └── Application Icon
-│
-├── WeddingMoneyManager.spec
-│   └── PyInstaller Build 설정
-│
-├── requirements.txt
-│   └── Python Package Dependency 관리
-│
-├── README.md
-├── development_log.md
-└── study.md
-```
+- **main.py**
+  - 프로그램 실행 및 메인 화면(UI) 관리
+
+- **database/**
+  - SQLite 데이터베이스 관련 모듈
+  - `connection.py` : 데이터베이스 연결 관리
+  - `init_db.py` : 데이터베이스 및 테이블 초기 생성
+  - `expense.py` : 지출 내역 CRUD
+  - `settings.py` : 예산 설정 관리
+  - `category.py` : 카테고리 조회·추가·수정·삭제
+
+- **ui/**
+  - Tkinter 화면(UI) 관련 모듈
+  - `expense_dialog.py` : 지출 등록 및 수정 창
+  - `statistics_window.py` : 통계 및 그래프 화면
+  - `category_window.py` : 카테고리 관리 화면
+
+- **utils/**
+  - 부가 기능 모듈
+  - `csv_export.py` : CSV 내보내기
+  - `database_backup.py` : DB 백업 및 복원
+
+- **excel/**
+  - Excel 리포트 생성 모듈
+  - `excel_export.py` : Excel 생성 흐름 관리
+  - `detail.py` : 지출 내역 시트 생성
+  - `summary.py` : 요약(Dashboard) 시트 생성
+  - `chart.py` : 차트 생성
+  - `style.py` : 셀 스타일 관리
+
+- **resources/**
+  - `wedding.db` : 배포용 초기 SQLite 템플릿 DB
+
+- **images/**
+  - README 문서에 사용하는 이미지
+
+- **archive/**
+  - 개발 과정에서 보관한 이전 버전 소스 및 데이터
+
+- **migrate_json_to_sqlite.py**
+  - JSON 데이터를 SQLite로 이전하는 마이그레이션 스크립트
+
+- **WeddingMoneyManager.spec**
+  - PyInstaller 빌드 설정 파일
+
+- **icon.ico**
+  - 프로그램 아이콘
+
+- **README.md**
+  - 프로젝트 소개 및 사용 방법
+
+- **study.md**
+  - 개발 과정 및 학습 내용 정리
 
 저장 방식과 화면 로직을 분리하면서 프로젝트가 단순한 GUI 프로그램에서 확장 가능한 애플리케이션 구조로 개선되었다.
 
@@ -1647,8 +1640,29 @@ WeddingMoneyManager는 단순한 GUI 프로그램 제작을 넘어, 실제 사�
 |---|---|
 | GUI | Tkinter, ttk |
 | Database | SQLite, CRUD |
+| Database Design | CRUD, Data Access Layer |
 | Architecture | Data Access Layer 분리 |
 | Visualization | Matplotlib |
 | Excel Automation | openpyxl |
 | Deployment | PyInstaller |
 | Version Control | Git / GitHub |
+
+---
+
+# 28. SQLite를 이용한 Master Data 관리
+
+WeddingMoneyManager에서는 카테고리를 코드에 하드코딩하지 않고 categories 테이블에서 관리하도록 변경하였다.
+
+기존
+
+ExpenseDialog
+↓
+values=[...]
+
+현재
+
+ExpenseDialog
+↓
+database.category.get_category_list()
+↓
+SQLite

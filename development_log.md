@@ -276,3 +276,36 @@
 #### Release
 - Release **v1.0.0 준비**
 - Windows exe 배포 환경 구성 완료
+
+---
+
+## 📅 2026-08-07
+
+### Category Management
+
+#### Added
+- SQLite `categories` 테이블 추가
+- 카테고리 관리 창(CategoryWindow) 추가
+- 카테고리 추가 / 수정 / 삭제(CRUD) 기능 구현
+- 지출 등록/수정 창의 카테고리를 데이터베이스와 연동
+
+#### Improvement
+- 중복 카테고리 추가 방지
+- 사용 중인 카테고리 삭제 방지
+- 카테고리 관리 UI 개선
+- MessageBox 부모 창(parent) 지정으로 UI 안정성 개선
+
+#### Refactoring
+- Category 관련 데이터 접근 로직 분리 (`database/category.py`)
+- 카테고리 조회 함수 분리 (`get_category_list`, `get_all_categories`)
+- 프로젝트 패키지 구조 개선
+  - `database/`
+  - `ui/`
+  - `utils/`
+  - `excel/`
+- 기존 `backup` 폴더를 `archive` 폴더로 변경
+
+#### Status
+- v1.1.0 기능 개발 진행 중
+- Category Management 기능 구현 완료
+- 추가 테스트 및 개선 후 Release 예정

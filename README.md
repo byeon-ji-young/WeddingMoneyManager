@@ -1,12 +1,12 @@
 # 💍 WeddingMoneyManager
 
-> **Python Tkinter를 이용해 개발한 신혼 자금 관리 데스크톱 애플리케이션**
+> **Python Tkinter와 SQLite를 기반으로 개발한 신혼 자금 관리 데스크톱 애플리케이션입니다. 예산 관리, 지출 분석, 통계, Excel 리포트 생성 기능을 제공합니다.**
 
 ## 📦 Download
 
 Windows 환경에서는 PyInstaller로 빌드된 실행 파일(`WeddingMoneyManager.exe`)을 통해 사용할 수 있습니다.
 
-> Release 페이지에서 최신 버전을 다운로드할 수 있습니다.
+> Release 페이지에서 최신 Windows 실행 파일을 다운로드할 수 있습니다.
 
 --- 
 
@@ -90,6 +90,15 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 * [x] 카테고리별 BarChart 생성
 * [x] 월별 지출 LineChart 생성
 
+## 🗂 카테고리 관리
+
+- [x] 카테고리 추가
+- [x] 카테고리 수정
+- [x] 카테고리 삭제
+- [x] SQLite 기반 카테고리 관리
+- [x] 중복 카테고리 방지
+- [x] 사용 중인 카테고리 삭제 방지
+
 ---
 
 # 🛠 기술 스택
@@ -115,46 +124,51 @@ WeddingMoneyManager는 이러한 비용을 직접 관리하기 위해 개발한 
 WeddingMoneyManager
 │
 ├── main.py
-├── database.py
-├── database_backup.py
-├── expense_dialog.py
-├── statistics_window.py
-├── excel_export.py
-├── csv_export.py
-├── migrate_json_to_sqlite.py
 │
-├── sql/
-│   ├── init.sql
+├── database/
+│   ├── __init__.py
+│   ├── connection.py
+│   ├── init_db.py
+│   ├── expense.py
+│   ├── settings.py
+│   └── category.py
+│
+├── ui/
+│   ├── __init__.py
+│   ├── expense_dialog.py
+│   ├── statistics_window.py
+│   └── category_window.py
+│
+├── utils/
+│   ├── __init__.py
+│   ├── csv_export.py
+│   └── database_backup.py
 │
 ├── excel/
+│   ├── __init__.py
+│   ├── excel_export.py
 │   ├── chart.py
 │   ├── detail.py
 │   ├── summary.py
 │   └── style.py
 │
-├── backup/
-│   ├── app.py
-│   ├── main_backup.py
-│   └── money_backup.json
+├── resources/
+│   └── wedding.db # 배포용 초기 템플릿 DB
 │
 ├── images/
-│   ├── main.png
-│   ├── expense_dialog.png
-│   ├── excel_export_1.png
-│   ├── excel_export_2.png
-│   ├── statistics_1.png
-│   └── statistics_2.png
+│   └── README 이미지
 │
-├── resources
-│   └── wedding.db            # 배포용 초기 템플릿 DB
+├── archive/
+│   ├── app.py
+│   ├── database_legacy.py
+│   ├── main_json.py
+│   └── money_backup.json
 │
-├── icon.ico
+├── migrate_json_to_sqlite.py
 ├── WeddingMoneyManager.spec
-│
+├── icon.ico
 ├── README.md
-├── development_log.md
-├── study.md
-└── requirements.txt
+└── study.md
 ```
 `resources/wedding.db`는 배포용 초기 템플릿 DB이며, 실행 후 생성되는 사용자 데이터 DB는 별도로 관리됩니다.
 
@@ -273,6 +287,21 @@ CREATE TABLE settings (
 ```
 
 ---
+### categories
+
+| Column | Type    | Description  |
+| ------ | ------- | ------------ |
+| id     | INTEGER | 카테고리 ID (PK) |
+| name   | TEXT    | 카테고리 이름      |
+
+```sql
+CREATE TABLE categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL
+);
+```
+
+---
 
 # 📷 화면
 
@@ -315,11 +344,17 @@ CREATE TABLE settings (
 
 <!-- ![통계](images/statistics.png) -->
 <p align="center">
-  <img src="images/statistics_1.png" width="500">
-  <img src="images/statistics_2.png" width="500">
+  <img src="images/statistics_window_1.png" width="500">
+  <img src="images/statistics_window_2.png" width="500">
 </p>
 
 ---
+
+## 카테고리 관리
+<p align="center">
+  <img src="images/category_window.png" width="200">
+</p>
+
 
 # 🗺 Roadmap
 
@@ -334,12 +369,14 @@ CREATE TABLE settings (
 
 | Version | Description                                                                          |
 | ------- | ------------------------------------------------------------------------------------ |
-| v0.5.0 | 첫 번째 공식 Release / Dashboard UI 개선 / 검색·필터 기능 추가 / ExpenseDialog 분리 / 고유 ID 기반 데이터 관리 |
-| v0.6.0 | Excel Report 기능 추가 / openpyxl 기반 Summary·Detail 시트 생성 / 지출 분석 Dashboard / 차트 기능 구현 |
-| v0.7.0 | Dashboard UI 완성 / Card UI 적용 / 예산·지출·잔액 표시 / ExpenseDialog UI 개선 / 프로젝트 구조 정리 |
-| v0.8.0 | 통계창 완성 / 최근 지출 TOP5 추가 / 버튼 및 레이아웃 개선 / 그래프 디자인 마무리 |
-| v0.9.0 | SQLite 데이터베이스 적용 / JSON → SQLite 마이그레이션 / database.py 분리 / settings 테이블 추가 / DB 기반 CRUD 구현 |
-| v1.0.0 | CSV Export / Database Backup & Restore / SQLite 데이터 관리 개선 / PyInstaller exe 배포 환경 구축 / 초기 DB 리소스 관리 / 사용자 DB 분리 / 배포 환경 안정화 |
+| **v0.5.0** | 첫 번째 공식 Release / Dashboard UI 개선 / 검색·필터 기능 추가 / ExpenseDialog 분리 / 고유 ID 기반 데이터 관리 |
+| **v0.6.0** | Excel Report 기능 추가 / openpyxl 기반 Summary·Detail 시트 생성 / 지출 분석 Dashboard / 차트 기능 구현 |
+| **v0.7.0** | Dashboard UI 완성 / Card UI 적용 / 예산·지출·잔액 표시 / ExpenseDialog UI 개선 / 프로젝트 구조 정리 |
+| **v0.8.0** | 통계창 완성 / 최근 지출 TOP5 추가 / 버튼 및 레이아웃 개선 / 그래프 디자인 마무리 |
+| **v0.9.0** | SQLite 데이터베이스 적용 / JSON → SQLite 마이그레이션 / database.py 분리 / settings 테이블 추가 / DB 기반 CRUD 구현 |
+| **v1.0.0** | CSV Export / Database Backup & Restore / SQLite 데이터 관리 개선 / PyInstaller exe 배포 환경 구축 / 초기 DB 리소스 관리 / 사용자 DB 분리 / 배포 환경 안정화 |
+| **v1.1.0** | Category Management 추가 / categories 테이블 추가 / Category CRUD 구현 / 카테고리 DB 연동 / 프로젝트 패키지 구조 개선 |
+
 
 ---
 
