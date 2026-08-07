@@ -77,7 +77,8 @@ def create_category_chart(worksheet, category_data):
     
     for category, price in category_data:
         worksheet[f"H{chart_row}"] = category
-        worksheet[f"I{chart_row}"] = price // 10000 # //: 정수 나눗셈(Floor Division). 소수점 버리고 몫만 남김
+        # worksheet[f"I{chart_row}"] = price // 10000 # //: 정수 나눗셈(Floor Division). 소수점 버리고 몫만 남김
+        worksheet[f"I{chart_row}"] = round(price / 10000) # 반올림
         worksheet[f"I{chart_row}"].number_format = '#,##0'
 
         chart_row += 1
@@ -128,7 +129,7 @@ def create_payment_chart(worksheet, payment_data):
 
     for payment, price in payment_data.items():
         worksheet[f"K{chart_row}"] = payment
-        worksheet[f"L{chart_row}"] = price // 10000
+        worksheet[f"L{chart_row}"] = round(price / 10000)
         worksheet[f"L{chart_row}"].number_format = '#,##0'
 
         chart_row += 1
