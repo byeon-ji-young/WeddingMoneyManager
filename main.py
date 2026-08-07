@@ -791,17 +791,6 @@ csv_button = tk.Button(
 )
 csv_button.pack(side="left", padx=3)
 
-category_button = tk.Button(
-    stat_btn_frame,
-    text="카테고리 관리",
-    command=open_category_window
-)
-
-category_button.pack(
-    side="left",
-    padx=5
-)
-
 # side: 위젯을 어느 방향으로 배치할지 (side는 pack()에서만 사용하는 옵션)
 # anchor: 배치된 공간 안에서 위젯(또는 내용)을 어느 쪽에 붙일지
 
