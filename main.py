@@ -304,11 +304,6 @@ def update_budget(new_budget):
 
     update_total()
 
-# 예산 입력 초기화
-def refresh_budget_entry():
-    budget_entry.delete(0, tk.END)
-    budget_entry.insert(0, f"{budget:,}")
-
 # 테이블 칼럼 정렬 (오름차순/내림차순 토글)
 def sort_column(column):
     # 오름차순이면 내림차순(reverse=True)으로 정렬 / 내림차순이면 오름차순(reverse=False)으로 정렬
@@ -369,37 +364,10 @@ settings_button = tk.Button(
     activeforeground="#1f497d",
     bd=0,
     relief="flat",
-    cursor="hand2",
     command=lambda: SettingsWindow(window, callback=update_budget)
 )
+settings_button.config(cursor="hand2") # 버튼 설정 추가하고 싶으면 config()로 추가해도 됨
 settings_button.pack(side="right")
-
-# 예산 입력 프레임
-budget_frame = tk.Frame(header_frame, bg="#F4F6F9")
-budget_frame.pack(anchor="w")
-
-budget_label = tk.Label(budget_frame, text="총 예산 :", font=("맑은 고딕", 9, "bold"), bg="#F4F6F9", fg="#64748B")
-budget_label.pack(side="left", padx=(0, 8))
-
-budget_entry = tk.Entry(budget_frame, font=("맑은 고딕", 10), width=12, relief="solid", bd=1)
-budget_entry.pack(side="left", padx=(0, 8))
-
-budget_button = tk.Button(
-    budget_frame, 
-    text="적용", 
-    command=lambda: update_budget(),
-    font=("맑은 고딕", 8, "bold"), 
-    bg="#334155", 
-    fg="white", 
-    activeforeground="white",
-    activebackground="#1E293B", 
-    relief="flat", 
-    bd=0, 
-    padx=8, 
-    pady=2
-)
-budget_button.config(cursor="hand2") # 버튼 설정 추가하고 싶으면 config()로 추가해도 됨
-budget_button.pack(side="left")
 
 
 # ==========================================
@@ -753,6 +721,5 @@ database.create_database()
 load_data()
 display_data()
 update_total()
-refresh_budget_entry()
 
 window.mainloop() # 이벤트 루프 시작(창이 종료될 때까지 프로그램 실행)
