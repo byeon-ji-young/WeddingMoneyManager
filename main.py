@@ -10,6 +10,7 @@ from utils.database_backup import backup_database, restore_database
 from ui.expense_dialog import ExpenseDialog
 from ui.statistics_window import StatisticsWindow
 from ui.category_window import CategoryWindow
+from ui.settings_window import SettingsWindow
 
 import database
 
@@ -364,16 +365,10 @@ def reset_search():
     display_data()
 
 # 예산 설정 변경
-def update_budget():
+def update_budget(new_budget):
     global budget
 
-    try:
-        budget = int(budget_entry.get().replace(",", ""))
-    except:
-        messagebox.showwarning("입력 오류", "예산은 숫자로 입력하세요.")
-        return
-
-    database.update_setting("budget", str(budget))
+    budget = new_budget
 
     update_total()
 
@@ -431,6 +426,21 @@ title_label = tk.Label(
 )
 # title_label.pack(side="left") # "left" : 왼쪽부터 배치 / "right" : 오른쪽부터 배치 / "top" : 위쪽부터 배치(기본값) / "bottom" : 아래쪽부터 배치
 title_label.pack(anchor="w", pady=(0, 15))
+
+settings_button = tk.Button(
+    header_frame,
+    text="⚙️ 설정", # ⚙
+    font=("맑은 고딕", 9, "bold"),
+    bg="#f1f5f9",
+    fg="#334155",
+    activebackground="#e2e8f0",
+    activeforeground="#1f497d",
+    bd=0,
+    relief="flat",
+    cursor="hand2",
+    command=lambda: SettingsWindow(window, callback=update_budget)
+)
+settings_button.pack(side="right")
 
 # 예산 입력 프레임
 budget_frame = tk.Frame(header_frame, bg="#F4F6F9")
@@ -503,6 +513,10 @@ remain_card.grid(row=0, column=2, padx=(5, 0), sticky="ew")
 # => anchor은 내용의 정렬, sticky는 위젯의 배치와 확장 개념
 
 # 예산 사용률 프로그래스 바 및 상태 표시
+style.configure("Green.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#22C55E") # troughcolor: 안채워진 부분 색 / background: 채워진 부분 색
+style.configure("Orange.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#EA580C")
+style.configure("Red.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#E11D48")
+
 progress = ttk.Progressbar(
     dashboard_frame,
     orient="horizontal", # horizontal: 가로
@@ -510,9 +524,6 @@ progress = ttk.Progressbar(
     style="Green.Horizontal.TProgressbar"
 )
 progress.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(10, 0))
-style.configure("Green.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#22C55E") # troughcolor: 안채워진 부분 색 / background: 채워진 부분 색
-style.configure("Orange.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#EA580C")
-style.configure("Red.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#E11D48")
 
 progress_status = tk.Label(dashboard_frame, text="예산 사용률 0%", font=("맑은 고딕", 10), bg="#F4F6F9", fg="#64748B")
 progress_status.grid(row=2, column=0, columnspan=3, pady=(5, 10))
