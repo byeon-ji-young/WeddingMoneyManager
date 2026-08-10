@@ -18,8 +18,8 @@ from tkinter import messagebox, ttk # tkinter 안에 있는 messagebox, ttk 기�
 import json
 
 # [★팝업 창 분리] 팝업 창 모듈 불러오기
-from expense_dialog import ExpenseDialog
-from excel_export import excel_export_file
+from ui.expense_dialog import ExpenseDialog
+from excel.excel_export import excel_export_file
 from statistics import StatisticsWindow
 
 # ==========================================

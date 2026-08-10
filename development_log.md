@@ -276,3 +276,169 @@
 #### Release
 - Release **v1.0.0 준비**
 - Windows exe 배포 환경 구성 완료
+
+---
+
+## 📅 2026-08-07 ~ 2026-08-10
+
+### Category Management
+
+#### Added
+
+* SQLite `categories` 테이블 추가
+* 카테고리 관리 창(`CategoryWindow`) 추가
+* 카테고리 추가 / 수정 / 삭제(CRUD) 기능 구현
+* 지출 등록 / 수정 창의 카테고리를 데이터베이스와 연동
+
+#### Improvement
+
+* 중복 카테고리 추가 방지
+* 사용 중인 카테고리 삭제 방지
+* 카테고리 관리 UI 개선
+* MessageBox 부모 창(`parent`) 지정으로 UI 안정성 개선
+
+#### Refactoring
+
+* Category 관련 데이터 접근 로직 분리 (`database/category.py`)
+* 카테고리 조회 함수 분리 (`get_category_list`, `get_all_categories`)
+* 프로젝트 패키지 구조 개선
+
+  * `database/`
+  * `ui/`
+  * `utils/`
+  * `excel/`
+* 기존 `backup/` 폴더를 `archive/` 폴더로 변경
+
+---
+
+### Settings 기능 추가
+
+#### Added
+
+* 설정 창(`SettingsWindow`) 추가
+* 설정 창에서 예산 관리 기능 제공
+* 예산 설정을 별도의 `BudgetDialog`로 분리
+* 설정 창에서 카테고리 관리 기능 연결
+* 설정 창에서 CSV Export 기능 연결
+* 설정 창에서 Database Backup 기능 연결
+* 설정 창에서 Database Restore 기능 연결
+
+#### Improvement
+
+* 예산 변경 시 Database의 `settings` 테이블에 즉시 저장
+* 예산 변경 후 Dashboard의 예산 및 잔액 정보 자동 갱신
+* Settings → BudgetDialog → Main Dashboard 간 Callback 구조 적용
+* 설정 창을 Modal Window로 구성하여 메인 화면과 동시에 조작할 수 없도록 개선
+
+#### Refactoring
+
+* 설정 화면과 예산 입력 화면의 역할 분리
+* `SettingsWindow`와 `BudgetDialog` 간 기능 연결 구조 개선
+* 설정 관련 UI 코드 분리 및 관리
+
+---
+
+### Database Backup / Restore 안정성 개선
+
+#### Added
+
+* Database Restore 전 파일 유효성 검증 기능 추가
+* 잘못된 `.db` 파일 선택 시 복원 차단
+* SQLite Database가 아닌 파일 선택 시 복원 차단
+* WeddingMoneyManager에서 필요한 Database 구조가 없는 경우 복원 차단
+
+#### Improvement
+
+* Database Restore 실행 전 현재 사용자 DB 자동 백업
+* 복원 완료 후 프로그램 재실행 안내
+* 복원 과정에서 사용자 데이터가 잘못된 Database로 덮어써지는 문제 방지
+* Backup / Restore 기능의 예외 상황 처리 강화
+
+#### Test
+
+* 정상적인 SQLite Database 복원 테스트
+* 잘못된 `.db` 파일 복원 테스트
+* SQLite Database가 아닌 파일 복원 테스트
+* Restore 전 기존 DB Backup 생성 테스트
+* Restore 완료 후 프로그램 종료 및 재실행 테스트
+
+---
+
+### CSV Export
+
+#### Improvement
+
+* Settings 창에서 CSV Export 기능 연결
+* 지출 데이터를 CSV 파일로 저장
+* Excel에서 한글이 깨지지 않도록 `utf-8-sig` 인코딩 적용
+* 저장 위치를 사용자가 직접 선택할 수 있도록 File Dialog 적용
+
+---
+
+### UI 개선
+
+#### Improvement
+
+* 전체 UI 디자인 개선
+* Settings Window UI 구성
+* Budget Dialog UI 구성
+* Category Window UI 개선
+* 버튼 및 입력 영역 디자인 통일
+* Settings Window Modal 처리
+* MessageBox의 부모 창 지정으로 팝업 표시 안정성 개선
+
+---
+
+### Project Structure
+
+기능 확장에 따라 프로젝트 코드를 역할별 패키지로 분리하였다.
+
+```text
+WeddingMoneyManager
+│
+├── database/
+│   ├── connection.py
+│   ├── init_db.py
+│   ├── expense.py
+│   ├── settings.py
+│   └── category.py
+│
+├── ui/
+│   ├── expense_dialog.py
+│   ├── statistics_window.py
+│   ├── category_window.py
+│   ├── settings_window.py
+│   └── budget_dialog.py
+│
+├── utils/
+│   ├── csv_export.py
+│   └── database_backup.py
+│
+└── excel/
+    ├── excel_export.py
+    ├── chart.py
+    ├── detail.py
+    ├── summary.py
+    └── style.py
+```
+
+#### 역할 분리
+
+* `database/` → SQLite 연결 및 데이터 CRUD
+* `ui/` → Tkinter 화면 및 사용자 인터페이스
+* `utils/` → CSV Export / Database Backup & Restore
+* `excel/` → Excel Report 생성 및 스타일 관리
+
+기존 하나의 파일에 집중되어 있던 기능을 역할별 패키지로 분리하여 유지보수성과 확장성을 개선하였다.
+
+---
+
+### Release
+
+* Release **v1.1.0 생성**
+* Category Management 기능 추가
+* Settings 기능 추가
+* Database Backup / Restore 안정성 개선
+* Database Restore 파일 검증 기능 추가
+* 프로젝트 패키지 구조 개선
+* UI 개선 및 기능별 모듈 분리 완료

@@ -2,11 +2,11 @@ import tkinter as tk # GUI를 만들기 위한 tkinter 라이브러리 불러오
 from tkinter import messagebox, ttk # tkinter 안에 있는 messagebox, ttk 기능 가져와줘
 
 # [★팝업 창 분리] 팝업 창 모듈 불러오기
-from expense_dialog import ExpenseDialog
-from excel_export import excel_export_file
-from csv_export import csv_export_file
-from statistics_window import StatisticsWindow
-from database_backup import backup_database, restore_database
+from excel.excel_export import excel_export_file
+from ui.expense_dialog import ExpenseDialog
+from ui.statistics_window import StatisticsWindow
+from ui.category_window import CategoryWindow
+from ui.settings_window import SettingsWindow
 
 import database
 
@@ -45,6 +45,9 @@ style.theme_use("clam")
 # ==========================================
 # 3. 로직 및 이벤트 처리 함수 정의
 # ==========================================
+def create_custom_menubar(window):
+    pass
+
 # 지출 항목 추가 (팝업 연동)
 def open_add_dialog():
     # 팝업 창 띄우기
@@ -290,23 +293,12 @@ def reset_search():
     display_data()
 
 # 예산 설정 변경
-def update_budget():
+def update_budget(new_budget):
     global budget
 
-    try:
-        budget = int(budget_entry.get().replace(",", ""))
-    except:
-        messagebox.showwarning("입력 오류", "예산은 숫자로 입력하세요.")
-        return
-
-    database.update_setting("budget", str(budget))
+    budget = new_budget
 
     update_total()
-
-# 예산 입력 초기화
-def refresh_budget_entry():
-    budget_entry.delete(0, tk.END)
-    budget_entry.insert(0, f"{budget:,}")
 
 # 테이블 칼럼 정렬 (오름차순/내림차순 토글)
 def sort_column(column):
@@ -334,6 +326,10 @@ def open_statistics():
 
     StatisticsWindow(window, money_data)
 
+# 카테고리 팝업 생성
+def open_category_window():
+    CategoryWindow(window)
+
 # ==========================================
 # 4. 상단 타이틀 및 예산 설정 영역
 # ==========================================
@@ -354,32 +350,20 @@ title_label = tk.Label(
 # title_label.pack(side="left") # "left" : 왼쪽부터 배치 / "right" : 오른쪽부터 배치 / "top" : 위쪽부터 배치(기본값) / "bottom" : 아래쪽부터 배치
 title_label.pack(anchor="w", pady=(0, 15))
 
-# 예산 입력 프레임
-budget_frame = tk.Frame(header_frame, bg="#F4F6F9")
-budget_frame.pack(anchor="w")
-
-budget_label = tk.Label(budget_frame, text="총 예산 :", font=("맑은 고딕", 9, "bold"), bg="#F4F6F9", fg="#64748B")
-budget_label.pack(side="left", padx=(0, 8))
-
-budget_entry = tk.Entry(budget_frame, font=("맑은 고딕", 10), width=12, relief="solid", bd=1)
-budget_entry.pack(side="left", padx=(0, 8))
-
-budget_button = tk.Button(
-    budget_frame, 
-    text="적용", 
-    command=lambda: update_budget(),
-    font=("맑은 고딕", 8, "bold"), 
-    bg="#334155", 
-    fg="white", 
-    activeforeground="white",
-    activebackground="#1E293B", 
-    relief="flat", 
-    bd=0, 
-    padx=8, 
-    pady=2
+settings_button = tk.Button(
+    header_frame,
+    text="⚙️ 설정", # ⚙
+    font=("맑은 고딕", 9, "bold"),
+    bg="#f1f5f9",
+    fg="#334155",
+    activebackground="#e2e8f0",
+    activeforeground="#1f497d",
+    bd=0,
+    relief="flat",
+    command=lambda: SettingsWindow(window, callback=update_budget)
 )
-budget_button.config(cursor="hand2") # 버튼 설정 추가하고 싶으면 config()로 추가해도 됨
-budget_button.pack(side="left")
+settings_button.config(cursor="hand2") # 버튼 설정 추가하고 싶으면 config()로 추가해도 됨
+settings_button.pack(side="right")
 
 
 # ==========================================
@@ -425,6 +409,10 @@ remain_card.grid(row=0, column=2, padx=(5, 0), sticky="ew")
 # => anchor은 내용의 정렬, sticky는 위젯의 배치와 확장 개념
 
 # 예산 사용률 프로그래스 바 및 상태 표시
+style.configure("Green.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#22C55E") # troughcolor: 안채워진 부분 색 / background: 채워진 부분 색
+style.configure("Orange.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#EA580C")
+style.configure("Red.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#E11D48")
+
 progress = ttk.Progressbar(
     dashboard_frame,
     orient="horizontal", # horizontal: 가로
@@ -432,9 +420,6 @@ progress = ttk.Progressbar(
     style="Green.Horizontal.TProgressbar"
 )
 progress.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(10, 0))
-style.configure("Green.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#22C55E") # troughcolor: 안채워진 부분 색 / background: 채워진 부분 색
-style.configure("Orange.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#EA580C")
-style.configure("Red.Horizontal.TProgressbar", troughcolor="#E5E7EB", background="#E11D48")
 
 progress_status = tk.Label(dashboard_frame, text="예산 사용률 0%", font=("맑은 고딕", 10), bg="#F4F6F9", fg="#64748B")
 progress_status.grid(row=2, column=0, columnspan=3, pady=(5, 10))
@@ -669,20 +654,6 @@ footer_frame.pack(fill="x", padx=30, pady=(5, 20))
 db_btn_frame = tk.Frame(footer_frame, bg="#F4F6F9")
 db_btn_frame.pack(side="left")
 
-backup_button = tk.Button(
-    db_btn_frame, text="💾 백업", command=backup_database,
-    font=("맑은 고딕", 9, "bold"), bg="#E2E8F0", fg="#475569", 
-    relief="flat", bd=0, cursor="hand2", padx=8, pady=3 
-)
-backup_button.pack(side="left", padx=2)
-
-restore_button  = tk.Button(
-    db_btn_frame, text="🔄 복원", command=lambda: restore_database(window),
-    font=("맑은 고딕", 9, "bold"), bg="#E2E8F0", fg="#475569", 
-    relief="flat", bd=0, cursor="hand2", padx=8, pady=3
-)
-restore_button .pack(side="left", padx=2)
-
 total_label = tk.Label(db_btn_frame, text="총 지출 : 0원", font=("맑은 고딕", 11, "bold"), bg="#F4F6F9", fg="#1E293B")
 # total_label.pack(side="left", padx=(0, 15))
 
@@ -694,24 +665,17 @@ stat_btn_frame.pack(side="right")
 
 stats_btn = tk.Button(
     stat_btn_frame, text="📈 통계", command=open_statistics,
-    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+    font=("맑은 고딕", 9, "bold"), bg="#0D9488", fg="white", activeforeground="white",
     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
 stats_btn.pack(side="left", padx=3)
 
 excel_button = tk.Button(
     stat_btn_frame, text="📄 Excel 저장", command=excel_export, # command=excel_export: lambda를 쓸 필요가 없는 이유는 매개변수를 전달하지 않는 함수이기 때문
-    font=("맑은 고딕", 9, "bold"), bg="#0D9488", fg="white", 
-    relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
-)
-excel_button.pack(side="left", padx=3)
-
-csv_button = tk.Button(
-    stat_btn_frame, text="📄 CSV 저장", command=csv_export_file, # command=csv_export: lambda를 쓸 필요가 없는 이유는 매개변수를 전달하지 않는 함수이기 때문
     font=("맑은 고딕", 9, "bold"), bg="#4D7C0F", fg="white", 
     relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
 )
-csv_button.pack(side="left", padx=3)
+excel_button.pack(side="left", padx=3)
 
 # side: 위젯을 어느 방향으로 배치할지 (side는 pack()에서만 사용하는 옵션)
 # anchor: 배치된 공간 안에서 위젯(또는 내용)을 어느 쪽에 붙일지
@@ -732,6 +696,5 @@ database.create_database()
 load_data()
 display_data()
 update_total()
-refresh_budget_entry()
 
 window.mainloop() # 이벤트 루프 시작(창이 종료될 때까지 프로그램 실행)

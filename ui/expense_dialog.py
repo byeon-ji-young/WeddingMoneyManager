@@ -3,6 +3,8 @@ from tkinter import ttk, messagebox
 from datetime import datetime
 from tkcalendar import DateEntry
 
+from database import get_category_list
+
 class ExpenseDialog(tk.Toplevel):
     def __init__(self, parent, title="지출 입력", initial_data=None): # __init__: 팝업창 초기화 (모달 설정, 창 크기/위치 지정) / self: 이 클래스로 만든 객체 자기 자신
         # 파이썬 규칙상, 클래스 안에서 만드는 함수(메서드)는 첫 번째 인자로 무조건 self를 받도록 약속되어 있음!
@@ -147,8 +149,8 @@ class ExpenseDialog(tk.Toplevel):
         tk.Label(basic_group, text="분류", **label_style).pack(anchor="w", pady=(0, 2))
         self.category_combo = ttk.Combobox(
             basic_group,
-            values=["예식장", "스드메", "스냅영상", "맞춤정장", "예물", "신혼여행", "가전", "가구", "생활용품", "기타"],
-            # state="readonly",
+            values=get_category_list(),
+            state="readonly",
             font=("맑은 고딕", 10),
         )
         self.category_combo.pack(fill="x", pady=(0, 10))
@@ -224,8 +226,8 @@ class ExpenseDialog(tk.Toplevel):
             text="취소", 
             command=self.destroy,
             font=("맑은 고딕", 9, "bold"), 
-            bg="#E2E8F0", 
-            fg="#475569",
+            bg="#e2e8f0", 
+            fg="#1e293b",
             relief="flat", 
             bd=0, 
             cursor="hand2", 

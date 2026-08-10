@@ -6,7 +6,7 @@ __pycache__/
 .venv/
 .vscode/
 
-# json
+# JSON data
 money.json
 
 # SQLite
@@ -18,7 +18,14 @@ money.json
 # 초기 배포용 DB는 Git 관리
 !resources/wedding.db
 
-# etc
+# Build
 build/
 dist/
 # *.spec
+
+# Excel output
+*.xlsx
+
+# Temporary files
+*.tmp
+*.bak
