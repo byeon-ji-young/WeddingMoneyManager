@@ -101,6 +101,10 @@ class BudgetDialog(tk.Toplevel):
     def save_budget(self):
         value = self.budget_entry.get().replace(",", "").strip()
 
+        if not value:
+            messagebox.showwarning("입력 오류", "예산을 입력해주세요.", parent=self)
+            return
+
         if not value.isdigit():
             messagebox.showwarning("입력 오류", "숫자로 입력해주세요.", parent=self)
             return
