@@ -10,7 +10,7 @@ class BudgetDialog(tk.Toplevel):
         self.callback = callback # callback은 이 창에서 어떤 작업이 끝났을 때 부모 창에게 알려줄 함수
         
         self.title("예산 변경")
-        self.geometry("350x260")
+        self.geometry("350x200")
         self.resizable(False, False)
 
         self.configure(bg="#f8f9fa")
@@ -19,53 +19,77 @@ class BudgetDialog(tk.Toplevel):
         self.load_budget()
 
     def create_widgets(self):
+        # =========================
+        # 타이틀
+        # =========================
         title = ttk.Label(
             self,
             text="💰 예산 변경",
-            font=("맑은 고딕", 13, "bold")
+            font=("맑은 고딕", 12, "bold"),
+            background="#f8f9fa",
+            foreground="#1F497D"
         )
 
         title.pack(
             anchor="w",
             padx=20,
-            pady=15
+            pady=(20, 15)
         )
 
-        frame = ttk.LabelFrame(
-            self,
-            text="예산 설정",
-            padding=15
-        )
+        # =========================
+        # 입력 영역
+        # =========================
+        form_frame = tk.Frame(self, bg="#f8f9fa")
+        form_frame.pack(fill="x", padx=25)
 
-        frame.pack(
-            fill="x",
-            padx=20,
-            pady=10
-        )
+        tk.Label(
+            form_frame,
+            text="변경할 예산",
+            font=("맑은 고딕", 9, "bold"),
+            bg="#f8f9fa",
+            fg="#495057"
+        ).pack(anchor="w", pady=(0, 6))
 
-        ttk.Label(
-            frame,
-            text="변경할 예산"
-        ).pack(anchor="w")
+        # 입력창 + '원' 단위 가로 배치 프레임
+        entry_frame = tk.Frame(form_frame, bg="#f8f9fa")
+        entry_frame.pack(fill="x")
 
         self.budget_entry = ttk.Entry(
-            frame,
-            font=("맑은 고딕", 10)
+            entry_frame,
+            font=("맑은 고딕", 10),
+            justify="right" # 금액 입력이므로 우측 정렬
         )
+        self.budget_entry.pack(side="left", fill="x", expand=True, ipady=2)
 
-        self.budget_entry.pack(
-            fill="x",
-            pady=10
+        unit_label = tk.Label(
+            entry_frame,
+            text=" 원",
+            font=("맑은 고딕", 10, "bold"),
+            bg="#f8f9fa",
+            fg="#212529"
         )
+        unit_label.pack(side="right")
 
-        save_button = ttk.Button(
+        # =========================
+        # 저장 버튼
+        # =========================
+        save_button = tk.Button(
             self,
             text="저장",
+            font=("맑은 고딕", 9, "bold"),
+            bg="#1F497D",
+            fg="#ffffff",
+            activebackground="#1B3E68",
+            activeforeground="#ffffff",
+            bd=0,
             command=self.save_budget
         )
 
         save_button.pack(
-            pady=15
+            fill="x",
+            padx=25,
+            pady=(25, 0),
+            ipady=6 # ipady: internal padding Y. 즉, 위아래 내부 여백
         )
 
     def load_budget(self):

@@ -15,7 +15,7 @@ class SettingsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의미
         self.callback = callback
 
         self.title("설정")
-        self.geometry("450x570")
+        self.geometry("450x500")
         self.resizable(False, False)
 
         self.configure(bg="#f8f9fa")
@@ -33,42 +33,40 @@ class SettingsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의미
         # Frame
         self.style.configure("TFrame", background="#f8f9fa")
 
-        # Label
-        self.style.configure(
-            "TLabel",
-            font=("맑은 고딕", 9),
-            background="#f8f9fa",
-            foreground="#495057"
-        )
-
         # 제목 Label
         self.style.configure(
             "Title.TLabel",
             font=("맑은 고딕", 14, "bold"),
             background="#f8f9fa",
+            foreground="#1F497D"
+        )
+
+        # 섹션 제목 Label
+        self.style.configure(
+            "Section.TLabel",
+            font=("맑은 고딕", 10, "bold"),
+            background="#f8f9fa",
             foreground="#212529"
         )
 
-        # LabelFrame 배경
+        # 서브타이틀 Label
         self.style.configure(
-            "TLabelframe",
-            background="#f8f9fa"
+            "Sub.TLabel",
+            font=("맑은 고딕", 9),
+            background="#f8f9fa",
+            foreground="#6c757d"
         )
 
-        # LabelFrame 제목 스타일
-        self.style.configure(
-            "TLabelframe.Label",
-            font=("맑은 고딕", 10, "bold"),
-            foreground="#212529",
-            background="#f8f9fa"
-        )
-
-        # Button
+        # 버튼
         self.style.configure(
             "TButton",
             font=("맑은 고딕", 9, "bold"),
-            padding=(10, 6)
+            padding=(10, 7),
+            background="#E2E8F0",
+            foreground="#1e293b",
+            borderwidth=0
         )
+        self.style.map("TButton", background=[("active", "#CBD5E1")])
 
     def create_widgets(self):
         # =========================
@@ -77,39 +75,29 @@ class SettingsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의미
         title = ttk.Label(
             self,
             text="⚙ 설정",
-            style="Title.TLabel"
+            style="Title.TLabel",
         )
 
-        title.pack(
-            anchor="w",
-            padx=20,
-            pady=(20, 10)
-        )
+        title.pack(anchor="w", padx=25, pady=(20, 15))
 
         # =========================
         # 예산 관리
         # =========================
-        budget_frame = ttk.LabelFrame(
-            self,
-            text="💰 예산 관리",
-            padding=15,
-        )
+        budget_frame = ttk.Frame(self, padding=(25,0))
+        budget_frame.pack(fill="x")
 
-        budget_frame.pack(
-            fill="x",
-            padx=20,
-            pady=10
-        )
+        # 섹션 제목 + 서브타이틀
+        ttk.Label(budget_frame, text="💰 예산 관리", style="Section.TLabel").pack(anchor="w")
+        ttk.Label(budget_frame, text="총 예산 금액을 수정합니다.", style="Sub.TLabel").pack(anchor="w", pady=(2, 8))
 
-        budget_label = ttk.Label(
+        # 하단 길쭉한 버튼
+        budget_button = ttk.Button(
             budget_frame,
-            text="예산 설정 기능"
+            text="예산 변경",
+            style="TButton",
+            command=self.open_budget
         )
-
-        budget_label.pack(
-            anchor="w",
-            pady=(0, 10)
-        )
+        budget_button.pack(fill="x")
 
         # fill: 위젯의 크기를 늘릴지 결정. 즉, 위젯의 크기
         # anchor: 위젯의 위치를 어디에 둘지 결정. 즉, 위젯의 위치
@@ -122,109 +110,60 @@ class SettingsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의미
         # anchor="n" → 위쪽에 붙임
         # anchor="s" → 아래쪽에 붙임
 
-
-        budget_button = ttk.Button(
-            budget_frame,
-            text="예산 변경",
-            command=self.open_budget
-        )
-
-        budget_button.pack(
-            fill="x"
-        )
+        ttk.Separator(self, orient="horizontal").pack(fill="x", padx=25, pady=18) # 구분선
 
         # =========================
         # 카테고리 관리
         # =========================
-        category_frame = ttk.LabelFrame(
-            self,
-            text="📁 카테고리 관리",
-            padding=15
-        )
+        category_frame = ttk.Frame(self, padding=(25, 0))
+        category_frame.pack(fill="x")
 
-        category_frame.pack(
-            fill="x",
-            padx=20,
-            pady=10
-        )
-
-        category_label = ttk.Label(
-            category_frame,
-            text="카테고리 추가 / 수정 / 삭제"
-        )
-
-        category_label.pack(
-            anchor="w",
-            pady=(0, 10)
-        )
+        ttk.Label(category_frame, text="📁 카테고리 관리", style="Section.TLabel").pack(anchor="w")
+        ttk.Label(category_frame, text="지출 카테고리를 추가 / 수정 / 삭제합니다.", style="Sub.TLabel").pack(anchor="w", pady=(2, 8))
 
         category_button = ttk.Button(
             category_frame,
             text="카테고리 관리",
+            style="TButton",
             command=self.open_category
         )
+        category_button.pack(fill="x")
 
-        category_button.pack(
-            fill="x"
-        )
+        ttk.Separator(self, orient="horizontal").pack(fill="x", padx=25, pady=18)  # 구분선
 
         # =========================
         # 데이터 관리
         # =========================
-        data_frame = ttk.LabelFrame(
-            self,
-            text="💾 데이터 관리",
-            padding=15
-        )
+        data_frame = ttk.Frame(self, padding=(25, 0))
+        data_frame.pack(fill="x")
 
-        data_frame.pack(
-            fill="x",
-            padx=20,
-            pady=10
-        )
+        ttk.Label(data_frame, text="💾 데이터 관리", style="Section.TLabel").pack(anchor="w")
+        ttk.Label(data_frame, text="데이터를 파일로 내보내거나 DB를 백업/복원합니다.", style="Sub.TLabel").pack(anchor="w", pady=(2, 8))
 
-        data_label = ttk.Label(
-            data_frame,
-            text="백업 / 복원 / CSV Export"
-        )
-
-        data_label.pack(
-            anchor="w",
-            pady=(0, 10)
-        )
-
+        # 하단 버튼 그룹
         csv_button = ttk.Button(
             data_frame,
-            text="CSV 저장",
+            text="📊 CSV 저장",
+            style="TButton",
             command=self.export_csv
         )
-
-        csv_button.pack(
-            fill="x",
-            pady=3
-        )
+        csv_button.pack(fill="x", pady=(0, 5))
 
         backup_button = ttk.Button(
             data_frame,
-            text="DB 백업",
+            text="📦 DB 백업",
+            style="TButton",
             command=self.backup_db
         )
-
-        backup_button.pack(
-            fill="x",
-            pady=3
-        )
+        backup_button.pack(fill="x", pady=5)
 
         restore_button = ttk.Button(
             data_frame,
-            text="DB 복원",
+            text="🔄 DB 복원",
+            style="TButton",
             command=self.restore_db
         )
-
-        restore_button.pack(
-            fill="x",
-            pady=3
-        )
+        restore_button.pack(fill="x", pady=(5, 0))
 
     # =====================================
     # 버튼 기능

@@ -14,7 +14,7 @@ class CategoryWindow(tk.Toplevel):
         super().__init__(parent) # 부모 창(main.py의 window) 위에 뜨는 자식 창(Toplevel)으로 지정
 
         self.title("카테고리 관리")
-        self.geometry("380x520")
+        self.geometry("380x500")
         self.resizable(False, False)
         self.configure(bg="#f8f9fa")  # 깔끔한 연회색 배경
 
@@ -32,17 +32,17 @@ class CategoryWindow(tk.Toplevel):
         self.style.configure("TFrame", background="#f8f9fa")
         
         # 라벨 스타일
-        self.style.configure("Header.TLabel", font=("맑은 고딕", 12, "bold"), background="#f8f9fa", foreground="#212529")
+        self.style.configure("Header.TLabel", font=("맑은 고딕", 12, "bold"), background="#f8f9fa", foreground="#1F497D")
         self.style.configure("TLabel", font=("맑은 고딕", 9), background="#f8f9fa", foreground="#495057")
 
         # Treeview 스타일
         self.style.configure(
             "Category.Treeview", # 스타일 이름(style name) 지정
             font=("맑은 고딕", 10),
-            background="#ffffff",
+            background="#f8f9fa",
             foreground="#333333",
             rowheight=28,
-            fieldbackground="#ffffff",
+            fieldbackground="#f8f9fa",
             borderwidth=1,
             relief="solid"
         )
@@ -71,11 +71,11 @@ class CategoryWindow(tk.Toplevel):
         self.style.map("Primary.TButton", background=[("active", "#1B3E68")])
 
         # 수정 버튼
-        self.style.configure("Success.TButton", background="#E2E8F0", foreground="#1F497D")
+        self.style.configure("Success.TButton", background="#E2E8F0", foreground="#1e293b")
         self.style.map("Success.TButton", background=[("active", "#CBD5E1")])
 
         # 삭제 버튼
-        self.style.configure("Danger.TButton", background="#E2E8F0", foreground="#64748B")
+        self.style.configure("Danger.TButton", background="#E2E8F0", foreground="#1e293b")
         self.style.map("Danger.TButton", background=[("active", "#CBD5E1")])
 
     def create_widgets(self):
