@@ -3,10 +3,6 @@ from tkinter import messagebox, ttk # tkinter 안에 있는 messagebox, ttk 기�
 
 # [★팝업 창 분리] 팝업 창 모듈 불러오기
 from excel.excel_export import excel_export_file
-
-from utils.csv_export import csv_export_file
-from utils.database_backup import backup_database, restore_database
-
 from ui.expense_dialog import ExpenseDialog
 from ui.statistics_window import StatisticsWindow
 from ui.category_window import CategoryWindow
@@ -658,20 +654,6 @@ footer_frame.pack(fill="x", padx=30, pady=(5, 20))
 db_btn_frame = tk.Frame(footer_frame, bg="#F4F6F9")
 db_btn_frame.pack(side="left")
 
-backup_button = tk.Button(
-    db_btn_frame, text="💾 백업", command=backup_database,
-    font=("맑은 고딕", 9, "bold"), bg="#E2E8F0", fg="#475569", 
-    relief="flat", bd=0, cursor="hand2", padx=8, pady=3 
-)
-backup_button.pack(side="left", padx=2)
-
-restore_button  = tk.Button(
-    db_btn_frame, text="🔄 복원", command=lambda: restore_database(window),
-    font=("맑은 고딕", 9, "bold"), bg="#E2E8F0", fg="#475569", 
-    relief="flat", bd=0, cursor="hand2", padx=8, pady=3
-)
-restore_button .pack(side="left", padx=2)
-
 total_label = tk.Label(db_btn_frame, text="총 지출 : 0원", font=("맑은 고딕", 11, "bold"), bg="#F4F6F9", fg="#1E293B")
 # total_label.pack(side="left", padx=(0, 15))
 
@@ -683,24 +665,17 @@ stat_btn_frame.pack(side="right")
 
 stats_btn = tk.Button(
     stat_btn_frame, text="📈 통계", command=open_statistics,
-    font=("맑은 고딕", 9, "bold"), bg="#475569", fg="white", activeforeground="white",
+    font=("맑은 고딕", 9, "bold"), bg="#0D9488", fg="white", activeforeground="white",
     activebackground="#334155", relief="flat", bd=0, cursor="hand2", padx=10, pady=4
 )
 stats_btn.pack(side="left", padx=3)
 
 excel_button = tk.Button(
     stat_btn_frame, text="📄 Excel 저장", command=excel_export, # command=excel_export: lambda를 쓸 필요가 없는 이유는 매개변수를 전달하지 않는 함수이기 때문
-    font=("맑은 고딕", 9, "bold"), bg="#0D9488", fg="white", 
-    relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
-)
-excel_button.pack(side="left", padx=3)
-
-csv_button = tk.Button(
-    stat_btn_frame, text="📄 CSV 저장", command=csv_export_file, # command=csv_export: lambda를 쓸 필요가 없는 이유는 매개변수를 전달하지 않는 함수이기 때문
     font=("맑은 고딕", 9, "bold"), bg="#4D7C0F", fg="white", 
     relief="flat", bd=0, cursor="hand2", padx=10, pady=4 
 )
-csv_button.pack(side="left", padx=3)
+excel_button.pack(side="left", padx=3)
 
 # side: 위젯을 어느 방향으로 배치할지 (side는 pack()에서만 사용하는 옵션)
 # anchor: 배치된 공간 안에서 위젯(또는 내용)을 어느 쪽에 붙일지

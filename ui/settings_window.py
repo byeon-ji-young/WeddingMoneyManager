@@ -3,12 +3,15 @@ from tkinter import ttk, messagebox
 
 from ui.category_window import CategoryWindow
 from .budget_dialog import BudgetDialog
+from utils.csv_export import csv_export_file
+from utils.database_backup import backup_database, restore_database
 
 class SettingsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의미. tk.Toplevel은 새로운 별도 창. 즉, Tkinter의 새 창 기능을 물려받아서 새로운 창을 만드는 클래스
     # 파이썬 규칙상, 클래스 안에서 만드는 함수(메서드)는 첫 번째 인자로 무조건 self를 받도록 약속되어 있음!
     def __init__(self, parent, callback=None): # callback=None: callback이라는 값을 하나 받겠다는 뜻
         super().__init__(parent) # 부모 창(main.py의 window) 위에 뜨는 자식 창(Toplevel)으로 지정
 
+        self.parent = parent
         self.callback = callback
 
         self.title("설정")
@@ -192,7 +195,7 @@ class SettingsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의미
 
         csv_button = ttk.Button(
             data_frame,
-            text="CSV 내보내기",
+            text="CSV 저장",
             command=self.export_csv
         )
 
@@ -234,26 +237,15 @@ class SettingsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의미
     def open_category(self):
         CategoryWindow(self)
 
-    # 데이터 관리 - CSV 내보내기
+    # 데이터 관리 - CSV 저장
     def export_csv(self):
-        messagebox.showinfo(
-            "CSV",
-            "CSV 내보내기 기능 준비 중입니다.",
-            parent=self
-        )
+        csv_export_file()
 
     # 데이터 관리 - DB 백업
     def backup_db(self):
-        messagebox.showinfo(
-            "Backup",
-            "DB 백업 기능 준비 중입니다.",
-            parent=self
-        )
+        backup_database()
 
     # 데이터 관리 - DB 복원
     def restore_db(self):
-        messagebox.showinfo(
-            "Restore",
-            "DB 복원 기능 준비 중입니다.",
-            parent=self
-        )
+        # messagebox.showinfo("Restore", "DB 복원 기능 준비 중입니다.", parent=self)
+        restore_database(self, self.parent)

@@ -28,7 +28,7 @@ def backup_database():
     messagebox.showinfo("완료", "데이터 백업이 완료되었습니다.")
 
 # 데이터 복원
-def restore_database(window):
+def restore_database(window, main_window):
     if not DATABASE_FILE.exists():
         messagebox.showerror("오류", "현재 데이터베이스가 없습니다.")
         return
@@ -66,6 +66,7 @@ def restore_database(window):
     messagebox.showinfo("완료", "데이터 복원이 완료되었습니다.\n프로그램을 다시 실행해주세요.")
 
     window.destroy()
+    main_window.destroy()
 
 # shutil.copy() : 파일 복사
 # shutil.move() : 파일 이동
