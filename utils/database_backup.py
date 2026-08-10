@@ -1,4 +1,6 @@
 import shutil # 파일이나 폴더를 복사, 이동, 삭제하는 기능 제공
+import sqlite3
+
 from pathlib import Path
 from datetime import datetime
 from tkinter import filedialog
@@ -27,6 +29,41 @@ def backup_database():
 
     messagebox.showinfo("완료", "데이터 백업이 완료되었습니다.")
 
+# 데이터 검증
+def is_valid_database(db_path):
+    """ WeddingMoneyManager에서 사용하는 SQLite 데이터베이스인지 확인한다. """
+
+    try:
+        conn = sqlite3.connect(db_path) # db_path에 있는 SQLite 데이터베이스에 연결
+        cursor = conn.cursor()
+        # conn = 데이터베이스와 연결된 통로
+        # cursor = 그 통로를 통해 SQL을 실행하는 도구
+
+        # 필요한 테이블 목록
+        required_tables = {
+            "expenses",
+            "settings",
+            "categories"
+        } # set 타입이라 순서는 상관 없음
+
+        cursor.execute("""
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'table'
+        """) # SQLite의 구조 정보를 조회해서 테이블 타입의 이름만 가져와라. 조회 시 [("expenses",), ("settings",), ("categories",)] 처럼 나옴
+
+        existing_tables = {
+            row[0] # row[0]: SQL 결과가 (테이블이름,) 형태의 튜플이기 때문에 사용
+            for row in cursor.fetchall()
+        }
+
+        conn.close()
+
+        return required_tables.issubset(existing_tables) # A.issubset(B): A의 모든 항목이 B 안에 들어있는지 확인하는 것. 즉, 필요한 테이블(required_tables)이 실제 존재하는 테이블(existing_tables) 안에 전부 들어있는지 체크
+
+    except sqlite3.Error:
+        return False
+
 # 데이터 복원
 def restore_database(window, main_window):
     if not DATABASE_FILE.exists():
@@ -41,6 +78,14 @@ def restore_database(window, main_window):
     )
 
     if not restore_file:
+        return
+
+    if not is_valid_database(restore_file):
+        messagebox.showerror(
+            "복원 실패",
+            "선택한 파일은 WeddingMoneyManager에서\n사용할 수 있는 데이터베이스가 아닙니다."
+        )
+
         return
 
     confirm = messagebox.askyesno(
