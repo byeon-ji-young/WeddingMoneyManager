@@ -831,7 +831,7 @@ Tkinter와 같이 여러 그래프를 관리하는 환경에서는 Axes 객체�
 - export_excel() → Excel Report 생성
 - database/ → SQLite 데이터 관리
 
-※ 실제 구현 내용은 프로젝트 소스 코드(main.py, database.py) 참고
+※ 실제 구현 내용은 프로젝트 소스 코드(main.py 및 database/, ui/, utils/, excel/ 패키지 참고)
 
 ---
 
@@ -1233,7 +1233,7 @@ SQLite Database
         ↓
    sqlite3 모듈
         ↓
- database.py
+ database/
         ↓
    main.py
 ```
@@ -1395,10 +1395,15 @@ main.py
 
 ```text
 main.py
- |
- └── database.py
+   |
+   └── database/
           |
-          └── SQLite
+          ├── connection.py
+          ├── expense.py
+          ├── settings.py
+          └── category.py
+                  |
+                  └── SQLite
 ```
 
 역할 분리:
@@ -1409,7 +1414,7 @@ main.py
 * 사용자 입력 처리
 * 화면 갱신
 
-## database.py
+## database/
 
 * 데이터 추가
 * 데이터 조회
@@ -1469,65 +1474,190 @@ Migration을 별도의 파일로 분리하여 기존 데이터 보존과 테스�
 
 # 25. 프로젝트 구조 개선
 
-SQLite 적용 및 기능 확장 이후 WeddingMoneyManager 프로젝트는 기능별 역할을 분리하는 구조로 개선하였다.
+SQLite 적용 이후 기능이 계속 추가되면서 하나의 파일에 여러 역할이 섞이는 문제를 해결하기 위해 프로젝트를 기능별 패키지로 분리하였다.
 
-### 프로젝트 구조 설명
+기존에는 데이터베이스 처리, UI, 부가 기능 등이 하나의 파일에 집중되어 있었지만, 현재는 각 기능의 역할에 따라 패키지를 분리하였다.
 
-- **main.py**
-  - 프로그램 실행 및 메인 화면(UI) 관리
+```text
+WeddingMoneyManager
+│
+├── main.py
+│
+├── database/
+│   ├── connection.py
+│   ├── init_db.py
+│   ├── expense.py
+│   ├── settings.py
+│   └── category.py
+│
+├── ui/
+│   ├── expense_dialog.py
+│   ├── statistics_window.py
+│   ├── category_window.py
+│   ├── settings_window.py
+│   └── budget_dialog.py
+│
+├── utils/
+│   ├── csv_export.py
+│   └── database_backup.py
+│
+└── excel/
+    ├── excel_export.py
+    ├── chart.py
+    ├── detail.py
+    ├── summary.py
+    └── style.py
+```
 
-- **database/**
-  - SQLite 데이터베이스 관련 모듈
-  - `connection.py` : 데이터베이스 연결 관리
-  - `init_db.py` : 데이터베이스 및 테이블 초기 생성
-  - `expense.py` : 지출 내역 CRUD
-  - `settings.py` : 예산 설정 관리
-  - `category.py` : 카테고리 조회·추가·수정·삭제
+## 역할 분리
 
-- **ui/**
-  - Tkinter 화면(UI) 관련 모듈
-  - `expense_dialog.py` : 지출 등록 및 수정 창
-  - `statistics_window.py` : 통계 및 그래프 화면
-  - `category_window.py` : 카테고리 관리 화면
+### main.py
 
-- **utils/**
-  - 부가 기능 모듈
-  - `csv_export.py` : CSV 내보내기
-  - `database_backup.py` : DB 백업 및 복원
+프로그램의 시작점이며 메인 Dashboard와 사용자 이벤트를 관리한다.
 
-- **excel/**
-  - Excel 리포트 생성 모듈
-  - `excel_export.py` : Excel 생성 흐름 관리
-  - `detail.py` : 지출 내역 시트 생성
-  - `summary.py` : 요약(Dashboard) 시트 생성
-  - `chart.py` : 차트 생성
-  - `style.py` : 셀 스타일 관리
+주요 역할:
 
-- **resources/**
-  - `wedding.db` : 배포용 초기 SQLite 템플릿 DB
+* 프로그램 실행
+* 메인 화면 구성
+* 지출 목록 표시
+* 검색 및 필터
+* Dashboard 갱신
+* 각 기능 창 호출
+* Callback을 통한 화면 갱신
 
-- **images/**
-  - README 문서에 사용하는 이미지
+---
 
-- **archive/**
-  - 개발 과정에서 보관한 이전 버전 소스 및 데이터
+### database/
 
-- **migrate_json_to_sqlite.py**
-  - JSON 데이터를 SQLite로 이전하는 마이그레이션 스크립트
+SQLite 데이터베이스와 직접 통신하는 계층이다.
 
-- **WeddingMoneyManager.spec**
-  - PyInstaller 빌드 설정 파일
+```text
+database/
+├── connection.py
+├── init_db.py
+├── expense.py
+├── settings.py
+└── category.py
+```
 
-- **icon.ico**
-  - 프로그램 아이콘
+#### connection.py
 
-- **README.md**
-  - 프로젝트 소개 및 사용 방법
+데이터베이스 연결을 관리한다.
 
-- **study.md**
-  - 개발 과정 및 학습 내용 정리
+```python
+def get_connection():
+    return sqlite3.connect(DB_PATH)
+```
 
-저장 방식과 화면 로직을 분리하면서 프로젝트가 단순한 GUI 프로그램에서 확장 가능한 애플리케이션 구조로 개선되었다.
+#### init_db.py
+
+프로그램에서 사용하는 테이블을 초기 생성한다.
+
+#### expense.py
+
+지출 데이터 CRUD를 담당한다.
+
+* 지출 추가
+* 지출 조회
+* 지출 수정
+* 지출 삭제
+
+#### settings.py
+
+프로그램 설정값을 관리한다.
+
+현재는 예산을 `settings` 테이블에 저장한다.
+
+```text
+key      value
+----------------
+budget   30000000
+```
+
+#### category.py
+
+카테고리 Master Data를 관리한다.
+
+* 카테고리 조회
+* 카테고리 추가
+* 카테고리 수정
+* 카테고리 삭제
+* 중복 카테고리 검사
+* 사용 중인 카테고리 삭제 방지
+
+---
+
+### ui/
+
+Tkinter 기반 화면을 관리한다.
+
+#### expense_dialog.py
+
+지출 등록 및 수정 창
+
+#### statistics_window.py
+
+통계 및 그래프 화면
+
+#### category_window.py
+
+카테고리 관리 화면
+
+#### settings_window.py
+
+프로그램 설정 화면
+
+* 예산 관리
+* 카테고리 관리
+* CSV Export
+* Database Backup
+* Database Restore
+
+#### budget_dialog.py
+
+예산 입력 기능을 별도의 팝업으로 분리하였다.
+
+---
+
+### utils/
+
+프로그램의 부가 기능을 담당한다.
+
+#### csv_export.py
+
+지출 데이터를 CSV 파일로 내보낸다.
+
+#### database_backup.py
+
+SQLite Database의 Backup / Restore를 담당한다.
+
+---
+
+### excel/
+
+Excel Report 생성을 담당한다.
+
+* `excel_export.py` → Excel 생성 흐름
+* `detail.py` → 지출 상세 내역
+* `summary.py` → 요약 Dashboard
+* `chart.py` → 차트
+* `style.py` → 셀 스타일
+
+---
+
+## 패키지 분리의 장점
+
+기능별로 파일을 분리하면서 다음과 같은 장점이 생겼다.
+
+* 코드 가독성 향상
+* 유지보수성 향상
+* 기능별 테스트 용이
+* 새로운 기능 추가 시 수정 범위 감소
+* UI와 데이터 처리 로직 분리
+* 향후 기능 확장에 유리
+
+특히 SQLite 관련 코드를 `database/`로 분리함으로써 UI 코드에서 SQL Query를 직접 처리하지 않도록 구조를 개선하였다.
+
 
 ---
 
@@ -1666,3 +1796,381 @@ ExpenseDialog
 database.category.get_category_list()
 ↓
 SQLite
+
+---
+
+# 29. Settings Window와 Callback 구조
+
+설정 창에서 변경한 예산을 메인 Dashboard에 즉시 반영하기 위해 Callback 구조를 적용하였다.
+
+## 문제
+
+예산을 `BudgetDialog`에서 변경하고 Database에 저장하는 것까지는 가능하지만, 이미 열려 있는 `main.py`의 Dashboard 화면은 자동으로 변경되지 않는다.
+
+따라서 예산 변경이 완료되었을 때 메인 화면에 변경 사실을 전달할 필요가 있다.
+
+---
+
+## Callback 구조
+
+전체적인 흐름은 다음과 같다.
+
+```text
+main.py
+   │
+   │ callback 전달
+   ▼
+SettingsWindow
+   │
+   │ callback 전달
+   ▼
+BudgetDialog
+   │
+   │ 예산 저장 완료
+   ▼
+callback 실행
+   │
+   ▼
+main.py의 update_budget()
+   │
+   ▼
+Dashboard 갱신
+```
+
+main.py에서 Callback을 전달한다.
+
+```python
+SettingsWindow(
+    window,
+    callback=update_budget
+)
+```
+
+SettingsWindow에서는 전달받은 Callback을 저장한다.
+
+```python
+def __init__(self, parent, callback=None):
+    super().__init__(parent)
+
+    self.callback = callback
+```
+
+BudgetDialog를 열 때 Callback을 다시 전달한다.
+
+```python
+BudgetDialog(
+    self,
+    callback=self.callback
+)
+```
+
+예산 저장이 완료되면 Callback을 실행한다.
+
+```python
+if self.callback:
+    self.callback()
+```
+
+이를 통해 하위 팝업에서 변경된 데이터를 메인 화면에 전달할 수 있다.
+
+---
+
+# 30. Tkinter 부모-자식 Window 구조
+
+WeddingMoneyManager에서는 여러 개의 팝업 Window를 사용한다.
+
+```text
+main.py
+  │
+  └── SettingsWindow
+          │
+          └── BudgetDialog
+```
+
+`Toplevel`을 사용하면 기존 메인 Window 위에 별도의 창을 생성할 수 있다.
+
+```python
+class SettingsWindow(tk.Toplevel):
+
+    def __init__(self, parent, callback=None):
+        super().__init__(parent)
+```
+
+여기서 `parent`는 해당 팝업을 생성한 부모 Window이다.
+
+---
+
+## Modal Window
+
+Settings Window에서는 메인 화면과 동시에 조작할 수 없도록 Modal 형태로 구성하였다.
+
+```python
+self.transient(parent)
+self.grab_set()
+```
+
+`grab_set()`을 사용하면 사용자가 설정 창을 닫기 전까지 다른 Window의 입력을 제한할 수 있다.
+
+이를 통해 설정 작업 중 실수로 메인 화면의 버튼을 클릭하는 문제를 방지하였다.
+
+---
+
+# 31. Master Data 관리
+
+카테고리와 같이 프로그램에서 반복적으로 사용되는 기준 데이터를 Master Data로 관리할 수 있다.
+
+기존에는 카테고리를 코드에 직접 작성하였다.
+
+```python
+values=[
+    "예식",
+    "가전",
+    "가구",
+    "신혼여행"
+]
+```
+
+이 방식은 카테고리를 변경하려면 프로그램 소스 코드를 수정해야 한다는 문제가 있다.
+
+이를 해결하기 위해 `categories` 테이블을 생성하였다.
+
+```text
+categories
+│
+├── id
+└── name
+```
+
+현재 구조:
+
+```text
+CategoryWindow
+       ↓
+database/category.py
+       ↓
+SQLite categories
+       ↓
+ExpenseDialog
+```
+
+따라서 사용자가 프로그램에서 직접 카테고리를 추가하거나 수정할 수 있다.
+
+---
+
+## Master Data의 장점
+
+* 프로그램 수정 없이 데이터 변경 가능
+* 중복 데이터 방지
+* 기준 데이터 중앙 관리
+* 다른 기능에서 동일한 데이터 재사용 가능
+
+WeddingMoneyManager에서는 카테고리를 첫 번째 Master Data로 적용하였다.
+
+---
+
+# 32. Database Backup
+
+SQLite는 하나의 `.db` 파일로 데이터를 저장하기 때문에 파일 자체를 복사하여 백업할 수 있다.
+
+Python의 `shutil.copy()`를 사용하였다.
+
+```python
+shutil.copy(
+    DATABASE_FILE,
+    save_path
+)
+```
+
+전체적인 흐름:
+
+```text
+wedding.db
+    │
+    ▼
+사용자가 저장 위치 선택
+    │
+    ▼
+backup_database()
+    │
+    ▼
+백업용 .db 파일 생성
+```
+
+사용자가 원하는 위치를 직접 선택할 수 있도록 `filedialog.asksaveasfilename()`을 사용하였다.
+
+---
+
+# 33. Database Restore
+
+Database Restore는 사용자가 선택한 Backup Database를 현재 사용하는 Database로 교체하는 기능이다.
+
+기본적인 흐름:
+
+```text
+Backup DB 선택
+      ↓
+파일 검증
+      ↓
+복원 확인
+      ↓
+현재 DB 백업
+      ↓
+Backup DB → 현재 DB
+      ↓
+프로그램 재실행
+```
+
+복원 전에 현재 DB를 자동으로 백업하여 데이터 손실 가능성을 줄였다.
+
+```python
+shutil.copy(
+    DATABASE_FILE,
+    backup_before_restore
+)
+```
+
+---
+
+# 34. Database Restore 파일 검증
+
+단순히 `.db` 확장자를 가진 파일이라고 해서 정상적인 WeddingMoneyManager Database라고 볼 수 없다.
+
+예를 들어:
+
+```text
+broken.db
+```
+
+처럼 실제 SQLite Database가 아닌 파일도 `.db` 확장자를 가질 수 있다.
+
+따라서 Restore 전에 Database의 유효성을 검증하도록 개선하였다.
+
+검증 과정:
+
+```text
+사용자가 .db 파일 선택
+        ↓
+SQLite Database인지 확인
+        ↓
+필수 Table 존재 여부 확인
+        ↓
+WeddingMoneyManager Database인지 확인
+        ↓
+정상인 경우 Restore
+```
+
+검증 대상에는 프로그램에서 사용하는 주요 Table이 포함된다.
+
+```text
+expenses
+settings
+categories
+```
+
+이를 통해 잘못된 Database를 현재 사용자 Database에 덮어쓰는 문제를 방지하였다.
+
+---
+
+## 잘못된 Database 처리
+
+정상적인 SQLite Database가 아닌 경우:
+
+```text
+선택한 파일은 WeddingMoneyManager에서
+사용할 수 있는 데이터베이스가 아닙니다.
+```
+
+와 같은 안내를 표시하고 Restore를 중단한다.
+
+이를 통해 다음과 같은 상황을 방지할 수 있다.
+
+* 잘못된 `.db` 파일 선택
+* SQLite가 아닌 파일 선택
+* 다른 프로그램의 SQLite Database 선택
+* 필수 Table이 없는 Database 선택
+
+---
+
+# 35. CSV Export
+
+지출 데이터를 다른 프로그램에서도 사용할 수 있도록 CSV Export 기능을 추가하였다.
+
+```text
+SQLite
+  ↓
+get_all_expenses()
+  ↓
+csv.writer
+  ↓
+CSV File
+```
+
+한글 데이터를 Excel에서 열었을 때 깨지는 문제를 방지하기 위해 `utf-8-sig` 인코딩을 사용하였다.
+
+```python
+with open(
+    file_path,
+    "w",
+    encoding="utf-8-sig",
+    newline=""
+) as file:
+```
+
+이를 통해 Windows 환경에서 Excel로 CSV 파일을 열 때 한글이 정상적으로 표시되도록 처리하였다.
+
+---
+
+# 36. Resource Database와 사용자 Database 분리
+
+PyInstaller로 프로그램을 배포하면서 초기 Database와 사용자가 실제로 사용하는 Database를 분리하였다.
+
+배포에 포함되는 Database:
+
+```text
+resources/
+└── wedding.db
+```
+
+이 파일은 테이블 구조와 기본 설정을 제공하기 위한 **초기 템플릿 Database**이다.
+
+프로그램 최초 실행 시 이 템플릿을 기반으로 사용자 Database를 생성한다.
+
+```text
+배포용 초기 DB
+resources/wedding.db
+        ↓
+최초 실행
+        ↓
+사용자 DB 생성
+        ↓
+사용자 데이터 저장
+```
+
+이렇게 분리하면 프로그램 업데이트나 재배포 시 배포용 초기 Database와 사용자의 실제 데이터를 구분할 수 있다.
+
+---
+
+# 37. PyInstaller와 Resource Path
+
+Python으로 실행할 때와 PyInstaller로 빌드한 exe로 실행할 때 파일 경로가 달라질 수 있다.
+
+따라서 실행 환경을 고려하여 Resource 경로와 사용자 Database 경로를 구분하였다.
+
+개발 환경:
+
+```text
+프로젝트/
+└── resources/
+    └── wedding.db
+```
+
+PyInstaller 실행 환경에서는 포함된 리소스가 `_internal` 영역에 위치할 수 있다.
+
+```text
+WeddingMoneyManager/
+├── WeddingMoneyManager.exe
+└── _internal/
+    └── wedding.db
+```
+
+따라서 초기 템플릿 Database와 실제 사용자 Database의 위치를 분리하여 관리하는 것이 중요하다.
