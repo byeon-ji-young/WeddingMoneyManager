@@ -23,6 +23,9 @@ class SettingsWindow(tk.Toplevel): # 괄호 안은 상속(inheritance)을 의미
         self.setup_styles()
         self.create_widgets()
 
+        self.grab_set() # grab_set(): Tkinter에서 현재 창이 마우스/키보드 입력을 독점하도록 만드는 것. 즉, 설정창이 떠 있는 동안 다른 창 클릭 방지하기 위해 추가함
+        self.focus_set() # focus_set(): 설정창에 키보드 포커스
+
     # ttk 스타일 설정
     def setup_styles(self):
         self.style = ttk.Style(self)
